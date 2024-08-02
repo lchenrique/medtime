@@ -1,0 +1,24 @@
+{
+	"Create RN Component": {
+    "scope": "javascript,typescript",
+    "prefix": "nativec",
+    "body": [
+      "export interface $1Props {",
+      "  name: string;",
+      "  description: string;",
+      "  onPress: () => void;",
+      "}",
+      "",
+      "const $1 = ({}: $1Props) => {",
+      "  return (",
+      "    <>",
+      "      RN COMPONENT",
+      "    </>",
+      "  );",
+      "};",
+      "",
+      "export default $1;"
+    ],
+    "description": "RN component"
+  }
+}

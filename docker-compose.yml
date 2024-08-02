@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+   app:
+      build:
+         context: .
+         dockerfile: Dockerfile
+      ports:
+         - '8081:8081' # Porta do servidor Expo
+      volumes:
+         - .:/app # Mapeia o diretório do projeto para o contêiner
+      # environment:
+      #    - NVM_DIR=/root/.nvm
+      #    - JAVA_HOME=/usr/lib64/jvm/java-11-openjdk
+      #    - PATH=$PATH:/root/.nvm/versions/node/$(node
+      #      -v)/bin:/usr/lib64/jvm/java-11-openjdk/bin
+      command:
+         ["npm", "start"]
