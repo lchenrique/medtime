@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos base mobile-first */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply text-gray-900 antialiased;
+}
+
+/* Remover highlight azul em mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ajustes para inputs em iOS */
+input, 
+textarea {
+  @apply appearance-none;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Azul médico profissional */
+    --primary: 201 100% 36%;
+    --primary-foreground: 210 40% 98%;
+    
+    /* Azul suave para elementos secundários */
+    --secondary: 199 69% 84%;
+    --secondary-foreground: 201 100% 36%;
+    
+    /* Cinza neutro para elementos desabilitados */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    /* Azul claro para elementos de destaque */
+    --accent: 262 83% 15%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* Vermelho para alertas e erros */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Bordas e inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 201 100% 36%;
+    
+    /* Gráficos e dados */
+    --chart-1: 201 100% 36%;
+    --chart-2: 199 69% 84%;
+    --chart-3: 187 75% 64%;
+    --chart-4: 199 95% 74%;
+    --chart-5: 194 85% 54%;
+    
+    --radius: 0.8rem;
+  }
+ 
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+ 
+    /* Azul mais vibrante no dark mode */
+    --primary: 199 95% 74%;
+    --primary-foreground: 222 47% 11%;
+ 
+    /* Azul escuro para elementos secundários */
+    --secondary: 201 100% 36%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    /* Cinza escuro para elementos desabilitados */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    /* Azul escuro para elementos de destaque */
+    --accent: 201 100% 36%;
+    --accent-foreground: 210 40% 98%;
+ 
+    /* Vermelho mais suave no dark mode */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    /* Bordas e inputs mais escuros */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 95% 74%;
+
+    /* Gráficos e dados - versão dark */
+    --chart-1: 199 95% 74%;
+    --chart-2: 201 100% 36%;
+    --chart-3: 194 85% 54%;
+    --chart-4: 187 75% 64%;
+    --chart-5: 199 69% 84%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} 
+
+
+* {
+    --sb-track-color: #f7f7f7;
+    --sb-thumb-color: #e3d4ff;
+    --sb-size: 7px;
+  }
+  
+  *::-webkit-scrollbar {
+    width: var(--sb-size)
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: var(--sb-track-color);
+    border-radius: 7px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: var(--sb-thumb-color);
+    border-radius: 7px;
+    
+  }
+  
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-color: var(--sb-thumb-color)
+                       var(--sb-track-color);
+    }
+  }

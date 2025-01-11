@@ -1,0 +1,41 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "productName": "MedTime",
+  "version": "0.1.0",
+  "identifier": "com.medtime.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "MedTime",
+        "width": 1024,
+        "height": 768,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "center": true,
+        "theme": "Dark",
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": ["'self'", "http://127.0.0.1:3333", "https://www.gstatic.com"],
+        "connect-src": ["'self'", "http://127.0.0.1:3333", "ws://127.0.0.1:3333", "ipc:*"],
+        "img-src": ["'self'", "data:", "https:"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "script-src": ["'self'", "'unsafe-eval'", "'unsafe-inline'", "https://www.gstatic.com"]
+      }
+    }
+  },
+  "plugins": {
+    "notification": null
+  }
+}

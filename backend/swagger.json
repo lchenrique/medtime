@@ -1,0 +1,1989 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "MedTime API",
+    "description": "API do sistema MedTime para gestão de medicamentos e lembretes",
+    "version": "1.0.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token de autenticação"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ],
+        "description": "Autentica um usuário usando email e senha.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "fcmToken": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "whatsappEnabled": {
+                          "type": "boolean"
+                        },
+                        "whatsappNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "telegramEnabled": {
+                          "type": "boolean"
+                        },
+                        "telegramChatId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "timezone": {
+                          "type": "string"
+                        },
+                        "tauriEnabled": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "fcmToken",
+                        "whatsappEnabled",
+                        "whatsappNumber",
+                        "telegramEnabled",
+                        "telegramChatId",
+                        "timezone",
+                        "tauriEnabled",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "user"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Registro",
+        "tags": [
+          "auth"
+        ],
+        "description": "Registra um novo usuário.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "user"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "description": "Obtém o perfil do usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "fcmToken": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "tauriEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappNumber": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "telegramEnabled": {
+                      "type": "boolean"
+                    },
+                    "telegramChatId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email",
+                    "name",
+                    "fcmToken",
+                    "tauriEnabled",
+                    "whatsappEnabled",
+                    "whatsappNumber",
+                    "telegramEnabled",
+                    "telegramChatId",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "description": "Atualiza o perfil do usuário autenticado",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "fcmToken": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "tauriEnabled": {
+                    "type": "boolean"
+                  },
+                  "whatsappEnabled": {
+                    "type": "boolean"
+                  },
+                  "whatsappNumber": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "telegramEnabled": {
+                    "type": "boolean"
+                  },
+                  "telegramChatId": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "fcmToken": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "tauriEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappNumber": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "telegramEnabled": {
+                      "type": "boolean"
+                    },
+                    "telegramChatId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email",
+                    "name",
+                    "fcmToken",
+                    "tauriEnabled",
+                    "whatsappEnabled",
+                    "whatsappNumber",
+                    "telegramEnabled",
+                    "telegramChatId",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "auth"
+        ],
+        "description": "Atualiza o perfil do usuário autenticado",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "fcmToken": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "tauriEnabled": {
+                    "type": "boolean"
+                  },
+                  "whatsappEnabled": {
+                    "type": "boolean"
+                  },
+                  "whatsappNumber": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "telegramEnabled": {
+                    "type": "boolean"
+                  },
+                  "telegramChatId": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "fcmToken": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "tauriEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappEnabled": {
+                      "type": "boolean"
+                    },
+                    "whatsappNumber": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "telegramEnabled": {
+                      "type": "boolean"
+                    },
+                    "telegramChatId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email",
+                    "name",
+                    "fcmToken",
+                    "tauriEnabled",
+                    "whatsappEnabled",
+                    "whatsappNumber",
+                    "telegramEnabled",
+                    "telegramChatId",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/fcm-token": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "description": "Atualiza o token FCM do usuário",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fcmToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fcmToken"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/tauri-enabled": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "description": "Atualiza status do cliente Tauri",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medications": {
+      "get": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Lista todas as medicações do usuário",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "startDate": {
+                        "type": "string"
+                      },
+                      "interval": {
+                        "type": "number"
+                      },
+                      "duration": {
+                        "type": "number"
+                      },
+                      "totalQuantity": {
+                        "type": "number"
+                      },
+                      "remainingQuantity": {
+                        "type": "number"
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "dosageQuantity": {
+                        "type": "number"
+                      },
+                      "userId": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "updatedAt": {
+                        "type": "string"
+                      },
+                      "reminders": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "scheduledFor": {
+                              "type": "string"
+                            },
+                            "taken": {
+                              "type": "boolean"
+                            },
+                            "takenAt": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "skipped": {
+                              "type": "boolean"
+                            },
+                            "skippedReason": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            },
+                            "updatedAt": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "scheduledFor",
+                            "taken",
+                            "takenAt",
+                            "skipped",
+                            "skippedReason",
+                            "createdAt",
+                            "updatedAt"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "description",
+                      "startDate",
+                      "interval",
+                      "duration",
+                      "totalQuantity",
+                      "remainingQuantity",
+                      "unit",
+                      "dosageQuantity",
+                      "userId",
+                      "createdAt",
+                      "updatedAt",
+                      "reminders"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Cria uma nova medicação",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "intervalPreset": {
+                    "type": "string",
+                    "enum": [
+                      "6/6",
+                      "8/8",
+                      "12/12",
+                      "24/24"
+                    ]
+                  },
+                  "durationInDays": {
+                    "type": "integer",
+                    "exclusiveMinimum": true,
+                    "minimum": 0
+                  },
+                  "totalQuantity": {
+                    "type": "number",
+                    "exclusiveMinimum": true,
+                    "minimum": 0
+                  },
+                  "unit": {
+                    "type": "string"
+                  },
+                  "dosageQuantity": {
+                    "type": "number",
+                    "exclusiveMinimum": true,
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "name",
+                  "startTime",
+                  "intervalPreset",
+                  "durationInDays",
+                  "totalQuantity",
+                  "unit",
+                  "dosageQuantity"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "startDate": {
+                      "type": "string"
+                    },
+                    "interval": {
+                      "type": "number"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "totalQuantity": {
+                      "type": "number"
+                    },
+                    "remainingQuantity": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "dosageQuantity": {
+                      "type": "number"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "startDate",
+                    "interval",
+                    "duration",
+                    "totalQuantity",
+                    "remainingQuantity",
+                    "unit",
+                    "dosageQuantity",
+                    "userId",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medications/{id}": {
+      "get": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Obtém uma medicação específica",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 2
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "duration": {
+                      "type": "integer",
+                      "exclusiveMinimum": true,
+                      "minimum": 0
+                    },
+                    "interval": {
+                      "type": "number",
+                      "exclusiveMinimum": true,
+                      "minimum": 0
+                    },
+                    "totalQuantity": {
+                      "type": "number",
+                      "exclusiveMinimum": true,
+                      "minimum": 0
+                    },
+                    "remainingQuantity": {
+                      "type": "number",
+                      "exclusiveMinimum": true,
+                      "minimum": 0
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "comprimidos",
+                        "ml",
+                        "gotas",
+                        "doses"
+                      ]
+                    },
+                    "dosageQuantity": {
+                      "type": "number",
+                      "exclusiveMinimum": true,
+                      "minimum": 0
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "reminders": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "scheduledFor": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "taken": {
+                            "type": "boolean"
+                          },
+                          "takenAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "skipped": {
+                            "type": "boolean"
+                          },
+                          "skippedReason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "scheduledFor",
+                          "taken",
+                          "takenAt",
+                          "skipped",
+                          "skippedReason",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "startDate",
+                    "duration",
+                    "interval",
+                    "totalQuantity",
+                    "remainingQuantity",
+                    "unit",
+                    "dosageQuantity",
+                    "userId",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medications/mark-as-taken": {
+      "put": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Marca ou desmarca um lembrete como tomado",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reminderId": {
+                    "type": "string"
+                  },
+                  "taken": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "reminderId",
+                  "taken"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "scheduledFor": {
+                      "type": "string"
+                    },
+                    "taken": {
+                      "type": "boolean"
+                    },
+                    "takenAt": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "skipped": {
+                      "type": "boolean"
+                    },
+                    "skippedReason": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "scheduledFor",
+                    "taken",
+                    "takenAt",
+                    "skipped",
+                    "skippedReason",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medications/{medicationId}/stock": {
+      "patch": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Atualiza o estoque de um medicamento",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "remainingQuantity": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "remainingQuantity"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "medicationId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "remainingQuantity": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "remainingQuantity"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/sync": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Sincroniza notificações locais para cliente Tauri",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "in": "query",
+            "name": "lastSync",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "scheduledFor": {
+                        "type": "string"
+                      },
+                      "medication": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "dosageQuantity": {
+                            "type": "number"
+                          },
+                          "unit": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "dosageQuantity",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "scheduledFor",
+                      "medication"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/test": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Cria uma notificação de teste",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "seconds": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "default": 10
+                  },
+                  "title": {
+                    "type": "string",
+                    "default": "Teste de Notificação"
+                  },
+                  "body": {
+                    "type": "string",
+                    "default": "Esta é uma notificação de teste!"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "scheduledFor": {
+                      "type": "string"
+                    },
+                    "reminder": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "scheduledFor": {
+                          "type": "string"
+                        },
+                        "medication": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "dosageQuantity": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "dosageQuantity",
+                            "unit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "scheduledFor",
+                        "medication"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "scheduledFor",
+                    "reminder"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reminders/{medicationId}/reminders": {
+      "post": {
+        "tags": [
+          "reminders"
+        ],
+        "description": "Cria um novo lembrete para uma medicação",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "time": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "enum": [
+                      "6/6",
+                      "8/8",
+                      "12/12",
+                      "24/24"
+                    ]
+                  },
+                  "daysOfWeek": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 1,
+                      "maximum": 7
+                    }
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "time",
+                  "frequency",
+                  "daysOfWeek",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "medicationId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "medicationId": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "frequency": {
+                      "type": "string",
+                      "enum": [
+                        "6/6",
+                        "8/8",
+                        "12/12",
+                        "24/24"
+                      ]
+                    },
+                    "daysOfWeek": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 7
+                      }
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "lastTriggered": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "medicationId",
+                    "time",
+                    "frequency",
+                    "daysOfWeek",
+                    "active",
+                    "lastTriggered",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

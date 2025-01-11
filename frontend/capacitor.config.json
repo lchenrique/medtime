@@ -1,0 +1,24 @@
+{
+  "appId": "com.medtime.app",
+  "appName": "MedTime",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "url": "http://localhost:5173",
+    "cleartext": true
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#7C3AED",
+      "sound": "beep.wav"
+    }
+  }
+}
