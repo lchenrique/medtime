@@ -1,9 +1,11 @@
 import { useLocation, Outlet } from 'react-router-dom'
 import { MedTimeIcon } from '@/components/icons/MedTimeIcon'
+import { TitleBar } from '../TitleBar'
 
 export function AuthLayout() {
   return (
     <div className="min-h-screen flex flex-col  overflow-hidden relative">
+       
       {/* Elementos decorativos modernos */}
       <div className="absolute inset-0 pointer-events-none ">
         <div className="absolute w-[800px] h-[800px] -top-[400px] -right-[200px] rounded-full bg-primary/5" />

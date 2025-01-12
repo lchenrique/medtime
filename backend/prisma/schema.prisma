@@ -59,6 +59,7 @@ model Reminder {
   takenAt        DateTime?  // Quando foi tomado
   skipped        Boolean    @default(false)
   skippedReason  String?    // Razão por ter pulado
+  notified       Boolean    @default(false) // Indica se a notificação foi enviada
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 

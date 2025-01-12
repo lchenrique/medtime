@@ -28,7 +28,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
       time: new Date(medicationData.startDate).toLocaleTimeString('pt-BR', { 
         hour: '2-digit', 
         minute: '2-digit',
-        timeZone: 'UTC'
+        timeZone: 'America/Sao_Paulo'
       }),
       instructions: medicationData.description || '',
       status: 'pending' as const,
@@ -38,7 +38,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
         time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
           minute: '2-digit',
-          timeZone: 'UTC'
+          timeZone: 'America/Sao_Paulo'
         })
       })) || []
     } satisfies Medication
@@ -63,18 +63,16 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
 
   // Verifica se pode tomar o medicamento (não é horário futuro)
   const canTakeMedication = (scheduledFor: string) => {
-    const utcDate = new Date(scheduledFor)
-    const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-    return localDate <= new Date()
+    const scheduledDate = new Date(scheduledFor)
+    return scheduledDate <= new Date()
   }
 
   // Separa os lembretes em passados e futuros
   const now = new Date()
   const pastReminders = med.reminders
     .filter(r => {
-      const utcDate = new Date(r.scheduledFor)
-      const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-      return localDate < now
+      const reminderDate = new Date(r.scheduledFor)
+      return reminderDate < now
     })
     .sort((a, b) => {
       const dateA = new Date(a.scheduledFor)
@@ -115,14 +113,11 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-2xl font-bold text-primary">
-                {(() => {
-                  const utcDate = new Date(nextReminder.scheduledFor)
-                  const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-                  return localDate.toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                })()}
+                {new Date(nextReminder.scheduledFor).toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'America/Sao_Paulo'
+                })}
               </span>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-lg">
@@ -259,13 +254,8 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
             </p>
           ) : (
             pastReminders.map(reminder => {
-              // Converte para horário local
-              const scheduledUtc = new Date(reminder.scheduledFor)
-              const scheduledLocal = new Date(scheduledUtc.getTime() - scheduledUtc.getTimezoneOffset() * 60000)
-              
-              // Se tiver horário de tomada, converte também
-              const takenUtc = reminder.takenAt ? new Date(reminder.takenAt) : null
-              const takenLocal = takenUtc ? new Date(takenUtc.getTime() - takenUtc.getTimezoneOffset() * 60000) : null
+              const scheduledDate = new Date(reminder.scheduledFor)
+              const takenDate = reminder.takenAt ? new Date(reminder.takenAt) : null
 
               return (
                 <div 
@@ -279,13 +269,16 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
                     )} />
                     <div>
                       <p className="font-medium">
-                        {scheduledLocal.toLocaleTimeString('pt-BR', {
+                        {scheduledDate.toLocaleTimeString('pt-BR', {
                           hour: '2-digit',
-                          minute: '2-digit'
+                          minute: '2-digit',
+                          timeZone: 'America/Sao_Paulo'
                         })}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {scheduledLocal.toLocaleDateString('pt-BR')}
+                        {scheduledDate.toLocaleDateString('pt-BR', {
+                          timeZone: 'America/Sao_Paulo'
+                        })}
                       </p>
                     </div>
                   </div>
@@ -295,9 +288,10 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
                       <div className="text-right">
                         <p className="text-green-500">Tomado</p>
                         <p className="text-muted-foreground">
-                          às {takenLocal!.toLocaleTimeString('pt-BR', {
+                          às {takenDate!.toLocaleTimeString('pt-BR', {
                             hour: '2-digit',
-                            minute: '2-digit'
+                            minute: '2-digit',
+                            timeZone: 'America/Sao_Paulo'
                           })}
                         </p>
                       </div>

@@ -7,20 +7,11 @@ export function NotificationManager() {
   const { user } = useUserStore()
 
   useEffect(() => {
-    if (!user?.tauriEnabled) return
-
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    // Inicializa o cliente Tauri
-    const client = TauriNotificationClient.getInstance()
-    client.initializeWithSync()
-
-    // Conecta ao WebSocket
-    wsService.connect(token)
-
-    return () => {
-      wsService.disconnect()
+    if (user?.tauriEnabled) {
+      const client = TauriNotificationClient.getInstance()
+      client.init()
+        .then(() => console.log('Notificações Tauri inicializadas'))
+        .catch(err => console.error('Erro ao inicializar notificações:', err))
     }
   }, [user?.tauriEnabled])
 

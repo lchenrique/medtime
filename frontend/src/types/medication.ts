@@ -5,11 +5,15 @@ export interface Medication {
   startDate: string
   duration: number
   interval: number
+  totalQuantity: number
+  remainingQuantity: number
+  unit: string
+  dosageQuantity: number
   dosage: string
   time: string
   instructions: string
-  status?: 'pending' | 'taken'
-  timeUntil?: string
+  status: 'pending' | 'taken' | 'late'
+  timeUntil: string
   reminders: {
     id: string
     scheduledFor: string
@@ -17,14 +21,6 @@ export interface Medication {
     takenAt: string | null
     skipped: boolean
     skippedReason: string | null
-    createdAt: string
-    updatedAt: string
+    time: string
   }[]
-  userId: string
-  createdAt: string
-  updatedAt: string
-  totalQuantity: number
-  remainingQuantity: number
-  unit: string
-  dosageQuantity: number
 } 

@@ -1,25 +1,45 @@
 import { Medication } from '@/types/medication'
 import { MedicationCard } from './MedicationCard'
-import { Card } from '../ui/card'
+import { Clock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface MedicationTimeGroupProps {
   time: string
   medications: Medication[]
   onMedicationClick: (medication: Medication) => void
+  isLateGroup?: boolean
 }
 
-export function MedicationTimeGroup({ time, medications, onMedicationClick }: MedicationTimeGroupProps) {
+export function MedicationTimeGroup({ time, medications, onMedicationClick, isLateGroup }: MedicationTimeGroupProps) {
   return (
-    <div className="relative pl-4">
-      {/* Indicador de tempo */}
-      <div className="absolute left-0 top-[1.125rem] w-2 h-2 rounded-full bg-primary" />
-      <div className="absolute left-[3px] top-[1.375rem] bottom-0 w-0.5 bg-border" />
-
-      {/* Horário */}
-      <div className="text-base font-medium mt-4 mb-2 pl-2">{time}</div>
+    <div>
+      {/* Cabeçalho do horário */}
+      <div className={cn(
+        "sticky top-0 flex items-center gap-2 py-2.5 px-4 z-10",
+        isLateGroup ? "bg-red-50" : "bg-violet-50"
+      )}>
+        <Clock className={cn(
+          "w-4 h-4 shrink-0",
+          isLateGroup ? "text-red-500" : "text-violet-500"
+        )} />
+        <span className={cn(
+          "text-sm font-medium",
+          isLateGroup ? "text-red-700" : "text-violet-700"
+        )}>{time}</span>
+        <div className={cn(
+          "w-px h-3.5 mx-2",
+          isLateGroup ? "bg-red-200" : "bg-violet-200"
+        )} />
+        <span className={cn(
+          "text-xs",
+          isLateGroup ? "text-red-500" : "text-violet-500"
+        )}>
+          {medications.length} {medications.length === 1 ? 'medicamento' : 'medicamentos'}
+        </span>
+      </div>
 
       {/* Lista de medicamentos */}
-      <Card className="overflow-hidden divide-y divide-border">
+      <div className="divide-y divide-violet-100">
         {medications.map((medication) => (
           <MedicationCard
             key={medication.id}
@@ -27,7 +47,7 @@ export function MedicationTimeGroup({ time, medications, onMedicationClick }: Me
             onClick={onMedicationClick}
           />
         ))}
-      </Card>
+      </div>
     </div>
   )
 } 

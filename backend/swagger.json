@@ -1646,84 +1646,12 @@
         }
       }
     },
-    "/notifications/sync": {
-      "get": {
-        "tags": [
-          "notifications"
-        ],
-        "description": "Sincroniza notificações locais para cliente Tauri",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "in": "query",
-            "name": "lastSync",
-            "required": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "scheduledFor": {
-                        "type": "string"
-                      },
-                      "medication": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "dosageQuantity": {
-                            "type": "number"
-                          },
-                          "unit": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "dosageQuantity",
-                          "unit"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "scheduledFor",
-                      "medication"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/notifications/test": {
       "post": {
         "tags": [
           "notifications"
         ],
-        "description": "Cria uma notificação de teste",
+        "description": "Rota de teste para enviar notificação",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1749,71 +1677,78 @@
             }
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "scheduledFor": {
-                      "type": "string"
-                    },
-                    "reminder": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "scheduledFor": {
-                          "type": "string"
-                        },
-                        "medication": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "dosageQuantity": {
-                              "type": "number"
-                            },
-                            "unit": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name",
-                            "dosageQuantity",
-                            "unit"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "scheduledFor",
-                        "medication"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "scheduledFor",
-                    "reminder"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/notifications/reset": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Reseta o banco de dados removendo todos os lembretes e medicamentos",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/notifications/ws": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Conexão WebSocket para notificações em tempo real",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "token",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/notifications/{reminderId}/notified": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Marca um lembrete como notificado",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "reminderId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }
@@ -1976,6 +1911,29 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/ws": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "description": "Conexão WebSocket para notificações em tempo real",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "token",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }

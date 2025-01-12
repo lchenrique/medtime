@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, Check, Loader2 } from "lucide-
 import { useState } from "react"
 import { Button } from "./ui/button"
 import { Medication } from "../types/medication"
-import { useGetMedicationsId, usePutMedicationsMarkAsTaken } from "@/api/generated/medications/medications"
+import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken } from "@/api/generated/medications/medications"
 import { useQueryClient } from "@tanstack/react-query"
 
 interface ScheduleDay {
@@ -15,6 +15,7 @@ interface ScheduleDay {
     time: string
     taken: boolean
     skipped: boolean
+    scheduledFor: string
   }[]
 }
 
@@ -41,6 +42,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}`] })
+        queryClient.invalidateQueries({ queryKey: getGetMedicationsQueryKey() })
         setLoadingSlots(prev => prev.filter(id => id !== reminderId))
       },
       onError: () => {
@@ -58,20 +60,18 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
     const days = new Map<string, ScheduleDay>()
     
     medicationData.reminders.forEach(reminder => {
-      // Converte para o horário local
-      const utcDate = new Date(reminder.scheduledFor)
-      const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-      const dateKey = format(localDate, 'yyyy-MM-dd')
+      const reminderDate = new Date(reminder.scheduledFor)
+      const dateKey = format(reminderDate, 'yyyy-MM-dd')
       
-      // Formata a hora local
-      const time = localDate.toLocaleTimeString('pt-BR', {
+      const time = reminderDate.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo'
       })
 
       if (!days.has(dateKey)) {
         days.set(dateKey, {
-          date: localDate,
+          date: reminderDate,
           slots: []
         })
       }
@@ -81,10 +81,19 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
         id: reminder.id,
         time,
         taken: reminder.taken,
-        skipped: reminder.skipped
+        skipped: reminder.skipped,
+        scheduledFor: reminder.scheduledFor
+      })
+
+      // Ordenar os slots pelo horário completo (data + hora)
+      day.slots.sort((a, b) => {
+        const dateA = new Date(a.scheduledFor)
+        const dateB = new Date(b.scheduledFor)
+        return dateA.getTime() - dateB.getTime()
       })
     })
 
+    // Ordenar os dias
     return Array.from(days.values()).sort((a, b) => 
       a.date.getTime() - b.date.getTime()
     )
@@ -93,8 +102,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const schedule = convertRemindersToSchedule()
   
   // Ajusta a data inicial para o fuso horário local
-  const startDateUTC = new Date(medication.startDate)
-  const startDate = new Date(startDateUTC.getTime() - (startDateUTC.getTimezoneOffset() * 60000))
+  const startDate = new Date(medication.startDate)
   
   const [selectedDate, setSelectedDate] = useState(startDate)
   const today = new Date()

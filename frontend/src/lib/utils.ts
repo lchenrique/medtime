@@ -7,10 +7,12 @@ export function cn(...inputs: ClassValue[]) {
 
 export function calculateTimeUntil(scheduledDate: string) {
   const now = new Date()
-  const utcDate = new Date(scheduledDate)
-  const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
+  const scheduledFor = new Date(scheduledDate)
+  
+  // Ajusta para o timezone local
+  const localScheduledFor = new Date(scheduledFor.getTime())
 
-  const diffInMinutes = Math.round((localDate.getTime() - now.getTime()) / (1000 * 60))
+  const diffInMinutes = Math.round((localScheduledFor.getTime() - now.getTime()) / (1000 * 60))
 
   if (diffInMinutes > 0) {
     if (diffInMinutes < 60) {

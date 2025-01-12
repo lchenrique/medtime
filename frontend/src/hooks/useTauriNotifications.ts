@@ -34,12 +34,10 @@ export function useTauriNotifications() {
       initializeNotifications()
     }
 
-    // Cleanup
+    // Cleanup - apenas reseta os estados
     return () => {
-      if (isInitialized) {
-        client.destroy()
-        setIsInitialized(false)
-      }
+      initialized.current = false
+      setIsInitialized(false)
     }
   }, [isInitialized])
 

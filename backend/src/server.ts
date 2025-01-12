@@ -7,6 +7,7 @@ import { jsonSchemaTransform, serializerCompiler, validatorCompiler, ZodTypeProv
 import { writeFileSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import websocket from '@fastify/websocket'
 
 import { authRoutes } from './routes/auth'
 import { medicationRoutes } from './routes/medications'
@@ -15,6 +16,7 @@ import { reminderRoutes } from './routes/reminders'
 import { env } from './config/env'
 import { ReminderWorker } from './workers/reminder.worker'
 import { authenticate } from './middlewares/auth'
+import { websocketRoutes } from './routes/notifications/websocket'
 
 // Tipos do Fastify
 declare module 'fastify' {
@@ -46,9 +48,12 @@ await app.register(cors, {
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Sec-WebSocket-Protocol'],
   exposedHeaders: ['Authorization'],
 })
+
+// Registra o plugin WebSocket
+await app.register(websocket)
 
 // Configurar compiladores Zod
 app.setValidatorCompiler(validatorCompiler)
@@ -91,6 +96,9 @@ app.register(authRoutes, { prefix: '/auth' })
 app.register(medicationRoutes, { prefix: '/medications' })
 app.register(notificationRoutes, { prefix: '/notifications' })
 app.register(reminderRoutes, { prefix: '/reminders' })
+
+// Registra as rotas WebSocket
+await app.register(websocketRoutes)
 
 // Inicia o worker de lembretes
 ReminderWorker.start()

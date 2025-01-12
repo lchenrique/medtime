@@ -42,10 +42,10 @@ export function Settings() {
 
       await updateUser({ tauriEnabled: !user.tauriEnabled })
 
-      // Se ativou, inicializa com sync
+      // Se ativou, inicializa
       if (!user.tauriEnabled) {
         const client = TauriNotificationClient.getInstance()
-        await client.initializeWithSync()
+        await client.init()
       }
 
       toast.success('Configurações atualizadas com sucesso!')
@@ -67,6 +67,46 @@ export function Settings() {
       .then(() => toast.success('Configurações atualizadas com sucesso!'))
       .catch(() => toast.error('Erro ao atualizar configurações'))
   }, [updateUser, telegramChatId, user.telegramChatId])
+
+  const handleTestWebSocket = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/notifications/test`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erro ao testar WebSocket')
+      }
+      
+      toast.success('Notificação de teste enviada!')
+    } catch (error) {
+      toast.error('Erro ao testar notificação')
+      console.error(error)
+    }
+  }
+
+  const handleResetDatabase = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/notifications/reset`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Erro ao resetar banco')
+      }
+      
+      toast.success('Banco resetado com sucesso!')
+    } catch (error) {
+      toast.error('Erro ao resetar banco')
+      console.error(error)
+    }
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -151,6 +191,19 @@ export function Settings() {
             </div>
           </div>
         )}
+
+        <div className="flex gap-2 mt-4">
+          <Button onClick={handleTestWebSocket}>
+            Testar WebSocket
+          </Button>
+
+          <Button 
+            variant="destructive" 
+            onClick={handleResetDatabase}
+          >
+            Resetar Banco
+          </Button>
+        </div>
       </Card>
     </div>
   )

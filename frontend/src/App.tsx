@@ -8,12 +8,17 @@ import { Register } from './pages/Register'
 import { AuthLayout } from './components/layouts/AuthLayout'
 import { Toaster } from 'react-hot-toast'
 import { NotificationManager } from '@/components/NotificationManager'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import { Medications } from '@/pages/Medications'
 
 export default function App() {
   const { user } = useUserStore()
 
+  useWebSocket()
+
   return (
     <BrowserRouter>
+     
       <Routes>
         <Route element={!user ? <AuthLayout /> : <Navigate to="/" />}>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
@@ -23,6 +28,7 @@ export default function App() {
         {/* Rotas protegidas */}
         <Route element={user ? <Layout /> : <Navigate to="/login" />}>
           <Route path="/" element={<Home />} />
+          <Route path="/medications" element={<Medications />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
@@ -30,5 +36,6 @@ export default function App() {
       <NotificationManager />
       <Toaster position="top-right" />
     </BrowserRouter>
+
   )
 }

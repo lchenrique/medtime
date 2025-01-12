@@ -11,6 +11,8 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
   - TailwindCSS + Shadcn
   - Design System próprio inspirado em interfaces iOS
   - Animações e transições nativas
+  - Layout responsivo e adaptativo
+  - Tema violeta consistente
 - **Estado**: 
   - Zustand para estado global
   - React Query para cache e sincronização
@@ -32,28 +34,39 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
 ## 📱 Sistema de Notificações
 
 ### Canais Ativos
-1. **Web Push** (PWA)
+1. **Desktop** (Tauri)
+   - Notificações nativas do sistema via Tauri
+   - WebSocket para notificações em tempo real
+   - Agendamento local de notificações
+   - Personalização da titlebar
+
+2. **Web Push** (PWA)
    - Firebase Cloud Messaging
    - Service Worker com background sync
    - Permissões gerenciadas pelo NotificationManager
 
-2. **Desktop** (Tauri)
-   - Notificações nativas do sistema
-   - Server-Sent Events para atualizações em tempo real
-   - Sincronização local de lembretes
-   - Personalização da titlebar
-
 ### Sistema de Sincronização
 1. **Fluxo de Dados**
    - Backend como fonte única da verdade
-   - Sincronização bidirecional entre plataformas
-   - Estado de notificações persistido por usuário
+   - WebSocket para atualizações em tempo real
+   - Verificação periódica via ReminderWorker
 
-2. **Momentos de Sincronização**
-   - Login/Logout
-   - CRUD de medicamentos
-   - Verificação periódica
-   - Alteração de preferências
+2. **ReminderWorker**
+   - Verifica lembretes a cada 10 segundos
+   - Janela de 1 minuto para notificações passadas
+   - Janela de 5 minutos para notificações futuras
+   - Verifica estoque antes de notificar
+   - Envia por canais configurados
+   - Marca lembretes como notificados após envio
+   - Sistema de retry (3 tentativas) para usuários offline
+
+3. **WebSocket**
+   - Conexão persistente com o backend
+   - Autenticação via token Supabase
+   - Reconexão automática em caso de falha
+   - Não reconecta se Tauri não estiver habilitado
+   - Agendamento local de notificações
+   - Tratamento de timezone consistente (America/Sao_Paulo)
 
 ### Canais Planejados
 - WhatsApp (iOS)
@@ -108,14 +121,28 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
   takenAt?: Date
   skipped: boolean
   skippedReason?: string
+  notified: boolean
 }
 ```
 
 ## 🔄 Status Atual
 - PWA e Tauri em produção
-- Sistema de notificações implementado
-- Design System estabelecido
-- Preparação para Capacitor
+- Sistema de notificações implementado e otimizado
+- Design System estabelecido e refinado
+- Interface dividida em:
+  - Home: Visão geral dos medicamentos do dia
+  - Medicamentos: Lista completa com busca
+  - Configurações: Preferências do usuário
+- Funcionalidades implementadas:
+  - Listagem de medicamentos por horário
+  - Separação entre medicamentos atrasados e no horário
+  - Sistema de busca em tempo real
+  - Detalhes do medicamento em drawer
+  - Marcação de medicamentos como tomados
+  - Cálculo preciso de tempo restante
+  - Timezone handling consistente
+  - Sistema de retry para notificações
+- Preparação para Capacitor em andamento
 
 ## 📝 Convenções
 - Commits em português

@@ -46,7 +46,7 @@ export function Login() {
           // Se o usuário tem Tauri habilitado, inicializa as notificações
           if (responseUser.tauriEnabled) {
             const client = TauriNotificationClient.getInstance()
-            await client.initializeWithSync()
+            await client.init()
           }
 
           navigate('/', { replace: true })

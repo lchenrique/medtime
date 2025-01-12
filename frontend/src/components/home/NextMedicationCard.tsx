@@ -33,7 +33,7 @@ export function NextMedicationCard({ medication, onTakeMedication }: NextMedicat
         <div className="flex items-center gap-2">
           <span className="font-medium">{medication.name}</span>
           <span className="text-sm bg-primary-foreground/10 px-2 py-0.5 rounded-lg">
-            {medication.dosage}
+          {medication.dosageQuantity} {medication.unit}
           </span>
         </div>
         <Button 

@@ -32,12 +32,12 @@ export const Layout = memo(function Layout() {
   const { isOpen } = useDrawer()
 
   return (
-    <div className="min-h-screen bg-gray-100 relative">
+    <div className="min-h-screen bg-violet-50 relative">
       <Navigation />
 
       <div 
         className={cn(
-          "will-change-transform transition-transform duration-500 ease-ios",
+          "transition-transform duration-500 ease-ios",
           isOpen && "scale-[0.96] -translate-x-[30px] rounded-l-[2rem] overflow-hidden"
         )}
       >
@@ -45,7 +45,7 @@ export const Layout = memo(function Layout() {
 
         {/* Main Content */}
         <main className="md:pl-64 pb-16 md:pb-0">
-          <div className="max-w-5xl mx-auto overflow-auto"> 
+          <div className="max-w-5xl mx-auto overflow-auto  "> 
             <DesktopHeader />
             <Outlet />
           </div>
