@@ -21,7 +21,7 @@ export function useWebSocket() {
 
     // Listener para atualizações de medicamentos
     const handleMedicationUpdate = (event: CustomEvent) => {
-      queryClient.invalidateQueries(['medications'])
+      queryClient.invalidateQueries({ queryKey: ['medications'] })
     }
 
     window.addEventListener('medication-update', handleMedicationUpdate as EventListener)

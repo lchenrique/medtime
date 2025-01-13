@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
 import { useUserStore } from '@/stores/user'
-import { isPermissionGranted } from '@tauri-apps/plugin-notification'
+import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification'
+
+declare module '@tauri-apps/plugin-notification' {
+  export function isPermissionGranted(): Promise<boolean>
+}
 
 export function useNotifications() {
   const [error, setError] = useState<Error | null>(null)
@@ -9,11 +13,15 @@ export function useNotifications() {
   const { user, updateUser } = useUserStore()
 
   useEffect(() => {
-    if (user?.tauriEnabled !== false) {
-      isPermissionGranted().then(setHasPermission)
-    } else {
-      setHasPermission(false)
+    async function checkPermission() {
+      if (user?.tauriEnabled !== false) {
+        const granted = await isPermissionGranted()
+        setHasPermission(granted)
+      } else {
+        setHasPermission(false)
+      }
     }
+    checkPermission()
   }, [user?.tauriEnabled])
 
   return {
@@ -22,14 +30,15 @@ export function useNotifications() {
     requestPermission: async () => {
       try {
         const client = TauriNotificationClient.getInstance()
-        const permission = await client.init()
-        setHasPermission(permission)
-        if (permission) {
+        await client.init()
+        const granted = await isPermissionGranted()
+        setHasPermission(granted)
+        if (granted) {
           await updateUser({ tauriEnabled: true })
         }
-        return permission
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Erro ao solicitar permissão'))
+        return granted
+      } catch (error) {
+        setError(error as Error)
         return false
       }
     }

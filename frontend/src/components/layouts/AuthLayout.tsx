@@ -1,6 +1,5 @@
 import { useLocation, Outlet } from 'react-router-dom'
 import { MedTimeIcon } from '@/components/icons/MedTimeIcon'
-import { TitleBar } from '../TitleBar'
 
 export function AuthLayout() {
   return (

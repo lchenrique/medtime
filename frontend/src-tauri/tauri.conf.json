@@ -14,8 +14,12 @@
     "windows": [
       {
         "title": "MedTime",
-        "width": 1024,
-        "height": 768,
+        "width": 390,
+        "height": 844,
+        "minWidth": 390,
+        "minHeight": 844,
+        "maxWidth": 780,
+        "maxHeight": 1688,
         "resizable": true,
         "fullscreen": false,
         "decorations": true,

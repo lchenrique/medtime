@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useTauriNotifications } from '@/hooks/useTauriNotifications'
+import { useNotifications } from '@/hooks/useNotifications'
 import { getVersion } from '@tauri-apps/api/app'
 import toast from 'react-hot-toast'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom'
 
 export function Settings() {
   const { user, updateUser } = useUserStore()
-  const { hasPermission, requestPermission } = useTauriNotifications()
+  const { hasPermission, requestPermission } = useNotifications()
   const { open } = useDrawer()
   const [isTauri, setIsTauri] = useState(false)
   const [whatsappNumber, setWhatsappNumber] = useState('')

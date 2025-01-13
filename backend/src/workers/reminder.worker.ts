@@ -8,8 +8,8 @@ import { WhatsAppService } from '../services/whatsapp.service'
 export class ReminderWorker {
   private static isRunning = false
   private static readonly CHECK_INTERVAL = 10000 // 10 segundos
-  private static readonly NOTIFICATION_WINDOW = 5 // 5 minutos para frente
-  private static readonly PAST_WINDOW = 2 // 2 minutos para trás
+  private static readonly NOTIFICATION_WINDOW = 0.1 // 6 segundos para frente (apenas para testes)
+  private static readonly PAST_WINDOW = 0.1 // 6 segundos para trás (apenas para testes)
   private static readonly MAX_RETRIES = 3 // máximo de tentativas
   private static readonly RETRY_DELAY = 3000 // 3 segundos entre tentativas
   private static notificationRetries = new Map<string, number>()

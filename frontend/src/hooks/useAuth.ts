@@ -1,4 +1,6 @@
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
+import { postAuthLogin as loginUser } from '@/api/generated/auth/auth'
+import type { PostAuthLoginBody as LoginCredentials } from '@/api/model'
 
 export function useAuth() {
   const login = async (credentials: LoginCredentials) => {

@@ -22,6 +22,8 @@ type MedicationGroup = {
   timeUntil?: string
 }
 
+type ReminderStatus = 'pending' | 'late'
+
 export function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null)
@@ -58,22 +60,21 @@ export function Home() {
       const isSameDay = (date1: Date, date2: Date) => {
         return formatDate(date1) === formatDate(date2)
       }
-
       const mappedMedications = medicationsData
         .map(med => {
           const startDate = new Date(med.startDate)
           const endDate = new Date(startDate)
           endDate.setDate(endDate.getDate() + med.duration)
 
+          // Filtra e ordena os lembretes
+          const now = new Date()
+          const toleranceTime = new Date(now.getTime() - 5 * 60 * 1000) // 5 minutos atrás
+
           const filteredReminders = (med.reminders || [])
             .filter(reminder => {
+              if (reminder.taken || reminder.skipped) return false
               const reminderDate = new Date(reminder.scheduledFor)
-              // Se for hoje, mostra todos que não foram tomados
-              if (isSameDay(reminderDate, today)) {
-                return !reminder.taken
-              }
-              // Para dias futuros, mostra todos que não foram tomados e dentro do período
-              return !reminder.taken && reminderDate <= endDate
+              return reminderDate >= toleranceTime || isSameDay(reminderDate, today)
             })
             .sort((a, b) => {
               const dateA = new Date(a.scheduledFor)
@@ -83,46 +84,38 @@ export function Home() {
 
           if (filteredReminders.length === 0) return null
 
-          const nextReminder = filteredReminders[0]
-          const nextReminderDate = new Date(nextReminder.scheduledFor)
+          // Mapeia cada lembrete para incluir o status
+          const mappedReminders = filteredReminders.map(reminder => {
+            const reminderDate = new Date(reminder.scheduledFor)
+            const status: ReminderStatus = reminderDate < toleranceTime ? 'late' : 'pending'
 
-          // Se o próximo lembrete já foi tomado, pula este medicamento
-          if (nextReminder.taken) return null
+            return {
+              ...reminder,
+              time: reminderDate.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Sao_Paulo'
+              }) + (
+                isSameDay(reminderDate, today)
+                  ? ' (hoje)'
+                  : isSameDay(reminderDate, tomorrow)
+                    ? ' (amanhã)'
+                    : ` (${formatDate(reminderDate)})`
+              ),
+              status
+            }
+          })
 
+          // Cria o objeto do medicamento com os lembretes mapeados
           const mappedMed: Medication = {
             ...med,
             description: med.description || '',
             dosage: `${med.dosageQuantity} ${med.unit}`,
-            time: nextReminderDate.toLocaleTimeString('pt-BR', { 
-              hour: '2-digit', 
-              minute: '2-digit',
-              timeZone: 'America/Sao_Paulo'
-            }),
+            time: mappedReminders[0].time.split(' ')[0], // Remove o sufixo (hoje), (amanhã), etc
             instructions: med.description || '',
-            status: nextReminderDate < toleranceTime ? 'late' : 'pending',
-            timeUntil: calculateTimeUntil(nextReminder.scheduledFor),
-            reminders: filteredReminders.map(reminder => {
-              const reminderDate = new Date(reminder.scheduledFor)
-              
-              return {
-                ...reminder,
-                taken: reminder.taken || false,
-                takenAt: reminder.takenAt || null,
-                skipped: reminder.skipped || false,
-                skippedReason: reminder.skippedReason || null,
-                time: reminderDate.toLocaleTimeString('pt-BR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  timeZone: 'America/Sao_Paulo'
-                }) + (
-                  isSameDay(reminderDate, today)
-                    ? ' (hoje)'
-                    : isSameDay(reminderDate, tomorrow)
-                      ? ' (amanhã)'
-                      : ` (${formatDate(reminderDate)})`
-                )
-              }
-            })
+            status: mappedReminders[0].status,
+            timeUntil: calculateTimeUntil(mappedReminders[0].scheduledFor),
+            reminders: mappedReminders
           }
 
           return mappedMed
@@ -141,20 +134,49 @@ export function Home() {
           return dateA.getTime() - dateB.getTime()
         })
 
-      // Separar medicamentos atrasados e no horário
-      const lateMeds = mappedMedications.filter(med => med.status === 'late')
-      const onTimeMeds = mappedMedications.filter(med => med.status === 'pending')
+      // Separar medicamentos por status dos lembretes
+      const lateMeds = mappedMedications.filter(med => 
+        med.reminders.some(reminder => {
+          const reminderDate = new Date(reminder.scheduledFor)
+          return !reminder.taken && !reminder.skipped && reminderDate < toleranceTime
+        })
+      )
+
+      const onTimeMeds = mappedMedications.filter(med =>
+        med.reminders.some(reminder => {
+          const reminderDate = new Date(reminder.scheduledFor)
+          return !reminder.taken && !reminder.skipped && reminderDate >= toleranceTime
+        })
+      )
 
       // Agrupar medicamentos atrasados por horário
       const lateGroups: MedicationGroup[] = []
       lateMeds.forEach(med => {
-        const existingGroup = lateGroups.find(group => group.time === med.time)
+        // Pega o primeiro lembrete atrasado
+        const lateReminder = med.reminders.find(reminder => {
+          const reminderDate = new Date(reminder.scheduledFor)
+          return !reminder.taken && !reminder.skipped && reminderDate < toleranceTime
+        })
+        
+        if (!lateReminder) return
+
+        const existingGroup = lateGroups.find(group => group.time === lateReminder.time.split(' ')[0])
         if (existingGroup) {
-          existingGroup.medications.push(med)
+          existingGroup.medications.push({
+            ...med,
+            status: 'late',
+            time: lateReminder.time.split(' ')[0],
+            timeUntil: calculateTimeUntil(lateReminder.scheduledFor)
+          })
         } else {
           lateGroups.push({
-            time: med.time,
-            medications: [med]
+            time: lateReminder.time.split(' ')[0],
+            medications: [{
+              ...med,
+              status: 'late',
+              time: lateReminder.time.split(' ')[0],
+              timeUntil: calculateTimeUntil(lateReminder.scheduledFor)
+            }]
           })
         }
       })
@@ -162,11 +184,15 @@ export function Home() {
       // Agrupar medicamentos no horário
       const onTimeGroups: MedicationGroup[] = []
       onTimeMeds.forEach(med => {
-        // Extrai a data do próximo lembrete
-        const nextReminder = med.reminders[0]
-        if (!nextReminder) return
+        // Pega o próximo lembrete pendente
+        const pendingReminder = med.reminders.find(reminder => {
+          const reminderDate = new Date(reminder.scheduledFor)
+          return !reminder.taken && !reminder.skipped && reminderDate >= toleranceTime
+        })
 
-        const reminderDate = new Date(nextReminder.scheduledFor)
+        if (!pendingReminder) return
+
+        const reminderDate = new Date(pendingReminder.scheduledFor)
         const reminderTime = reminderDate.toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
           minute: '2-digit',
@@ -184,12 +210,22 @@ export function Home() {
         
         const existingGroup = onTimeGroups.find(group => group.time === timeKey)
         if (existingGroup) {
-          existingGroup.medications.push(med)
+          existingGroup.medications.push({
+            ...med,
+            status: 'pending',
+            time: reminderTime,
+            timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
+          })
         } else {
           onTimeGroups.push({
             time: timeKey,
-            medications: [med],
-            timeUntil: calculateTimeUntil(nextReminder.scheduledFor)
+            medications: [{
+              ...med,
+              status: 'pending',
+              time: reminderTime,
+              timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
+            }],
+            timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
           })
         }
       })
@@ -356,6 +392,7 @@ export function Home() {
       }
     })
   }
+  console.log(medicationGroups, "medicationGroups")
 
   // Filtra os grupos de medicamentos baseado no termo de busca
   const filteredGroups = medicationGroups

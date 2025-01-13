@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useUserStore } from '@/stores/user'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
-import { wsService } from '@/lib/notifications/websocket'
 
 export function NotificationManager() {
   const { user } = useUserStore()

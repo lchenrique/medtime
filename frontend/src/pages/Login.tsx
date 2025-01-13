@@ -13,6 +13,7 @@ import { useUserStore } from '@/stores/user'
 import { usePostAuthLogin } from '@/api/generated/auth/auth'
 import type { PostAuthLogin200 } from '@/api/model'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
+import { getAuthProfile } from '@/api/generated/auth/auth'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -41,7 +42,10 @@ export function Login() {
         try {
           const { user: responseUser, token } = response
           localStorage.setItem('token', token)
-          setUser(responseUser)
+          
+          // Busca o perfil completo após login
+          const profile = await getAuthProfile()
+          setUser(profile)
 
           // Se o usuário tem Tauri habilitado, inicializa as notificações
           if (responseUser.tauriEnabled) {
