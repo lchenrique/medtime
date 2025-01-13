@@ -13,17 +13,8 @@ const envSchema = z.object({
   WHATSAPP_PHONE_NUMBER_ID: z.string(),
   WHATSAPP_ACCESS_TOKEN: z.string(),
   WHATSAPP_TEST_NUMBER: z.string(),
+  WHATSAPP_VERIFY_TOKEN: z.string(),
   TELEGRAM_BOT_TOKEN: z.string(),
 })
 
-const _env = envSchema.safeParse(process.env)
-
-if (!_env.success) {
-  console.error('❌ Invalid environment variables:', _env.error.format())
-  throw new Error('Invalid environment variables.')
-}
-
-export const env = _env.data
-
-// Tipos
-export type Env = z.infer<typeof envSchema>
+export const env = envSchema.parse(process.env) 

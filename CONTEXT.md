@@ -45,6 +45,21 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
    - Service Worker com background sync
    - Permissões gerenciadas pelo NotificationManager
 
+3. **WhatsApp**
+   - Integração via WhatsApp Business API
+   - Webhook para receber interações
+   - Botão de "Medicamento tomado"
+   - Mensagens de confirmação
+   - Validação de medicamento já tomado
+   - Atualização automática de estoque
+
+4. **Telegram**
+   - Bot oficial com comandos personalizados
+   - Botão inline para marcar como tomado
+   - Mensagens de confirmação
+   - Validação de medicamento já tomado
+   - Atualização automática de estoque
+
 ### Sistema de Sincronização
 1. **Fluxo de Dados**
    - Backend como fonte única da verdade
@@ -68,9 +83,24 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
    - Agendamento local de notificações
    - Tratamento de timezone consistente (America/Sao_Paulo)
 
+### Formato das Notificações
+1. **Notificação Inicial**
+   ```
+   🔔 Hora do seu medicamento!
+
+   💊 [Nome do Medicamento]
+   📝 Dose: [Quantidade] unidade(s)
+   🕐 Horário: [HH:mm do dia DD/MM]
+
+   ⚠️ Atenção: Estoque baixo! (se aplicável)
+   ```
+
+2. **Confirmação**
+   ```
+   ✅ [Nome do Medicamento] marcado como tomado às [HH:mm]
+   ```
+
 ### Canais Planejados
-- WhatsApp (iOS)
-- Telegram (opcional)
 - Push nativo Android/iOS via Capacitor
 
 ## 📊 Modelos de Dados
@@ -128,6 +158,7 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
 ## 🔄 Status Atual
 - PWA e Tauri em produção
 - Sistema de notificações implementado e otimizado
+- WhatsApp e Telegram totalmente funcionais
 - Design System estabelecido e refinado
 - Interface dividida em:
   - Home: Visão geral dos medicamentos do dia
@@ -142,6 +173,8 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
   - Cálculo preciso de tempo restante
   - Timezone handling consistente
   - Sistema de retry para notificações
+  - Validação de medicamentos já tomados
+  - Controle automático de estoque
 - Preparação para Capacitor em andamento
 
 ## 📝 Convenções

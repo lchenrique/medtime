@@ -9,14 +9,12 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import websocket from '@fastify/websocket'
 
-import { authRoutes } from './routes/auth'
-import { medicationRoutes } from './routes/medications'
-import { notificationRoutes } from './routes/notifications'
-import { reminderRoutes } from './routes/reminders'
+import { routes } from './routes'
 import { env } from './config/env'
 import { ReminderWorker } from './workers/reminder.worker'
 import { authenticate } from './middlewares/auth'
 import { websocketRoutes } from './routes/notifications/websocket'
+import { TelegramService } from './services/telegram.service'
 
 // Tipos do Fastify
 declare module 'fastify' {
@@ -92,22 +90,21 @@ await app.register(fastifySwaggerUi, {
 })
 
 // Rotas
-app.register(authRoutes, { prefix: '/auth' })
-app.register(medicationRoutes, { prefix: '/medications' })
-app.register(notificationRoutes, { prefix: '/notifications' })
-app.register(reminderRoutes, { prefix: '/reminders' })
+await app.register(routes)
 
 // Registra as rotas WebSocket
 await app.register(websocketRoutes)
 
-// Inicia o worker de lembretes
+// Inicia o worker de lembretes e o bot do Telegram
 ReminderWorker.start()
+TelegramService.initialize()
 
 // Start
 try {
   await app.listen({ port: env.PORT })
   console.log(`🚀 Server running at http://localhost:${env.PORT}`)
   console.log(`📚 Documentation available at http://localhost:${env.PORT}/docs`)
+  console.log(`🤖 Telegram bot initialized`)
 } catch (err) {
   app.log.error(err)
   process.exit(1)

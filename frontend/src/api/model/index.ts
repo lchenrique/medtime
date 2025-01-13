@@ -27,6 +27,8 @@ export * from './getMedicationsIdDetails500';
 export * from './getNotificationsSync200Item';
 export * from './getNotificationsSync200ItemMedication';
 export * from './getNotificationsSyncParams';
+export * from './getNotificationsWsParams';
+export * from './getWsParams';
 export * from './patchAuthProfile200';
 export * from './patchAuthProfile401';
 export * from './patchAuthProfile500';

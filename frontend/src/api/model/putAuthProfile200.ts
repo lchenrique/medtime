@@ -19,6 +19,13 @@ export type PutAuthProfile200 = {
   telegramEnabled: boolean;
   /** @nullable */
   telegramChatId: string | null;
+  isDiabetic: boolean;
+  hasHeartCondition: boolean;
+  hasHypertension: boolean;
+  /** @nullable */
+  allergies: string | null;
+  /** @nullable */
+  observations: string | null;
   createdAt: string;
   updatedAt: string;
 };

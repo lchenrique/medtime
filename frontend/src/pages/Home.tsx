@@ -129,9 +129,16 @@ export function Home() {
         })
         .filter((med): med is Medication => med !== null)
         .sort((a, b) => {
-          const timeA = a.time.split(':').map(Number)
-          const timeB = b.time.split(':').map(Number)
-          return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1])
+          // Pega as datas completas dos próximos lembretes
+          const reminderA = a.reminders[0]
+          const reminderB = b.reminders[0]
+          if (!reminderA || !reminderB) return 0
+
+          const dateA = new Date(reminderA.scheduledFor)
+          const dateB = new Date(reminderB.scheduledFor)
+
+          // Compara as datas completas
+          return dateA.getTime() - dateB.getTime()
         })
 
       // Separar medicamentos atrasados e no horário
@@ -155,15 +162,54 @@ export function Home() {
       // Agrupar medicamentos no horário
       const onTimeGroups: MedicationGroup[] = []
       onTimeMeds.forEach(med => {
-        const existingGroup = onTimeGroups.find(group => group.time === med.time)
+        // Extrai a data do próximo lembrete
+        const nextReminder = med.reminders[0]
+        if (!nextReminder) return
+
+        const reminderDate = new Date(nextReminder.scheduledFor)
+        const reminderTime = reminderDate.toLocaleTimeString('pt-BR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          timeZone: 'America/Sao_Paulo'
+        })
+
+        // Se for amanhã e depois das 3:00, ignora
+        if (!isSameDay(reminderDate, today)) {
+          const [hours] = reminderTime.split(':').map(Number)
+          if (hours > 3) return
+        }
+
+        // Cria uma chave única que combina data e hora
+        const timeKey = `${reminderTime}${isSameDay(reminderDate, today) ? '' : '_tomorrow'}`
+        
+        const existingGroup = onTimeGroups.find(group => group.time === timeKey)
         if (existingGroup) {
           existingGroup.medications.push(med)
         } else {
           onTimeGroups.push({
-            time: med.time,
-            medications: [med]
+            time: timeKey,
+            medications: [med],
+            timeUntil: calculateTimeUntil(nextReminder.scheduledFor)
           })
         }
+      })
+
+      // Ordena os grupos por data/hora
+      onTimeGroups.sort((a, b) => {
+        const isATomorrow = a.time.includes('_tomorrow')
+        const isBTomorrow = b.time.includes('_tomorrow')
+        
+        if (isATomorrow && !isBTomorrow) return 1
+        if (!isATomorrow && isBTomorrow) return -1
+        
+        const timeA = a.time.split('_')[0].split(':').map(Number)
+        const timeB = b.time.split('_')[0].split(':').map(Number)
+        return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1])
+      })
+
+      // Remove o sufixo _tomorrow antes de exibir
+      onTimeGroups.forEach(group => {
+        group.time = group.time.split('_')[0]
       })
 
       setMedicationGroups(onTimeGroups)
@@ -181,13 +227,36 @@ export function Home() {
     let smallestDiff = Infinity
 
     groups.forEach(group => {
+      // Verifica se o medicamento é de hoje
+      const medication = group.medications[0]
+      if (!medication?.reminders[0]) return
+
+      const reminderDate = new Date(medication.reminders[0].scheduledFor)
+      const isToday = reminderDate.getDate() === now.getDate() &&
+                     reminderDate.getMonth() === now.getMonth() &&
+                     reminderDate.getFullYear() === now.getFullYear()
+
+      // Se não for de hoje, verifica se é até 3:00 do próximo dia
+      if (!isToday) {
+        const tomorrow = new Date(now)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const isTomorrow = reminderDate.getDate() === tomorrow.getDate() &&
+                          reminderDate.getMonth() === tomorrow.getMonth() &&
+                          reminderDate.getFullYear() === tomorrow.getFullYear()
+
+        if (!isTomorrow) return // Se não for nem hoje nem amanhã, ignora
+        
+        // Se for depois das 3:00, ignora
+        const [hours] = group.time.split(':').map(Number)
+        if (hours > 3) return
+      }
+
       const [hours, minutes] = group.time.split(':').map(Number)
       const nextTime = new Date(now)
       nextTime.setHours(hours, minutes, 0, 0)
 
-      if (nextTime <= now) {
-        nextTime.setDate(nextTime.getDate() + 1)
-      }
+      // Se o horário já passou hoje, pula
+      if (isToday && nextTime <= now) return
 
       const diffInMinutes = Math.round((nextTime.getTime() - now.getTime()) / (1000 * 60))
 
@@ -202,6 +271,41 @@ export function Home() {
         }
       }
     })
+
+    // Se não encontrou nenhum medicamento para hoje, pega o primeiro de amanhã até 3:00
+    if (!nextGroup) {
+      const tomorrowGroup = groups.find(group => {
+        const medication = group.medications[0]
+        if (!medication?.reminders[0]) return false
+
+        const reminderDate = new Date(medication.reminders[0].scheduledFor)
+        const tomorrow = new Date(now)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        
+        const isTomorrow = reminderDate.getDate() === tomorrow.getDate() &&
+                          reminderDate.getMonth() === tomorrow.getMonth() &&
+                          reminderDate.getFullYear() === tomorrow.getFullYear()
+
+        if (!isTomorrow) return false
+
+        // Verifica se o horário é até 3:00
+        const [hours] = group.time.split(':').map(Number)
+        return hours <= 3
+      })
+
+      if (tomorrowGroup) {
+        const medication = tomorrowGroup.medications[0]
+        if (medication?.reminders[0]) {
+          nextGroup = {
+            ...tomorrowGroup,
+            medications: tomorrowGroup.medications.map(med => ({
+              ...med,
+              timeUntil: calculateTimeUntil(med.reminders[0].scheduledFor)
+            }))
+          }
+        }
+      }
+    }
 
     return nextGroup
   }

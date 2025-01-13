@@ -96,6 +96,23 @@
                         "tauriEnabled": {
                           "type": "boolean"
                         },
+                        "isDiabetic": {
+                          "type": "boolean"
+                        },
+                        "hasHeartCondition": {
+                          "type": "boolean"
+                        },
+                        "hasHypertension": {
+                          "type": "boolean"
+                        },
+                        "allergies": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "observations": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -116,6 +133,11 @@
                         "telegramChatId",
                         "timezone",
                         "tauriEnabled",
+                        "isDiabetic",
+                        "hasHeartCondition",
+                        "hasHypertension",
+                        "allergies",
+                        "observations",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -337,6 +359,23 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "isDiabetic": {
+                      "type": "boolean"
+                    },
+                    "hasHeartCondition": {
+                      "type": "boolean"
+                    },
+                    "hasHypertension": {
+                      "type": "boolean"
+                    },
+                    "allergies": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "observations": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -356,6 +395,11 @@
                     "whatsappNumber",
                     "telegramEnabled",
                     "telegramChatId",
+                    "isDiabetic",
+                    "hasHeartCondition",
+                    "hasHypertension",
+                    "allergies",
+                    "observations",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -462,6 +506,23 @@
                   "telegramChatId": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "isDiabetic": {
+                    "type": "boolean"
+                  },
+                  "hasHeartCondition": {
+                    "type": "boolean"
+                  },
+                  "hasHypertension": {
+                    "type": "boolean"
+                  },
+                  "allergies": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "observations": {
+                    "type": "string",
+                    "nullable": true
                   }
                 },
                 "additionalProperties": false
@@ -513,6 +574,23 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "isDiabetic": {
+                      "type": "boolean"
+                    },
+                    "hasHeartCondition": {
+                      "type": "boolean"
+                    },
+                    "hasHypertension": {
+                      "type": "boolean"
+                    },
+                    "allergies": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "observations": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -532,6 +610,11 @@
                     "whatsappNumber",
                     "telegramEnabled",
                     "telegramChatId",
+                    "isDiabetic",
+                    "hasHeartCondition",
+                    "hasHypertension",
+                    "allergies",
+                    "observations",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -638,6 +721,23 @@
                   "telegramChatId": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "isDiabetic": {
+                    "type": "boolean"
+                  },
+                  "hasHeartCondition": {
+                    "type": "boolean"
+                  },
+                  "hasHypertension": {
+                    "type": "boolean"
+                  },
+                  "allergies": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "observations": {
+                    "type": "string",
+                    "nullable": true
                   }
                 },
                 "additionalProperties": false
@@ -689,6 +789,23 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "isDiabetic": {
+                      "type": "boolean"
+                    },
+                    "hasHeartCondition": {
+                      "type": "boolean"
+                    },
+                    "hasHypertension": {
+                      "type": "boolean"
+                    },
+                    "allergies": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "observations": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -708,6 +825,11 @@
                     "whatsappNumber",
                     "telegramEnabled",
                     "telegramChatId",
+                    "isDiabetic",
+                    "hasHeartCondition",
+                    "hasHypertension",
+                    "allergies",
+                    "observations",
                     "createdAt",
                     "updatedAt"
                   ],
@@ -1749,168 +1871,6 @@
         "responses": {
           "200": {
             "description": "Default Response"
-          }
-        }
-      }
-    },
-    "/reminders/{medicationId}/reminders": {
-      "post": {
-        "tags": [
-          "reminders"
-        ],
-        "description": "Cria um novo lembrete para uma medicação",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "time": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "frequency": {
-                    "type": "string",
-                    "enum": [
-                      "6/6",
-                      "8/8",
-                      "12/12",
-                      "24/24"
-                    ]
-                  },
-                  "daysOfWeek": {
-                    "type": "array",
-                    "items": {
-                      "type": "number",
-                      "minimum": 1,
-                      "maximum": 7
-                    }
-                  },
-                  "active": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "time",
-                  "frequency",
-                  "daysOfWeek",
-                  "active"
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "medicationId",
-            "required": true
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "medicationId": {
-                      "type": "string"
-                    },
-                    "time": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "frequency": {
-                      "type": "string",
-                      "enum": [
-                        "6/6",
-                        "8/8",
-                        "12/12",
-                        "24/24"
-                      ]
-                    },
-                    "daysOfWeek": {
-                      "type": "array",
-                      "items": {
-                        "type": "number",
-                        "minimum": 1,
-                        "maximum": 7
-                      }
-                    },
-                    "active": {
-                      "type": "boolean"
-                    },
-                    "lastTriggered": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "medicationId",
-                    "time",
-                    "frequency",
-                    "daysOfWeek",
-                    "active",
-                    "lastTriggered",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number"
-                    },
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "error",
-                    "message"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
           }
         }
       }

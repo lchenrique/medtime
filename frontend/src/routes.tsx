@@ -6,6 +6,7 @@ import { AuthGuard } from '@/components/AuthGuard'
 import { Login } from '@/pages/Login'
 import { Register } from '@/pages/Register'
 import { AuthLayout } from '@/components/layouts/AuthLayout'
+import { Health } from '@/pages/Health'
 
 // Rotas públicas (sem autenticação)
 const publicRoutes = [
@@ -37,6 +38,10 @@ const protectedRoutes = [
       {
         path: '/settings',
         element: <Settings />
+      },
+      {
+        path: '/health',
+        element: <Health />
       }
     ]
   }

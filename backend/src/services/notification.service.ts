@@ -1,8 +1,10 @@
 import { prisma } from '../lib/prisma'
 import { messaging } from '../config/firebase-admin'
-import axios from 'axios'
-import { env } from '../config/env'
 import { wsService } from './websocket.service'
+import { TelegramService } from './telegram.service'
+import { WhatsAppService } from './whatsapp.service'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 interface SendNotificationParams {
   userId: string
@@ -19,73 +21,27 @@ interface MedicationReminderParams {
 
 async function sendPushNotification(token: string, title: string, body: string, data: Record<string, string> = {}) {
   try {
-    console.log('Tentando enviar notificação push para token:', token)
-    
-    // Se for um token Tauri, envia via SSE
-    if (token.startsWith('tauri-')) {
-      console.log('Token Tauri detectado, enviando via SSE')
-      // Emite o evento para o cliente Tauri específico
-      const sseClients = global.sseClients || new Map()
-      const client = sseClients.get(token)
-      
-      if (client) {
-        client.write(`data: ${JSON.stringify({
-          title,
-          message: body,
-          data
-        })}\n\n`)
-        console.log('Notificação enviada via SSE')
-        return true
-      } else {
-        console.log('Cliente SSE não encontrado para o token:', token)
-        return false
-      }
-    }
-
-    // Se não for Tauri, usa o Firebase
     const message = {
       token,
       notification: {
         title,
         body,
       },
-      data: {
-        ...data,
-        url: data.medicationId ? `/medications/${data.medicationId}` : '/',
-        timestamp: new Date().toISOString()
-      },
+      data,
       android: {
         priority: 'high' as const,
         notification: {
-          channelId: 'medication_reminders',
+          sound: 'default',
           priority: 'max' as const,
-          defaultSound: true,
-          defaultVibrateTimings: true,
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+          channelId: 'medication_reminders'
         }
       },
       apns: {
         payload: {
           aps: {
             sound: 'default',
-            badge: 1,
-            'mutable-content': 1,
-            'content-available': 1
+            badge: 1
           }
-        }
-      },
-      webpush: {
-        notification: {
-          requireInteraction: true,
-          actions: [
-            {
-              action: 'open',
-              title: 'Abrir'
-            }
-          ]
-        },
-        fcmOptions: {
-          link: data.medicationId ? `/medications/${data.medicationId}` : '/'
         }
       }
     }
@@ -97,37 +53,6 @@ async function sendPushNotification(token: string, title: string, body: string, 
   } catch (error) {
     console.error('Erro detalhado ao enviar push notification:', error)
     return false
-  }
-}
-
-async function sendWhatsAppNotification(phoneNumber: string, message: string) {
-  try {
-    // Aqui você implementaria a integração com a API do WhatsApp Business
-    // Este é apenas um exemplo usando uma API fictícia
-    await axios.post(`${env.WHATSAPP_API_URL}/messages`, {
-      phone: phoneNumber,
-      message,
-    }, {
-      headers: {
-        Authorization: `Bearer ${env.WHATSAPP_API_KEY}`
-      }
-    })
-    console.log('WhatsApp notification enviada com sucesso')
-  } catch (error) {
-    console.error('Erro ao enviar WhatsApp notification:', error)
-  }
-}
-
-async function sendTelegramNotification(chatId: string, message: string) {
-  try {
-    await axios.post(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      chat_id: chatId,
-      text: message,
-      parse_mode: 'HTML'
-    })
-    console.log('Telegram notification enviada com sucesso')
-  } catch (error) {
-    console.error('Erro ao enviar Telegram notification:', error)
   }
 }
 
@@ -176,14 +101,24 @@ async function sendNotification({ userId, title, body, data }: SendNotificationP
 
     // Envia notificação via WhatsApp se habilitado
     if (user.whatsappEnabled && user.whatsappNumber) {
-      const whatsappMessage = `*${title}*\n\n${body}`
-      await sendWhatsAppNotification(user.whatsappNumber, whatsappMessage)
+      try {
+        await WhatsAppService.sendMedicationReminder(
+          user.whatsappNumber,
+          title,
+          1, // dosage
+          new Date(), // scheduledFor
+          0, // remainingQuantity
+          body // description
+        )
+      } catch (error) {
+        console.error('Erro ao enviar WhatsApp notification:', error)
+      }
     }
 
     // Envia notificação via Telegram se habilitado
     if (user.telegramEnabled && user.telegramChatId) {
       const telegramMessage = `<b>${title}</b>\n\n${body}`
-      await sendTelegramNotification(user.telegramChatId, telegramMessage)
+      await TelegramService.sendMessage(user.telegramChatId, telegramMessage)
     }
   } catch (error) {
     console.error('Erro detalhado ao enviar notificação:', error)
@@ -195,32 +130,71 @@ async function sendMedicationReminder({ medicationId, scheduledFor, userId }: Me
   try {
     const medication = await prisma.medication.findUnique({
       where: { id: medicationId },
-      select: { name: true }
+      include: {
+        user: {
+          select: {
+            id: true,
+            fcmToken: true,
+            whatsappEnabled: true,
+            whatsappNumber: true,
+            telegramEnabled: true,
+            telegramChatId: true
+          }
+        }
+      }
     })
 
-    if (!medication) return
+    if (!medication) {
+      throw new Error('Medicamento não encontrado')
+    }
 
-    const time = scheduledFor.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    const formattedTime = format(scheduledFor, 'HH:mm', { locale: ptBR })
+    const title = 'Hora do Medicamento'
+    const body = `${medication.name} - ${medication.dosageQuantity} ${medication.unit} às ${formattedTime}`
 
     await sendNotification({
       userId,
-      title: 'Hora do Medicamento',
-      body: `Está na hora de tomar ${medication.name} (${time})`,
+      title,
+      body,
       data: {
-        type: 'MEDICATION_REMINDER',
         medicationId,
         timestamp: scheduledFor.toISOString()
       }
     })
+
+    // Envia notificação específica via WhatsApp se habilitado
+    if (medication.user.whatsappEnabled && medication.user.whatsappNumber) {
+      try {
+        await WhatsAppService.sendMedicationReminder(
+          medication.user.whatsappNumber,
+          medication.name,
+          medication.dosageQuantity, // dosage como number
+          scheduledFor,
+          medication.remainingQuantity,
+          medication.description || undefined
+        )
+      } catch (error) {
+        console.error('Erro ao enviar WhatsApp notification:', error)
+      }
+    }
+
+    // Envia notificação específica via Telegram se habilitado
+    if (medication.user.telegramEnabled && medication.user.telegramChatId) {
+      await TelegramService.sendMedicationReminder(
+        medication.user.telegramChatId,
+        medication.name,
+        `${medication.dosageQuantity} ${medication.unit}`,
+        scheduledFor,
+        medication.remainingQuantity,
+        medicationId,
+        medication.description || undefined
+      )
+    }
+
   } catch (error) {
-    console.error('Erro ao enviar lembrete:', error)
+    console.error('Erro ao enviar lembrete de medicamento:', error)
+    throw error
   }
 }
 
-export {
-  sendNotification,
-  sendMedicationReminder
-} 
+export { sendNotification, sendMedicationReminder } 

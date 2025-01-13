@@ -11,6 +11,12 @@ export const userSchema = z.object({
   whatsappNumber: z.string().nullable(),
   telegramEnabled: z.boolean(),
   telegramChatId: z.string().nullable(),
+  // Campos de saúde
+  isDiabetic: z.boolean(),
+  hasHeartCondition: z.boolean(),
+  hasHypertension: z.boolean(),
+  allergies: z.string().nullable(),
+  observations: z.string().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime()
 })
@@ -40,6 +46,12 @@ export const updateProfileSchema = z.object({
   whatsappNumber: z.string().nullable().optional(),
   telegramEnabled: z.boolean().optional(),
   telegramChatId: z.string().nullable().optional(),
+  // Campos de saúde
+  isDiabetic: z.boolean().optional(),
+  hasHeartCondition: z.boolean().optional(),
+  hasHypertension: z.boolean().optional(),
+  allergies: z.string().nullable().optional(),
+  observations: z.string().nullable().optional(),
 })
 
 // Schema de resposta de autenticação

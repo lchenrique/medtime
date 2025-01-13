@@ -21,6 +21,11 @@ const authResponseSchema = z.object({
     telegramChatId: z.string().nullable(),
     timezone: z.string(),
     tauriEnabled: z.boolean(),
+    isDiabetic: z.boolean(),
+    hasHeartCondition: z.boolean(),
+    hasHypertension: z.boolean(),
+    allergies: z.string().nullable(),
+    observations: z.string().nullable(),
     createdAt: z.date(),
     updatedAt: z.date()
   })
@@ -44,7 +49,7 @@ export const login: FastifyPluginAsyncZod = async (app) => {
       }
     }
   }, async (request, reply) => {
-    const { email, password } = request.body
+    const { email, password } = loginSchema.parse(request.body)
 
     try {
       // 1. Tenta fazer login no Supabase
@@ -76,6 +81,11 @@ export const login: FastifyPluginAsyncZod = async (app) => {
           telegramChatId: true,
           timezone: true,
           tauriEnabled: true,
+          isDiabetic: true,
+          hasHeartCondition: true,
+          hasHypertension: true,
+          allergies: true,
+          observations: true,
           createdAt: true,
           updatedAt: true
         }

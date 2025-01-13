@@ -2,6 +2,7 @@ import { Home, List, Settings } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
+import { MedTimeIcon } from '@/components/icons/MedTimeIcon'
 
 interface NavigationItem {
   label: string
@@ -56,9 +57,7 @@ export function Navigation() {
       {/* Desktop Sidebar */}
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 flex-col p-4">
         <div className="flex items-center gap-3 px-2 py-4 mb-6">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-white font-bold">M</span>
-          </div>
+          <MedTimeIcon className="w-10 h-10" />
           <span className="font-semibold text-lg">MedTime</span>
         </div>
 

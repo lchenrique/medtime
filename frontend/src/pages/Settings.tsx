@@ -9,10 +9,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/stores/user'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
+import { useDrawer } from '@/hooks/useDrawer'
+import { EditProfileSheet } from '@/components/EditProfileSheet'
+import { Heart, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export function Settings() {
   const { user, updateUser } = useUserStore()
   const { hasPermission, requestPermission } = useTauriNotifications()
+  const { open } = useDrawer()
   const [isTauri, setIsTauri] = useState(false)
   const [whatsappNumber, setWhatsappNumber] = useState('')
   const [telegramChatId, setTelegramChatId] = useState('')
@@ -111,6 +116,25 @@ export function Settings() {
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold">Configurações</h1>
+
+      <Link to="/health">
+        <Card className="p-4 hover:bg-muted/50 transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Heart className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-semibold">Informações de Saúde</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gerencie suas condições de saúde e alergias
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </div>
+        </Card>
+      </Link>
 
       <Card className="p-4">
         <h2 className="text-xl font-semibold mb-4">Notificações</h2>

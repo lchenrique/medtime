@@ -17,4 +17,11 @@ export type PatchAuthProfileBody = {
   telegramEnabled?: boolean;
   /** @nullable */
   telegramChatId?: string | null;
+  isDiabetic?: boolean;
+  hasHeartCondition?: boolean;
+  hasHypertension?: boolean;
+  /** @nullable */
+  allergies?: string | null;
+  /** @nullable */
+  observations?: string | null;
 };

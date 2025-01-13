@@ -23,9 +23,8 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query'
 import type {
-  GetNotificationsSync200Item,
-  GetNotificationsSyncParams,
-  PostNotificationsTest200,
+  GetNotificationsWsParams,
+  GetWsParams,
   PostNotificationsTestBody
 } from '../../model'
 import { customInstance } from '../../axios-client';
@@ -33,92 +32,7 @@ import { customInstance } from '../../axios-client';
 
 
 /**
- * Sincroniza notificações locais para cliente Tauri
- */
-export const getNotificationsSync = (
-    params?: GetNotificationsSyncParams,
- signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<GetNotificationsSync200Item[]>(
-      {url: `/notifications/sync`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-  
-
-export const getGetNotificationsSyncQueryKey = (params?: GetNotificationsSyncParams,) => {
-    return [`/notifications/sync`, ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getGetNotificationsSyncQueryOptions = <TData = Awaited<ReturnType<typeof getNotificationsSync>>, TError = unknown>(params?: GetNotificationsSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetNotificationsSyncQueryKey(params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotificationsSync>>> = ({ signal }) => getNotificationsSync(params, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn,   staleTime: 10000,  ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetNotificationsSyncQueryResult = NonNullable<Awaited<ReturnType<typeof getNotificationsSync>>>
-export type GetNotificationsSyncQueryError = unknown
-
-
-export function useGetNotificationsSync<TData = Awaited<ReturnType<typeof getNotificationsSync>>, TError = unknown>(
- params: undefined |  GetNotificationsSyncParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNotificationsSync>>,
-          TError,
-          TData
-        > , 'initialData'
-      >, }
-
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotificationsSync<TData = Awaited<ReturnType<typeof getNotificationsSync>>, TError = unknown>(
- params?: GetNotificationsSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNotificationsSync>>,
-          TError,
-          TData
-        > , 'initialData'
-      >, }
-
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetNotificationsSync<TData = Awaited<ReturnType<typeof getNotificationsSync>>, TError = unknown>(
- params?: GetNotificationsSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData>>, }
-
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useGetNotificationsSync<TData = Awaited<ReturnType<typeof getNotificationsSync>>, TError = unknown>(
- params?: GetNotificationsSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsSync>>, TError, TData>>, }
-
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetNotificationsSyncQueryOptions(params,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-/**
- * Cria uma notificação de teste
+ * Rota de teste para enviar notificação
  */
 export const postNotificationsTest = (
     postNotificationsTestBody: PostNotificationsTestBody,
@@ -126,7 +40,7 @@ export const postNotificationsTest = (
 ) => {
       
       
-      return customInstance<PostNotificationsTest200>(
+      return customInstance<void>(
       {url: `/notifications/test`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: postNotificationsTestBody, signal
@@ -177,4 +91,289 @@ const {mutation: mutationOptions} = options ?
 
       return useMutation(mutationOptions);
     }
+    /**
+ * Reseta o banco de dados removendo todos os lembretes e medicamentos
+ */
+export const postNotificationsReset = (
     
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/notifications/reset`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostNotificationsResetMutationOptions = <TData = Awaited<ReturnType<typeof postNotificationsReset>>, TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,void, TContext>, }
+) => {
+const mutationKey = ['postNotificationsReset'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postNotificationsReset>>, void> = () => {
+          
+
+          return  postNotificationsReset()
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions } as UseMutationOptions<TData, TError,void, TContext>}
+
+    export type PostNotificationsResetMutationResult = NonNullable<Awaited<ReturnType<typeof postNotificationsReset>>>
+    
+    export type PostNotificationsResetMutationError = unknown
+
+    export const usePostNotificationsReset = <TData = Awaited<ReturnType<typeof postNotificationsReset>>, TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,void, TContext>, }
+): UseMutationResult<
+        TData,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getPostNotificationsResetMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    /**
+ * Conexão WebSocket para notificações em tempo real
+ */
+export const getNotificationsWs = (
+    params: GetNotificationsWsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/notifications/ws`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetNotificationsWsQueryKey = (params: GetNotificationsWsParams,) => {
+    return [`/notifications/ws`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetNotificationsWsQueryOptions = <TData = Awaited<ReturnType<typeof getNotificationsWs>>, TError = unknown>(params: GetNotificationsWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNotificationsWsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotificationsWs>>> = ({ signal }) => getNotificationsWs(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn,   staleTime: 10000,  ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetNotificationsWsQueryResult = NonNullable<Awaited<ReturnType<typeof getNotificationsWs>>>
+export type GetNotificationsWsQueryError = unknown
+
+
+export function useGetNotificationsWs<TData = Awaited<ReturnType<typeof getNotificationsWs>>, TError = unknown>(
+ params: GetNotificationsWsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNotificationsWs>>,
+          TError,
+          TData
+        > , 'initialData'
+      >, }
+
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNotificationsWs<TData = Awaited<ReturnType<typeof getNotificationsWs>>, TError = unknown>(
+ params: GetNotificationsWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getNotificationsWs>>,
+          TError,
+          TData
+        > , 'initialData'
+      >, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetNotificationsWs<TData = Awaited<ReturnType<typeof getNotificationsWs>>, TError = unknown>(
+ params: GetNotificationsWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData>>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetNotificationsWs<TData = Awaited<ReturnType<typeof getNotificationsWs>>, TError = unknown>(
+ params: GetNotificationsWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNotificationsWs>>, TError, TData>>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNotificationsWsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Marca um lembrete como notificado
+ */
+export const postNotificationsReminderIdNotified = (
+    reminderId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/notifications/${reminderId}/notified`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostNotificationsReminderIdNotifiedMutationOptions = <TData = Awaited<ReturnType<typeof postNotificationsReminderIdNotified>>, TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{reminderId: string}, TContext>, }
+) => {
+const mutationKey = ['postNotificationsReminderIdNotified'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postNotificationsReminderIdNotified>>, {reminderId: string}> = (props) => {
+          const {reminderId} = props ?? {};
+
+          return  postNotificationsReminderIdNotified(reminderId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions } as UseMutationOptions<TData, TError,{reminderId: string}, TContext>}
+
+    export type PostNotificationsReminderIdNotifiedMutationResult = NonNullable<Awaited<ReturnType<typeof postNotificationsReminderIdNotified>>>
+    
+    export type PostNotificationsReminderIdNotifiedMutationError = unknown
+
+    export const usePostNotificationsReminderIdNotified = <TData = Awaited<ReturnType<typeof postNotificationsReminderIdNotified>>, TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{reminderId: string}, TContext>, }
+): UseMutationResult<
+        TData,
+        TError,
+        {reminderId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostNotificationsReminderIdNotifiedMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    /**
+ * Conexão WebSocket para notificações em tempo real
+ */
+export const getWs = (
+    params: GetWsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/ws`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetWsQueryKey = (params: GetWsParams,) => {
+    return [`/ws`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetWsQueryOptions = <TData = Awaited<ReturnType<typeof getWs>>, TError = unknown>(params: GetWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWs>>> = ({ signal }) => getWs(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn,   staleTime: 10000,  ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWsQueryResult = NonNullable<Awaited<ReturnType<typeof getWs>>>
+export type GetWsQueryError = unknown
+
+
+export function useGetWs<TData = Awaited<ReturnType<typeof getWs>>, TError = unknown>(
+ params: GetWsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWs>>,
+          TError,
+          TData
+        > , 'initialData'
+      >, }
+
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWs<TData = Awaited<ReturnType<typeof getWs>>, TError = unknown>(
+ params: GetWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWs>>,
+          TError,
+          TData
+        > , 'initialData'
+      >, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWs<TData = Awaited<ReturnType<typeof getWs>>, TError = unknown>(
+ params: GetWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData>>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetWs<TData = Awaited<ReturnType<typeof getWs>>, TError = unknown>(
+ params: GetWsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWs>>, TError, TData>>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

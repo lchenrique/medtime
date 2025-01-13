@@ -23,14 +23,38 @@ export const testRoutes: FastifyPluginAsync = async (app) => {
     const { seconds, title, body } = testSchema.parse(request.body)
     const { id: userId } = request.user
 
-    // Verifica se usuário tem Tauri habilitado
+    // Verifica se usuário tem algum canal de notificação habilitado
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { tauriEnabled: true }
+      select: { 
+        tauriEnabled: true,
+        whatsappEnabled: true,
+        telegramEnabled: true,
+        whatsappNumber: true,
+        telegramChatId: true
+      }
     })
 
-    if (!user?.tauriEnabled) {
-      return { success: false, message: 'Tauri não habilitado' }
+    if (!user) {
+      return { success: false, message: 'Usuário não encontrado' }
+    }
+
+    const enabledChannels = []
+    
+    if (user.tauriEnabled) {
+      enabledChannels.push('Tauri')
+    }
+    
+    if (user.whatsappEnabled && user.whatsappNumber) {
+      enabledChannels.push('WhatsApp')
+    }
+    
+    if (user.telegramEnabled && user.telegramChatId) {
+      enabledChannels.push('Telegram')
+    }
+
+    if (enabledChannels.length === 0) {
+      return { success: false, message: 'Nenhum canal de notificação habilitado' }
     }
 
     // Calcula a data agendada
@@ -66,8 +90,9 @@ export const testRoutes: FastifyPluginAsync = async (app) => {
     // quando chegar o momento agendado (scheduledFor)
     return { 
       success: true, 
-      message: `Notificação agendada para ${scheduledFor.toLocaleTimeString()}`,
-      scheduledFor: scheduledFor.toISOString()
+      message: `Notificação agendada para ${scheduledFor.toLocaleTimeString()} nos canais: ${enabledChannels.join(', ')}`,
+      scheduledFor: scheduledFor.toISOString(),
+      enabledChannels
     }
   })
 
@@ -108,9 +133,6 @@ export const testRoutes: FastifyPluginAsync = async (app) => {
       })
     ])
 
-    return { 
-      success: true, 
-      message: 'Banco resetado com sucesso'
-    }
+    return { success: true, message: 'Banco de dados resetado com sucesso' }
   })
 } 

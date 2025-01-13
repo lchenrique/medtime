@@ -18,6 +18,12 @@ model User {
   telegramEnabled Boolean    @default(false)  // Habilita notificações via Telegram
   telegramChatId String?     // ID do chat do Telegram do usuário
   timezone      String       @default("America/Sao_Paulo")
+  // Informações de saúde
+  isDiabetic    Boolean      @default(false)  // Indica se o usuário tem diabetes
+  hasHeartCondition Boolean  @default(false)  // Indica se o usuário tem condição cardíaca
+  hasHypertension Boolean    @default(false)  // Indica se o usuário tem hipertensão
+  allergies     String?      // Lista de alergias do usuário
+  observations  String?      // Observações adicionais sobre a saúde
   medications   Medication[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

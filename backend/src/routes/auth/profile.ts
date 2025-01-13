@@ -2,6 +2,7 @@ import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { prisma } from '../../lib/prisma'
 import { errorResponseSchema, userResponseSchema, updateProfileSchema } from '../../schemas/auth'
 import { z } from 'zod'
+import type { Prisma } from '@prisma/client'
 
 export const profile: FastifyPluginAsyncZod = async (app) => {
   app.get('/', {
@@ -31,6 +32,11 @@ export const profile: FastifyPluginAsyncZod = async (app) => {
         whatsappNumber: true,
         telegramEnabled: true,
         telegramChatId: true,
+        isDiabetic: true,
+        hasHeartCondition: true,
+        hasHypertension: true,
+        allergies: true,
+        observations: true,
         createdAt: true,
         updatedAt: true
       }
@@ -58,7 +64,7 @@ export const profile: FastifyPluginAsyncZod = async (app) => {
     }
   }, async (request) => {
     const { id: userId } = request.user
-    const updateData = request.body
+    const updateData = request.body as Prisma.UserUpdateInput
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -73,6 +79,11 @@ export const profile: FastifyPluginAsyncZod = async (app) => {
         whatsappNumber: true,
         telegramEnabled: true,
         telegramChatId: true,
+        isDiabetic: true,
+        hasHeartCondition: true,
+        hasHypertension: true,
+        allergies: true,
+        observations: true,
         createdAt: true,
         updatedAt: true
       }
@@ -100,13 +111,13 @@ export const profile: FastifyPluginAsyncZod = async (app) => {
     }
   }, async (request) => {
     const { id: userId } = request.user
-    const data = updateProfileSchema.parse(request.body)
+    const data = updateProfileSchema.parse(request.body) as Prisma.UserUpdateInput
 
     console.log('Dados recebidos para atualização:', data)
 
     try {
       // Se tauriEnabled estiver definido como false, garantimos que será false no banco
-      const updateData = {
+      const updateData: Prisma.UserUpdateInput = {
         ...data,
         tauriEnabled: data.tauriEnabled
       }
@@ -126,6 +137,11 @@ export const profile: FastifyPluginAsyncZod = async (app) => {
           whatsappNumber: true,
           telegramEnabled: true,
           telegramChatId: true,
+          isDiabetic: true,
+          hasHeartCondition: true,
+          hasHypertension: true,
+          allergies: true,
+          observations: true,
           createdAt: true,
           updatedAt: true
         }

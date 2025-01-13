@@ -10,6 +10,7 @@ import { Toaster } from 'react-hot-toast'
 import { NotificationManager } from '@/components/NotificationManager'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { Medications } from '@/pages/Medications'
+import { Health } from '@/pages/Health'
 
 export default function App() {
   const { user } = useUserStore()
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/medications" element={<Medications />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/health" element={<Health />} />
         </Route>
       </Routes>
 
