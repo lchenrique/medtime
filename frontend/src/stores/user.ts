@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { GetAuthProfile200 } from '@/api/model'
 import { patchAuthProfile } from '@/api/generated/auth/auth'
+import { storage } from '@/lib/storage'
 
 interface UserState {
   user: GetAuthProfile200 | null
@@ -23,8 +24,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       throw error
     }
   },
-  logout: () => {
-    localStorage.removeItem('token')
+  logout: async () => {
+    await storage.remove('token')
     set({ user: null })
   }
 })) 

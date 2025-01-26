@@ -13,8 +13,10 @@ export type GetMedications200Item = {
   /** @nullable */
   description: string | null;
   startDate: string;
+  /** @nullable */
+  duration: number | null;
   interval: number;
-  duration: number;
+  isRecurring: boolean;
   totalQuantity: number;
   remainingQuantity: number;
   unit: string;

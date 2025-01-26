@@ -15,7 +15,32 @@ export const get: FastifyPluginAsyncZod = async (app) => {
       description: 'Obtém uma medicação específica',
       params: paramsSchema,
       response: {
-        200: medicationSchema,
+        200: z.object({
+          id: z.string(),
+          name: z.string(),
+          description: z.string().nullable(),
+          startDate: z.string(),
+          duration: z.number().nullable(),
+          interval: z.number(),
+          isRecurring: z.boolean(),
+          totalQuantity: z.number(),
+          remainingQuantity: z.number(),
+          unit: z.string(),
+          dosageQuantity: z.number(),
+          userId: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+          reminders: z.array(z.object({
+            id: z.string(),
+            scheduledFor: z.string(),
+            taken: z.boolean(),
+            takenAt: z.string().nullable(),
+            skipped: z.boolean(),
+            skippedReason: z.string().nullable(),
+            createdAt: z.string(),
+            updatedAt: z.string()
+          }))
+        }),
         404: z.object({
           statusCode: z.number(),
           error: z.string(),
@@ -40,7 +65,11 @@ export const get: FastifyPluginAsyncZod = async (app) => {
           userId
         },
         include: {
-          reminders: true
+          reminders: {
+            orderBy: {
+              scheduledFor: 'asc'
+            }
+          }
         }
       })
 
@@ -59,13 +88,14 @@ export const get: FastifyPluginAsyncZod = async (app) => {
         startDate: medication.startDate.toISOString(),
         duration: medication.duration,
         interval: medication.interval,
-        userId: medication.userId,
-        createdAt: medication.createdAt.toISOString(),
-        updatedAt: medication.updatedAt.toISOString(),
+        isRecurring: medication.duration === null,
         totalQuantity: medication.totalQuantity,
         remainingQuantity: medication.remainingQuantity,
         unit: medication.unit,
         dosageQuantity: medication.dosageQuantity,
+        userId: medication.userId,
+        createdAt: medication.createdAt.toISOString(),
+        updatedAt: medication.updatedAt.toISOString(),
         reminders: medication.reminders.map(reminder => ({
           id: reminder.id,
           scheduledFor: reminder.scheduledFor.toISOString(),
@@ -78,6 +108,7 @@ export const get: FastifyPluginAsyncZod = async (app) => {
         }))
       }
     } catch (error) {
+      console.error('Erro ao buscar medicação:', error);
       return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',

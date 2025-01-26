@@ -5,6 +5,7 @@
  * API do sistema MedTime para gestão de medicamentos e lembretes
  * OpenAPI spec version: 1.0.0
  */
+import type { PostMedications201RemindersItem } from './postMedications201RemindersItem';
 
 export type PostMedications201 = {
   id: string;
@@ -12,8 +13,10 @@ export type PostMedications201 = {
   /** @nullable */
   description: string | null;
   startDate: string;
+  /** @nullable */
+  duration: number | null;
   interval: number;
-  duration: number;
+  isRecurring: boolean;
   totalQuantity: number;
   remainingQuantity: number;
   unit: string;
@@ -21,4 +24,5 @@ export type PostMedications201 = {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  reminders: PostMedications201RemindersItem[];
 };

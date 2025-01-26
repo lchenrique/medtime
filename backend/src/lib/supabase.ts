@@ -14,7 +14,20 @@ export const supabaseAdmin = createClient(
 )
 
 // Cliente com anon key para verificações de token
-export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+export const supabase = createClient(
+  env.SUPABASE_URL, 
+  env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      storageKey: 'medtime-auth',
+      // Configura o cliente para manter a sessão por mais tempo
+      flowType: 'pkce'
+    }
+  }
+)
 
 // Função auxiliar para verificar token JWT do Supabase
 export async function verifyToken(token: string) {

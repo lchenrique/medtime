@@ -14,6 +14,7 @@ import { usePostAuthLogin } from '@/api/generated/auth/auth'
 import type { PostAuthLogin200 } from '@/api/model'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
 import { getAuthProfile } from '@/api/generated/auth/auth'
+import { storage } from '@/lib/storage'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -41,7 +42,7 @@ export function Login() {
       onSuccess: async (response: PostAuthLogin200) => {
         try {
           const { user: responseUser, token } = response
-          localStorage.setItem('token', token)
+          await storage.set('token', token)
           
           // Busca o perfil completo após login
           const profile = await getAuthProfile()

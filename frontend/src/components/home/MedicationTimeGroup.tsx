@@ -1,53 +1,72 @@
-import { Medication } from '@/types/medication'
+import { GetMedications200Item } from '@/api/model'
+import { ReminderStatus } from '@/pages/Home'
 import { MedicationCard } from './MedicationCard'
-import { Clock } from 'lucide-react'
+import { Medication } from '@/types/medication'
 import { cn } from '@/lib/utils'
 
 interface MedicationTimeGroupProps {
   time: string
-  medications: Medication[]
-  onMedicationClick: (medication: Medication) => void
-  isLateGroup?: boolean
+  medications: (GetMedications200Item & {
+    status?: ReminderStatus
+    timeUntil?: string
+    instructions?: string
+  })[]
+  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string }) => void
 }
 
-export function MedicationTimeGroup({ time, medications, onMedicationClick, isLateGroup }: MedicationTimeGroupProps) {
+export function MedicationTimeGroup({ time, medications, onMedicationClick }: MedicationTimeGroupProps) {
   return (
-    <div>
-      {/* Cabeçalho do horário */}
-      <div className={cn(
-        "sticky top-0 flex items-center gap-2 py-2.5 px-4 z-10",
-        isLateGroup ? "bg-red-50" : "bg-violet-50"
-      )}>
-        <Clock className={cn(
-          "w-4 h-4 shrink-0",
-          isLateGroup ? "text-red-500" : "text-violet-500"
-        )} />
-        <span className={cn(
-          "text-sm font-medium",
-          isLateGroup ? "text-red-700" : "text-violet-700"
-        )}>{time}</span>
-        <div className={cn(
-          "w-px h-3.5 mx-2",
-          isLateGroup ? "bg-red-200" : "bg-violet-200"
-        )} />
-        <span className={cn(
-          "text-xs",
-          isLateGroup ? "text-red-500" : "text-violet-500"
-        )}>
-          {medications.length} {medications.length === 1 ? 'medicamento' : 'medicamentos'}
-        </span>
+    <div className="relative">
+      {/* Horário */}
+      <div className="sticky top-0 bg-white/80 backdrop-blur-sm z-10 py-2 px-4 border-b">
+        <span className="text-base font-medium text-gray-900">{time}</span>
       </div>
 
       {/* Lista de medicamentos */}
-      <div className="divide-y divide-violet-100">
-        {medications.map((medication) => (
-          <MedicationCard
-            key={medication.id}
-            medication={medication}
-            onClick={onMedicationClick}
-          />
-        ))}
+      <div className="divide-y divide-gray-100">
+        {medications.map(medication => {
+          // Converte para o formato esperado pelo MedicationCard
+          const medicationForCard: Medication = {
+            id: medication.id,
+            name: medication.name,
+            description: medication.description || '',
+            startDate: medication.startDate,
+            duration: medication.duration,
+            interval: medication.interval,
+            dosage: `${medication.dosageQuantity} ${medication.unit}`,
+            time: time,
+            instructions: medication.description || '',
+            status: medication.status || 'pending',
+            timeUntil: medication.timeUntil || '',
+            reminders: medication.reminders.map(r => ({
+              ...r,
+              time: new Date(r.scheduledFor).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'UTC'
+              })
+            })),
+            unit: medication.unit,
+            totalQuantity: medication.totalQuantity,
+            remainingQuantity: medication.remainingQuantity,
+            dosageQuantity: medication.dosageQuantity,
+            userId: '',
+            createdAt: '',
+            updatedAt: ''
+          }
+
+          return (
+            <MedicationCard
+              key={medication.id}
+              medication={medicationForCard}
+              onClick={() => onMedicationClick(medication)}
+              isLate={medication.status === 'late'}
+              showTakeButton
+              variant="home"
+            />
+          )
+        })}
       </div>
     </div>
   )
-} 
+}

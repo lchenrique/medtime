@@ -8,5 +8,6 @@
 
 export type PutMedicationsMarkAsTakenBody = {
   reminderId: string;
+  scheduledFor: string;
   taken: boolean;
 };

@@ -345,6 +345,9 @@
                     "tauriEnabled": {
                       "type": "boolean"
                     },
+                    "capacitorEnabled": {
+                      "type": "boolean"
+                    },
                     "whatsappEnabled": {
                       "type": "boolean"
                     },
@@ -391,6 +394,7 @@
                     "name",
                     "fcmToken",
                     "tauriEnabled",
+                    "capacitorEnabled",
                     "whatsappEnabled",
                     "whatsappNumber",
                     "telegramEnabled",
@@ -493,6 +497,9 @@
                   "tauriEnabled": {
                     "type": "boolean"
                   },
+                  "capacitorEnabled": {
+                    "type": "boolean"
+                  },
                   "whatsappEnabled": {
                     "type": "boolean"
                   },
@@ -560,6 +567,9 @@
                     "tauriEnabled": {
                       "type": "boolean"
                     },
+                    "capacitorEnabled": {
+                      "type": "boolean"
+                    },
                     "whatsappEnabled": {
                       "type": "boolean"
                     },
@@ -606,6 +616,7 @@
                     "name",
                     "fcmToken",
                     "tauriEnabled",
+                    "capacitorEnabled",
                     "whatsappEnabled",
                     "whatsappNumber",
                     "telegramEnabled",
@@ -708,6 +719,9 @@
                   "tauriEnabled": {
                     "type": "boolean"
                   },
+                  "capacitorEnabled": {
+                    "type": "boolean"
+                  },
                   "whatsappEnabled": {
                     "type": "boolean"
                   },
@@ -775,6 +789,9 @@
                     "tauriEnabled": {
                       "type": "boolean"
                     },
+                    "capacitorEnabled": {
+                      "type": "boolean"
+                    },
                     "whatsappEnabled": {
                       "type": "boolean"
                     },
@@ -821,6 +838,7 @@
                     "name",
                     "fcmToken",
                     "tauriEnabled",
+                    "capacitorEnabled",
                     "whatsappEnabled",
                     "whatsappNumber",
                     "telegramEnabled",
@@ -1009,7 +1027,7 @@
         "tags": [
           "medications"
         ],
-        "description": "Lista todas as medicações do usuário",
+        "description": "Lista todos os medicamentos do usuário",
         "responses": {
           "200": {
             "description": "Default Response",
@@ -1033,11 +1051,15 @@
                       "startDate": {
                         "type": "string"
                       },
+                      "duration": {
+                        "type": "number",
+                        "nullable": true
+                      },
                       "interval": {
                         "type": "number"
                       },
-                      "duration": {
-                        "type": "number"
+                      "isRecurring": {
+                        "type": "boolean"
                       },
                       "totalQuantity": {
                         "type": "number"
@@ -1111,8 +1133,9 @@
                       "name",
                       "description",
                       "startDate",
-                      "interval",
                       "duration",
+                      "interval",
+                      "isRecurring",
                       "totalQuantity",
                       "remainingQuantity",
                       "unit",
@@ -1127,33 +1150,6 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number"
-                    },
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "error",
-                    "message"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
           }
         }
       },
@@ -1161,7 +1157,7 @@
         "tags": [
           "medications"
         ],
-        "description": "Cria uma nova medicação",
+        "description": "Cria um novo medicamento",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1173,7 +1169,8 @@
                     "minLength": 2
                   },
                   "description": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "startTime": {
                     "type": "string",
@@ -1189,8 +1186,7 @@
                     ]
                   },
                   "durationInDays": {
-                    "type": "integer",
-                    "exclusiveMinimum": true,
+                    "type": "number",
                     "minimum": 0
                   },
                   "totalQuantity": {
@@ -1199,7 +1195,13 @@
                     "minimum": 0
                   },
                   "unit": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "comprimidos",
+                      "ml",
+                      "gotas",
+                      "doses"
+                    ]
                   },
                   "dosageQuantity": {
                     "type": "number",
@@ -1209,6 +1211,7 @@
                 },
                 "required": [
                   "name",
+                  "description",
                   "startTime",
                   "intervalPreset",
                   "durationInDays",
@@ -1243,11 +1246,15 @@
                     "startDate": {
                       "type": "string"
                     },
+                    "duration": {
+                      "type": "number",
+                      "nullable": true
+                    },
                     "interval": {
                       "type": "number"
                     },
-                    "duration": {
-                      "type": "number"
+                    "isRecurring": {
+                      "type": "boolean"
                     },
                     "totalQuantity": {
                       "type": "number"
@@ -1269,6 +1276,51 @@
                     },
                     "updatedAt": {
                       "type": "string"
+                    },
+                    "reminders": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "scheduledFor": {
+                            "type": "string"
+                          },
+                          "taken": {
+                            "type": "boolean"
+                          },
+                          "takenAt": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "skipped": {
+                            "type": "boolean"
+                          },
+                          "skippedReason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "scheduledFor",
+                          "taken",
+                          "takenAt",
+                          "skipped",
+                          "skippedReason",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -1276,15 +1328,17 @@
                     "name",
                     "description",
                     "startDate",
-                    "interval",
                     "duration",
+                    "interval",
+                    "isRecurring",
                     "totalQuantity",
                     "remainingQuantity",
                     "unit",
                     "dosageQuantity",
                     "userId",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -1292,33 +1346,6 @@
             }
           },
           "400": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number"
-                    },
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "statusCode",
-                    "error",
-                    "message"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "500": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -1381,61 +1408,45 @@
                       "type": "string"
                     },
                     "name": {
-                      "type": "string",
-                      "minLength": 2
+                      "type": "string"
                     },
                     "description": {
                       "type": "string",
                       "nullable": true
                     },
                     "startDate": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "duration": {
-                      "type": "integer",
-                      "exclusiveMinimum": true,
-                      "minimum": 0
+                      "type": "number",
+                      "nullable": true
                     },
                     "interval": {
-                      "type": "number",
-                      "exclusiveMinimum": true,
-                      "minimum": 0
+                      "type": "number"
+                    },
+                    "isRecurring": {
+                      "type": "boolean"
                     },
                     "totalQuantity": {
-                      "type": "number",
-                      "exclusiveMinimum": true,
-                      "minimum": 0
+                      "type": "number"
                     },
                     "remainingQuantity": {
-                      "type": "number",
-                      "exclusiveMinimum": true,
-                      "minimum": 0
+                      "type": "number"
                     },
                     "unit": {
-                      "type": "string",
-                      "enum": [
-                        "comprimidos",
-                        "ml",
-                        "gotas",
-                        "doses"
-                      ]
+                      "type": "string"
                     },
                     "dosageQuantity": {
-                      "type": "number",
-                      "exclusiveMinimum": true,
-                      "minimum": 0
+                      "type": "number"
                     },
                     "userId": {
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "reminders": {
                       "type": "array",
@@ -1446,15 +1457,13 @@
                             "type": "string"
                           },
                           "scheduledFor": {
-                            "type": "string",
-                            "format": "date-time"
+                            "type": "string"
                           },
                           "taken": {
                             "type": "boolean"
                           },
                           "takenAt": {
                             "type": "string",
-                            "format": "date-time",
                             "nullable": true
                           },
                           "skipped": {
@@ -1465,12 +1474,10 @@
                             "nullable": true
                           },
                           "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
+                            "type": "string"
                           },
                           "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -1494,13 +1501,15 @@
                     "startDate",
                     "duration",
                     "interval",
+                    "isRecurring",
                     "totalQuantity",
                     "remainingQuantity",
                     "unit",
                     "dosageQuantity",
                     "userId",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -1562,37 +1571,27 @@
             }
           }
         }
-      }
-    },
-    "/medications/mark-as-taken": {
-      "put": {
+      },
+      "delete": {
         "tags": [
           "medications"
         ],
-        "description": "Marca ou desmarca um lembrete como tomado",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "reminderId": {
-                    "type": "string"
-                  },
-                  "taken": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "reminderId",
-                  "taken"
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": true
-        },
+        "description": "Deleta uma medicação e seus lembretes",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -1601,42 +1600,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "scheduledFor": {
-                      "type": "string"
-                    },
-                    "taken": {
-                      "type": "boolean"
-                    },
-                    "takenAt": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "skipped": {
-                      "type": "boolean"
-                    },
-                    "skippedReason": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "id",
-                    "scheduledFor",
-                    "taken",
-                    "takenAt",
-                    "skipped",
-                    "skippedReason",
-                    "createdAt",
-                    "updatedAt"
+                    "message"
                   ],
                   "additionalProperties": false
                 }
@@ -1768,73 +1737,12 @@
         }
       }
     },
-    "/notifications/test": {
-      "post": {
-        "tags": [
-          "notifications"
-        ],
-        "description": "Rota de teste para enviar notificação",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "seconds": {
-                    "type": "integer",
-                    "minimum": 5,
-                    "default": 10
-                  },
-                  "title": {
-                    "type": "string",
-                    "default": "Teste de Notificação"
-                  },
-                  "body": {
-                    "type": "string",
-                    "default": "Esta é uma notificação de teste!"
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
-    "/notifications/reset": {
-      "post": {
-        "tags": [
-          "notifications"
-        ],
-        "description": "Reseta o banco de dados removendo todos os lembretes e medicamentos",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
-    "/notifications/ws": {
+    "/notifications/ws/ws": {
       "get": {
         "tags": [
           "notifications"
         ],
-        "description": "Conexão WebSocket para notificações em tempo real",
+        "description": "Conexão WebSocket para notificações em tempo real (apenas Tauri)",
         "parameters": [
           {
             "schema": {
@@ -1843,28 +1751,16 @@
             "in": "query",
             "name": "token",
             "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
-    "/notifications/{reminderId}/notified": {
-      "post": {
-        "tags": [
-          "notifications"
-        ],
-        "description": "Marca um lembrete como notificado",
-        "parameters": [
+          },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "tauri"
+              ]
             },
-            "in": "path",
-            "name": "reminderId",
+            "in": "query",
+            "name": "client",
             "required": true
           }
         ],
@@ -1880,7 +1776,7 @@
         "tags": [
           "notifications"
         ],
-        "description": "Conexão WebSocket para notificações em tempo real",
+        "description": "Conexão WebSocket para notificações em tempo real (apenas Tauri)",
         "parameters": [
           {
             "schema": {
@@ -1888,6 +1784,17 @@
             },
             "in": "query",
             "name": "token",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "tauri"
+              ]
+            },
+            "in": "query",
+            "name": "client",
             "required": true
           }
         ],

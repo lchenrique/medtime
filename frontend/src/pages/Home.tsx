@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetMedications, usePutMedicationsMarkAsTaken } from '@/api/generated/medications/medications'
 import { useDrawer } from '@/hooks/useDrawer'
@@ -8,345 +8,212 @@ import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { NextMedicationCard } from '@/components/home/NextMedicationCard'
 import { MedicationCard } from '@/components/home/MedicationCard'
 import { MedicationTimeGroup } from '@/components/home/MedicationTimeGroup'
-import { FloatingAddButton } from '@/components/home/FloatingAddButton'
 import { Medication } from '@/types/medication'
 import { AddMedicationForm } from '@/components/home/AddMedicationForm'
-import { Bell, Search, AlertCircle } from 'lucide-react'
+import { Bell, Search, AlertCircle, Clock, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { EmptyMedicationNowState } from '@/components/home/EmptyMedicationNowState'
+import { NoResults } from '@/components/ui/NoResults'
+import { StatsCard } from '@/components/home/StatsCard'
+import { useUserStore } from '@/stores/user'
+import { formatInTimeZone } from 'date-fns-tz'
+import { GetMedications200Item, GetMedications200ItemRemindersItem } from '@/api/model'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { Loader2 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-type MedicationGroup = {
-  time: string
-  medications: Medication[]
-  timeUntil?: string
+export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
+
+export interface MedicationGroup {
+  hour: string
+  medications: (GetMedications200Item & {
+    status?: ReminderStatus
+    timeUntil?: string
+    instructions?: string
+  })[]
 }
 
-type ReminderStatus = 'pending' | 'late'
-
 export function Home() {
+  const { user } = useUserStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null)
-  const [medicationGroups, setMedicationGroups] = useState<MedicationGroup[]>([])
-  const [lateGroups, setLateGroups] = useState<MedicationGroup[]>([])
   const drawer = useDrawer()
   const queryClient = useQueryClient()
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
 
-  const { data: medicationsData, isLoading: isLoadingMedications } = useGetMedications()
+  const { data: medications } = useGetMedications()
 
-  // Atualiza o estado local quando os dados são carregados
-  useEffect(() => {
-    if (medicationsData) {
-      const now = new Date()
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const dayAfterTomorrow = new Date(tomorrow)
-      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+  const now = new Date()
+  const spTimeZone = 'America/Sao_Paulo'
+  const nowInSP = formatInTimeZone(now, spTimeZone, 'yyyy-MM-dd HH:mm')
+  const todayInSP = formatInTimeZone(now, spTimeZone, 'yyyy-MM-dd')
 
-      // Tolerância de 10 minutos para medicamentos passados
-      const toleranceTime = new Date(now.getTime() - 10 * 60 * 1000)
+  // Separa grupos atrasados dos no horário
+  const { lateGroups, onTimeGroups } = useMemo(() => {
+    if (!medications) return { lateGroups: [], onTimeGroups: [] }
 
-      const formatDate = (date: Date) => {
-        return new Intl.DateTimeFormat('pt-BR', {
-          timeZone: 'America/Sao_Paulo',
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric'
-        }).format(date)
-      }
+    console.log('=== RAW DATA FROM API ===')
+    console.log('Current time:', now.toISOString())
+    medications.forEach(med => {
+      console.log('\nMedication:', {
+        id: med.id,
+        name: med.name,
+        reminders: med.reminders.map(r => ({
+          id: r.id,
+          scheduledFor: r.scheduledFor,
+          taken: r.taken,
+          skipped: r.skipped
+        }))
+      })
+    })
+    console.log('=== END RAW DATA ===\n')
 
-      const isSameDay = (date1: Date, date2: Date) => {
-        return formatDate(date1) === formatDate(date2)
-      }
-      const mappedMedications = medicationsData
-        .map(med => {
-          const startDate = new Date(med.startDate)
-          const endDate = new Date(startDate)
-          endDate.setDate(endDate.getDate() + med.duration)
+    const late: Record<string, MedicationGroup> = {}
+    const onTime: Record<string, MedicationGroup> = {}
 
-          // Filtra e ordena os lembretes
-          const now = new Date()
-          const toleranceTime = new Date(now.getTime() - 5 * 60 * 1000) // 5 minutos atrás
+    console.log('Current time in SP:', nowInSP)
+    console.log('Today in SP:', todayInSP)
 
-          const filteredReminders = (med.reminders || [])
-            .filter(reminder => {
-              if (reminder.taken || reminder.skipped) return false
-              const reminderDate = new Date(reminder.scheduledFor)
-              return reminderDate >= toleranceTime || isSameDay(reminderDate, today)
-            })
-            .sort((a, b) => {
-              const dateA = new Date(a.scheduledFor)
-              const dateB = new Date(b.scheduledFor)
-              return dateA.getTime() - dateB.getTime()
-            })
+    medications.forEach(medication => {
+      console.log('\n=== Processing medication ===', {
+        name: medication.name,
+        totalReminders: medication.reminders.length,
+        reminders: medication.reminders.map(r => ({
+          scheduledFor: r.scheduledFor,
+          taken: r.taken,
+          skipped: r.skipped
+        }))
+      })
+      
+      // Primeiro, encontra os reminders do dia atual
+      const todayReminders = medication.reminders.filter(reminder => {
+        const reminderDate = parseISO(reminder.scheduledFor)
+        const reminderDayInSP = formatInTimeZone(reminderDate, spTimeZone, 'yyyy-MM-dd')
+        const reminderTimeInSP = formatInTimeZone(reminderDate, spTimeZone, 'HH:mm')
+        const isToday = reminderDayInSP === todayInSP
+        
+        console.log('Checking reminder:', {
+          medication: medication.name,
+          scheduledFor: reminder.scheduledFor,
+          reminderDayInSP,
+          reminderTimeInSP,
+          todayInSP,
+          isToday,
+          taken: reminder.taken,
+          skipped: reminder.skipped
+        })
+        return isToday
+      })
 
-          if (filteredReminders.length === 0) return null
+      console.log(`Found ${todayReminders.length} reminders for today`)
 
-          // Mapeia cada lembrete para incluir o status
-          const mappedReminders = filteredReminders.map(reminder => {
-            const reminderDate = new Date(reminder.scheduledFor)
-            const status: ReminderStatus = reminderDate < toleranceTime ? 'late' : 'pending'
+      // Depois, processa cada reminder do dia
+      todayReminders.forEach(reminder => {
+        const reminderDate = parseISO(reminder.scheduledFor)
+        const reminderInSP = formatInTimeZone(reminderDate, spTimeZone, 'yyyy-MM-dd HH:mm')
+        const hour = formatInTimeZone(reminderDate, spTimeZone, 'HH:mm')
+        
+        // Verifica se o lembrete está atrasado (antes do horário atual)
+        const isLate = reminderDate < now
 
-            return {
-              ...reminder,
-              time: reminderDate.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                timeZone: 'America/Sao_Paulo'
-              }) + (
-                isSameDay(reminderDate, today)
-                  ? ' (hoje)'
-                  : isSameDay(reminderDate, tomorrow)
-                    ? ' (amanhã)'
-                    : ` (${formatDate(reminderDate)})`
-              ),
-              status
-            }
+        // Pula apenas reminders já tomados ou pulados
+        if (reminder.taken || reminder.skipped) {
+          console.log('Skipping reminder (taken/skipped):', {
+            medication: medication.name,
+            scheduledFor: reminder.scheduledFor,
+            taken: reminder.taken,
+            skipped: reminder.skipped
           })
+          return
+        }
 
-          // Cria o objeto do medicamento com os lembretes mapeados
-          const mappedMed: Medication = {
-            ...med,
-            description: med.description || '',
-            dosage: `${med.dosageQuantity} ${med.unit}`,
-            time: mappedReminders[0].time.split(' ')[0], // Remove o sufixo (hoje), (amanhã), etc
-            instructions: med.description || '',
-            status: mappedReminders[0].status,
-            timeUntil: calculateTimeUntil(mappedReminders[0].scheduledFor),
-            reminders: mappedReminders
+        console.log('Processing active reminder:', {
+          medication: medication.name,
+          scheduledFor: reminder.scheduledFor,
+          reminderInSP,
+          nowInSP,
+          isLate,
+          hour,
+          reminderTime: reminderDate.toISOString(),
+          currentTime: now.toISOString()
+        })
+
+        const targetGroups = isLate ? late : onTime
+
+        if (!targetGroups[hour]) {
+          targetGroups[hour] = {
+            hour,
+            medications: []
           }
+        }
 
-          return mappedMed
-        })
-        .filter((med): med is Medication => med !== null)
-        .sort((a, b) => {
-          // Pega as datas completas dos próximos lembretes
-          const reminderA = a.reminders[0]
-          const reminderB = b.reminders[0]
-          if (!reminderA || !reminderB) return 0
+        // Verifica se o medicamento já não foi adicionado neste horário
+        const medicationAlreadyAdded = targetGroups[hour].medications.some(
+          med => med.id === medication.id
+        )
 
-          const dateA = new Date(reminderA.scheduledFor)
-          const dateB = new Date(reminderB.scheduledFor)
-
-          // Compara as datas completas
-          return dateA.getTime() - dateB.getTime()
-        })
-
-      // Separar medicamentos por status dos lembretes
-      const lateMeds = mappedMedications.filter(med => 
-        med.reminders.some(reminder => {
-          const reminderDate = new Date(reminder.scheduledFor)
-          return !reminder.taken && !reminder.skipped && reminderDate < toleranceTime
-        })
-      )
-
-      const onTimeMeds = mappedMedications.filter(med =>
-        med.reminders.some(reminder => {
-          const reminderDate = new Date(reminder.scheduledFor)
-          return !reminder.taken && !reminder.skipped && reminderDate >= toleranceTime
-        })
-      )
-
-      // Agrupar medicamentos atrasados por horário
-      const lateGroups: MedicationGroup[] = []
-      lateMeds.forEach(med => {
-        // Pega o primeiro lembrete atrasado
-        const lateReminder = med.reminders.find(reminder => {
-          const reminderDate = new Date(reminder.scheduledFor)
-          return !reminder.taken && !reminder.skipped && reminderDate < toleranceTime
-        })
-        
-        if (!lateReminder) return
-
-        const existingGroup = lateGroups.find(group => group.time === lateReminder.time.split(' ')[0])
-        if (existingGroup) {
-          existingGroup.medications.push({
-            ...med,
-            status: 'late',
-            time: lateReminder.time.split(' ')[0],
-            timeUntil: calculateTimeUntil(lateReminder.scheduledFor)
-          })
-        } else {
-          lateGroups.push({
-            time: lateReminder.time.split(' ')[0],
-            medications: [{
-              ...med,
-              status: 'late',
-              time: lateReminder.time.split(' ')[0],
-              timeUntil: calculateTimeUntil(lateReminder.scheduledFor)
-            }]
+        if (!medicationAlreadyAdded) {
+          targetGroups[hour].medications.push({
+            ...medication,
+            status: isLate ? 'late' : 'pending',
+            timeUntil: formatDistanceToNow(reminderDate, { 
+              locale: ptBR, 
+              addSuffix: true 
+            }),
+            instructions: medication.description || ''
           })
         }
       })
-
-      // Agrupar medicamentos no horário
-      const onTimeGroups: MedicationGroup[] = []
-      onTimeMeds.forEach(med => {
-        // Pega o próximo lembrete pendente
-        const pendingReminder = med.reminders.find(reminder => {
-          const reminderDate = new Date(reminder.scheduledFor)
-          return !reminder.taken && !reminder.skipped && reminderDate >= toleranceTime
-        })
-
-        if (!pendingReminder) return
-
-        const reminderDate = new Date(pendingReminder.scheduledFor)
-        const reminderTime = reminderDate.toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          timeZone: 'America/Sao_Paulo'
-        })
-
-        // Se for amanhã e depois das 3:00, ignora
-        if (!isSameDay(reminderDate, today)) {
-          const [hours] = reminderTime.split(':').map(Number)
-          if (hours > 3) return
-        }
-
-        // Cria uma chave única que combina data e hora
-        const timeKey = `${reminderTime}${isSameDay(reminderDate, today) ? '' : '_tomorrow'}`
-        
-        const existingGroup = onTimeGroups.find(group => group.time === timeKey)
-        if (existingGroup) {
-          existingGroup.medications.push({
-            ...med,
-            status: 'pending',
-            time: reminderTime,
-            timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
-          })
-        } else {
-          onTimeGroups.push({
-            time: timeKey,
-            medications: [{
-              ...med,
-              status: 'pending',
-              time: reminderTime,
-              timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
-            }],
-            timeUntil: calculateTimeUntil(pendingReminder.scheduledFor)
-          })
-        }
-      })
-
-      // Ordena os grupos por data/hora
-      onTimeGroups.sort((a, b) => {
-        const isATomorrow = a.time.includes('_tomorrow')
-        const isBTomorrow = b.time.includes('_tomorrow')
-        
-        if (isATomorrow && !isBTomorrow) return 1
-        if (!isATomorrow && isBTomorrow) return -1
-        
-        const timeA = a.time.split('_')[0].split(':').map(Number)
-        const timeB = b.time.split('_')[0].split(':').map(Number)
-        return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1])
-      })
-
-      // Remove o sufixo _tomorrow antes de exibir
-      onTimeGroups.forEach(group => {
-        group.time = group.time.split('_')[0]
-      })
-
-      setMedicationGroups(onTimeGroups)
-      setLateGroups(lateGroups)
-    }
-  }, [medicationsData])
-  
-
-  // Pega o próximo medicamento
-  const getNextMedicationGroup = (groups: MedicationGroup[]): MedicationGroup | null => {
-    if (groups.length === 0) return null
-
-    const now = new Date()
-    let nextGroup: MedicationGroup | null = null
-    let smallestDiff = Infinity
-
-    groups.forEach(group => {
-      // Verifica se o medicamento é de hoje
-      const medication = group.medications[0]
-      if (!medication?.reminders[0]) return
-
-      const reminderDate = new Date(medication.reminders[0].scheduledFor)
-      const isToday = reminderDate.getDate() === now.getDate() &&
-                     reminderDate.getMonth() === now.getMonth() &&
-                     reminderDate.getFullYear() === now.getFullYear()
-
-      // Se não for de hoje, verifica se é até 3:00 do próximo dia
-      if (!isToday) {
-        const tomorrow = new Date(now)
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        const isTomorrow = reminderDate.getDate() === tomorrow.getDate() &&
-                          reminderDate.getMonth() === tomorrow.getMonth() &&
-                          reminderDate.getFullYear() === tomorrow.getFullYear()
-
-        if (!isTomorrow) return // Se não for nem hoje nem amanhã, ignora
-        
-        // Se for depois das 3:00, ignora
-        const [hours] = group.time.split(':').map(Number)
-        if (hours > 3) return
-      }
-
-      const [hours, minutes] = group.time.split(':').map(Number)
-      const nextTime = new Date(now)
-      nextTime.setHours(hours, minutes, 0, 0)
-
-      // Se o horário já passou hoje, pula
-      if (isToday && nextTime <= now) return
-
-      const diffInMinutes = Math.round((nextTime.getTime() - now.getTime()) / (1000 * 60))
-
-      if (diffInMinutes > 0 && diffInMinutes < smallestDiff) {
-        smallestDiff = diffInMinutes
-        nextGroup = {
-          ...group,
-          medications: group.medications.map(med => ({
-            ...med,
-            timeUntil: calculateTimeUntil(nextTime.toISOString())
-          }))
-        }
-      }
     })
 
-    // Se não encontrou nenhum medicamento para hoje, pega o primeiro de amanhã até 3:00
-    if (!nextGroup) {
-      const tomorrowGroup = groups.find(group => {
-        const medication = group.medications[0]
-        if (!medication?.reminders[0]) return false
-
-        const reminderDate = new Date(medication.reminders[0].scheduledFor)
-        const tomorrow = new Date(now)
-        tomorrow.setDate(tomorrow.getDate() + 1)
-        
-        const isTomorrow = reminderDate.getDate() === tomorrow.getDate() &&
-                          reminderDate.getMonth() === tomorrow.getMonth() &&
-                          reminderDate.getFullYear() === tomorrow.getFullYear()
-
-        if (!isTomorrow) return false
-
-        // Verifica se o horário é até 3:00
-        const [hours] = group.time.split(':').map(Number)
-        return hours <= 3
+    // Ordena os grupos por hora
+    const sortGroups = (groups: Record<string, MedicationGroup>) => {
+      return Object.values(groups).sort((a, b) => {
+        const [aHours, aMinutes] = a.hour.split(':').map(Number)
+        const [bHours, bMinutes] = b.hour.split(':').map(Number)
+        return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes)
       })
-
-      if (tomorrowGroup) {
-        const medication = tomorrowGroup.medications[0]
-        if (medication?.reminders[0]) {
-          nextGroup = {
-            ...tomorrowGroup,
-            medications: tomorrowGroup.medications.map(med => ({
-              ...med,
-              timeUntil: calculateTimeUntil(med.reminders[0].scheduledFor)
-            }))
-          }
-        }
-      }
     }
 
-    return nextGroup
-  }
+    const sortedLateGroups = sortGroups(late)
+    const sortedOnTimeGroups = sortGroups(onTime)
 
-  const nextMedicationGroup = getNextMedicationGroup(medicationGroups)
+    console.log('=== ATRASADOS ===')
+    sortedLateGroups.forEach(group => {
+      console.log(`${group.hour}:`, group.medications.map(med => ({
+        name: med.name,
+        status: med.status,
+        timeUntil: med.timeUntil
+      })))
+    })
+
+    console.log('=== PENDENTES ===')
+    sortedOnTimeGroups.forEach(group => {
+      console.log(`${group.hour}:`, group.medications.map(med => ({
+        name: med.name,
+        status: med.status,
+        timeUntil: med.timeUntil
+      })))
+    })
+
+    return {
+      lateGroups: sortedLateGroups,
+      onTimeGroups: sortedOnTimeGroups
+    }
+  }, [medications, nowInSP, todayInSP])
+
+  // Encontra o próximo grupo de medicamentos
+  const nextGroup = useMemo(() => {
+    return onTimeGroups.find(group => {
+      const [hours, minutes] = group.hour.split(':').map(Number)
+      const groupTime = new Date(now)
+      groupTime.setHours(hours, minutes, 0, 0)
+      return groupTime >= now
+    })
+  }, [onTimeGroups, now])
 
   const handleMedicationClick = (medication: Medication) => {
     drawer.open({
@@ -364,17 +231,16 @@ export function Home() {
 
   const handleTakeMedication = (medicationId: string) => {
     const now = new Date()
-    const medication = medicationGroups
-      .flatMap(g => g.medications)
-      .find(m => m.id === medicationId)
+    const medication = medications?.find(m => m.id === medicationId)
 
     if (!medication) return
 
     const nextReminder = medication.reminders.find(r => {
       if (r.taken) return false
-      const utcDate = new Date(r.scheduledFor)
-      const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-      return localDate <= now
+      const reminderDate = parseISO(r.scheduledFor)
+      // Adiciona uma tolerância de 5 minutos antes do horário
+      const fiveMinutesBefore = new Date(reminderDate.getTime() - 5 * 60 * 1000)
+      return now >= fiveMinutesBefore && now <= reminderDate
     })
 
     if (!nextReminder) return
@@ -382,6 +248,7 @@ export function Home() {
     markAsTaken({ 
       data: { 
         reminderId: nextReminder.id,
+        scheduledFor: nextReminder.scheduledFor,
         taken: true 
       }
     }, {
@@ -392,190 +259,119 @@ export function Home() {
       }
     })
   }
-  console.log(medicationGroups, "medicationGroups")
 
-  // Filtra os grupos de medicamentos baseado no termo de busca
-  const filteredGroups = medicationGroups
-    .map(group => ({
-      ...group,
-      medications: group.medications
-        .filter(med => {
-          // Verifica se o próximo lembrete não foi tomado
-          const nextReminder = med.reminders[0]
-          if (!nextReminder || nextReminder.taken) return false
-
-          // Aplica o filtro de busca
-          return med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            med.instructions?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            `${med.dosageQuantity} ${med.unit}`.toLowerCase().includes(searchTerm.toLowerCase())
-        })
-    }))
-    .filter(group => group.medications.length > 0)
-
-  // Filtra os grupos atrasados baseado no termo de busca
-  const filteredLateGroups = lateGroups
-    .map(group => ({
-      ...group,
-      medications: group.medications
-        .filter(med => {
-          // Verifica se o próximo lembrete não foi tomado
-          const nextReminder = med.reminders[0]
-          if (!nextReminder || nextReminder.taken) return false
-
-          // Aplica o filtro de busca
-          return med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            med.instructions?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            `${med.dosageQuantity} ${med.unit}`.toLowerCase().includes(searchTerm.toLowerCase())
-        })
-    }))
-    .filter(group => group.medications.length > 0)
-
-  if (isLoadingMedications) {
+  if (!medications) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-full">
-          <div className="animate-pulse space-y-6">
-            <div className="h-14 bg-primary/10 rounded-2xl" />
-            <div className="h-40 bg-primary/5 rounded-2xl" />
-            <div className="space-y-3">
-              <div className="h-5 bg-primary/10 rounded-full w-1/3" />
-              <div className="h-32 bg-primary/5 rounded-2xl" />
-            </div>
-          </div>
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-violet-50">
-      <div className="p-4 space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-violet-950">Meus Medicamentos</h1>
-              <p className="text-sm text-violet-500">Mantenha sua saúde em dia</p>
-            </div>
-            <div className="relative">
-              <Bell className="w-6 h-6 text-violet-500" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-primary-foreground flex items-center justify-center">
-                {medicationGroups.reduce((total, group) => total + group.medications.length, 0) + 
-                 lateGroups.reduce((total, group) => total + group.medications.length, 0)}
-              </span>
-            </div>
-          </div>
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour >= 5 && hour < 12) return 'Bom dia'
+    if (hour >= 12 && hour < 18) return 'Boa tarde'
+    return 'Boa noite'
+  }
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-400" />
-            <Input
-              type="text"
-              placeholder="Buscar medicamentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-white border-violet-100 placeholder:text-violet-300 focus-visible:ring-violet-500"
-            />
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container py-8 space-y-8">
+        {/* Header com saudação e informações do dia */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {getGreeting()}, {user?.name?.split(' ')[0]}
+            </h1>
+            <span className="text-sm font-medium text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">
+              {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              {nextGroup 
+                ? "Aqui está seu próximo medicamento"
+                : "Nenhum medicamento para hoje"}
+            </p>
+            <p className="text-sm font-medium">
+              {onTimeGroups.reduce((total, group) => total + group.medications.length, 0)} para hoje • {' '}
+              {lateGroups.reduce((total, group) => total + group.medications.length, 0)} atrasados
+            </p>
           </div>
         </div>
 
-        {nextMedicationGroup && nextMedicationGroup.medications && (
+        {/* Próximo medicamento */}
+        {nextGroup && (
           <NextMedicationCard 
-            medication={nextMedicationGroup.medications[0]}
-            onTakeMedication={handleTakeMedication}
+            group={nextGroup}
+            onMedicationClick={handleMedicationClick}
           />
         )}
 
-        <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-2 gap-4 p-1 pb-2 bg-transparent">
-            <TabsTrigger 
-              value="current" 
-              className={cn(
-                "flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border border-violet-100 bg-white transition-colors data-[state=active]:border-violet-500 data-[state=active]:bg-violet-50 shadow-sm",
-                "hover:bg-violet-50/50"
-              )}
-            >
-              <span className="text-sm font-medium text-violet-950">Horários</span>
-              {medicationGroups.length > 0 && (
-                <span className="bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full text-xs">
-                  {medicationGroups.reduce((total, group) => total + group.medications.length, 0)}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="late" 
-              className={cn(
-                "flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border border-red-100 bg-white transition-colors data-[state=active]:border-red-500 data-[state=active]:bg-red-50 shadow-sm",
-                "hover:bg-red-50/50"
-              )}
-            >
-              <span className="text-sm font-medium text-violet-950">Atrasados</span>
+        {/* Tabs para medicamentos */}
+        <Tabs defaultValue="today" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="today" className="flex-1">Para hoje</TabsTrigger>
+            <TabsTrigger value="late" className="flex-1">
+              Atrasados
               {lateGroups.length > 0 && (
-                <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs">
+                <span className="ml-2 bg-destructive text-destructive-foreground rounded-full px-2 py-0.5 text-xs">
                   {lateGroups.reduce((total, group) => total + group.medications.length, 0)}
                 </span>
               )}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="current" className="mt-6">
-            <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
-              {filteredGroups.map(group => (
-                <MedicationTimeGroup
-                  key={group.time}
-                  time={group.time}
-                  medications={group.medications}
-                  onMedicationClick={handleMedicationClick}
-                />
-              ))}
-
-              {filteredGroups.length === 0 && searchTerm && (
-                <div className="p-12 text-center">
-                  <p className="text-sm text-violet-400">
-                    Nenhum medicamento encontrado para "{searchTerm}"
-                  </p>
-                </div>
-              )}
-
-              {medicationGroups.length === 0 && !searchTerm && (
-                <EmptyMedicationState onAddClick={handleAddMedicationClick} />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="late" className="mt-6">
-            <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
-              {filteredLateGroups.length > 0 ? (
-                <>
-                  <div className="p-4 bg-red-50 border-b border-red-100">
-                    <div className="flex items-center gap-2 text-red-600">
-                      <AlertCircle className="w-5 h-5" />
-                      <p className="text-sm font-medium">
-                        Medicamentos que precisam ser tomados
-                      </p>
-                    </div>
-                  </div>
-                  {filteredLateGroups.map(group => (
+          <TabsContent value="today">
+            {onTimeGroups.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Medicamentos do dia</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {onTimeGroups.map(group => (
                     <MedicationTimeGroup
-                      key={group.time}
-                      time={group.time}
+                      key={group.hour}
+                      time={group.hour}
                       medications={group.medications}
                       onMedicationClick={handleMedicationClick}
-                      isLateGroup
                     />
                   ))}
-                </>
-              ) : (
-                <div className="p-12 text-center">
-                  <p className="text-sm text-violet-400">
-                    Nenhum medicamento atrasado
-                  </p>
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <EmptyMedicationNowState onAddClick={handleAddMedicationClick} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="late">
+            {lateGroups.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive">
+                    Medicamentos atrasados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {lateGroups.map(group => (
+                    <MedicationTimeGroup
+                      key={group.hour}
+                      time={group.hour}
+                      medications={group.medications}
+                      onMedicationClick={handleMedicationClick}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum medicamento atrasado
+              </div>
+            )}
           </TabsContent>
         </Tabs>
-
-        <FloatingAddButton onClick={handleAddMedicationClick} />
       </div>
     </div>
-  ) 
-} 
+  )
+}

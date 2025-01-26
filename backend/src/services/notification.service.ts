@@ -1,10 +1,19 @@
 import { prisma } from '../lib/prisma'
-import { messaging } from '../config/firebase-admin'
+import { messaging } from '../lib/firebase'
 import { wsService } from './websocket.service'
 import { TelegramService } from './telegram.service'
 import { WhatsAppService } from './whatsapp.service'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+
+interface NotificationData {
+  title: string
+  body: string
+  type?: string
+  medicationId?: string
+  dosage?: string
+  data?: Record<string, string>
+}
 
 interface SendNotificationParams {
   userId: string
@@ -19,40 +28,51 @@ interface MedicationReminderParams {
   userId: string
 }
 
-async function sendPushNotification(token: string, title: string, body: string, data: Record<string, string> = {}) {
+async function sendPushNotification(token: string, data: NotificationData) {
   try {
+    const type = data.type ?? 'REMINDER'
+    const medicationId = data.medicationId ?? ''
+    const dosage = data.dosage ?? ''
+
+    console.log('📱 Enviando FCM para token:', token)
+    
     const message = {
       token,
       notification: {
-        title,
-        body,
+        title: data.title,
+        body: data.body,
       },
-      data,
+      data: {
+        type,
+        medicationId,
+        dosage,
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+        foreground: 'false',
+        userInteraction: 'true',
+        content_available: 'true'
+      },
       android: {
         priority: 'high' as const,
         notification: {
-          sound: 'default',
+          channelId: 'reminders',
           priority: 'max' as const,
-          channelId: 'medication_reminders'
-        }
-      },
-      apns: {
-        payload: {
-          aps: {
-            sound: 'default',
-            badge: 1
-          }
-        }
+          visibility: 'public' as const,
+          defaultSound: true,
+          defaultVibrateTimings: true
+        },
+        directBootOk: true
       }
     }
 
-    console.log('Mensagem a ser enviada:', JSON.stringify(message, null, 2))
+    console.log('📨 Mensagem FCM:', message)
+    
     const response = await messaging.send(message)
-    console.log('Push notification enviada com sucesso:', response)
-    return true
+    console.log('✅ FCM enviado com sucesso:', response)
+    
+    return response
   } catch (error) {
-    console.error('Erro detalhado ao enviar push notification:', error)
-    return false
+    console.error('❌ Erro ao enviar FCM:', error)
+    throw error
   }
 }
 
@@ -80,7 +100,16 @@ async function sendNotification({ userId, title, body, data }: SendNotificationP
     // Envia notificação push se o token estiver disponível
     if (user.fcmToken) {
       console.log('Enviando push notification...')
-      const success = await sendPushNotification(user.fcmToken, title, body, data)
+      const success = await sendPushNotification(user.fcmToken, {
+        title,
+        body,
+        data: {
+          ...data,
+          type: 'REMINDER',
+          medicationId: data?.medicationId || '',
+          dosage: data?.dosage || ''
+        }
+      })
       console.log('Push notification enviada:', success)
     } else {
       console.log('Usuário não tem token FCM')
@@ -108,6 +137,7 @@ async function sendNotification({ userId, title, body, data }: SendNotificationP
           1, // dosage
           new Date(), // scheduledFor
           0, // remainingQuantity
+          data?.medicationId || '', // reminderId
           body // description
         )
       } catch (error) {
@@ -171,7 +201,8 @@ async function sendMedicationReminder({ medicationId, scheduledFor, userId }: Me
           medication.dosageQuantity, // dosage como number
           scheduledFor,
           medication.remainingQuantity,
-          medication.description || undefined
+          medicationId,
+          medication.description || ""
         )
       } catch (error) {
         console.error('Erro ao enviar WhatsApp notification:', error)

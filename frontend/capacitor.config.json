@@ -4,7 +4,7 @@
   "webDir": "dist",
   "server": {
     "androidScheme": "https",
-    "url": "http://localhost:5173",
+    "url": "https://ewe-simple-polecat.ngrok-free.app",
     "cleartext": true
   },
   "plugins": {
@@ -13,12 +13,33 @@
         "badge",
         "sound",
         "alert"
-      ]
+      ],
+      "importance": "high",
+      "sound": "alarm_sound",
+      "foregroundPresentation": true,
+      "launchActivity": true,
+      "android": {
+        "autoCancel": true,
+        "clickAction": ".MainActivity",
+        "priority": "high",
+        "visibility": "public",
+        "sound": "alarm_sound"
+      }
     },
     "LocalNotifications": {
-      "smallIcon": "ic_stat_icon_config_sample",
+      "smallIcon": "ic_stat_medtimelogo",
       "iconColor": "#7C3AED",
-      "sound": "beep.wav"
+      "sound": "alarm_sound",
+      "schedule": {
+        "allowWhileIdle": true
+      },
+      "actions": [
+        {
+          "id": "REMINDER_ACTION",
+          "title": "Tomar Medicamento",
+          "requiresAuthentication": false
+        }
+      ]
     }
   }
 }

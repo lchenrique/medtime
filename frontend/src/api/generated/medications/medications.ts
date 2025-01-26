@@ -23,8 +23,9 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query'
 import type {
+  DeleteMedicationsId200,
+  DeleteMedicationsId404,
   GetMedications200Item,
-  GetMedications500,
   GetMedicationsId200,
   GetMedicationsId404,
   GetMedicationsId500,
@@ -33,7 +34,6 @@ import type {
   PatchMedicationsMedicationIdStockBody,
   PostMedications201,
   PostMedications400,
-  PostMedications500,
   PostMedicationsBody,
   PutMedicationsMarkAsTaken200,
   PutMedicationsMarkAsTaken404,
@@ -44,7 +44,7 @@ import { customInstance } from '../../axios-client';
 
 
 /**
- * Lista todas as medicações do usuário
+ * Lista todos os medicamentos do usuário
  */
 export const getMedications = (
     
@@ -64,7 +64,7 @@ export const getGetMedicationsQueryKey = () => {
     }
 
     
-export const getGetMedicationsQueryOptions = <TData = Awaited<ReturnType<typeof getMedications>>, TError = GetMedications500>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
+export const getGetMedicationsQueryOptions = <TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -83,10 +83,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetMedicationsQueryResult = NonNullable<Awaited<ReturnType<typeof getMedications>>>
-export type GetMedicationsQueryError = GetMedications500
+export type GetMedicationsQueryError = unknown
 
 
-export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = GetMedications500>(
+export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMedications>>,
@@ -96,7 +96,7 @@ export function useGetMedications<TData = Awaited<ReturnType<typeof getMedicatio
       >, }
 
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = GetMedications500>(
+export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMedications>>,
@@ -106,12 +106,12 @@ export function useGetMedications<TData = Awaited<ReturnType<typeof getMedicatio
       >, }
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = GetMedications500>(
+export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = GetMedications500>(
+export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -128,7 +128,7 @@ export function useGetMedications<TData = Awaited<ReturnType<typeof getMedicatio
 
 
 /**
- * Cria uma nova medicação
+ * Cria um novo medicamento
  */
 export const postMedications = (
     postMedicationsBody: PostMedicationsBody,
@@ -146,7 +146,7 @@ export const postMedications = (
   
 
 
-export const getPostMedicationsMutationOptions = <TData = Awaited<ReturnType<typeof postMedications>>, TError = PostMedications400 | PostMedications500,
+export const getPostMedicationsMutationOptions = <TData = Awaited<ReturnType<typeof postMedications>>, TError = PostMedications400,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PostMedicationsBody}, TContext>, }
 ) => {
 const mutationKey = ['postMedications'];
@@ -172,9 +172,9 @@ const {mutation: mutationOptions} = options ?
 
     export type PostMedicationsMutationResult = NonNullable<Awaited<ReturnType<typeof postMedications>>>
     export type PostMedicationsMutationBody = PostMedicationsBody
-    export type PostMedicationsMutationError = PostMedications400 | PostMedications500
+    export type PostMedicationsMutationError = PostMedications400
 
-    export const usePostMedications = <TData = Awaited<ReturnType<typeof postMedications>>, TError = PostMedications400 | PostMedications500,
+    export const usePostMedications = <TData = Awaited<ReturnType<typeof postMedications>>, TError = PostMedications400,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PostMedicationsBody}, TContext>, }
 ): UseMutationResult<
         TData,
@@ -272,6 +272,63 @@ export function useGetMedicationsId<TData = Awaited<ReturnType<typeof getMedicat
 
 
 /**
+ * Deleta uma medicação e seus lembretes
+ */
+export const deleteMedicationsId = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<DeleteMedicationsId200>(
+      {url: `/medications/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteMedicationsIdMutationOptions = <TData = Awaited<ReturnType<typeof deleteMedicationsId>>, TError = DeleteMedicationsId404,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{id: string}, TContext>, }
+) => {
+const mutationKey = ['deleteMedicationsId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMedicationsId>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteMedicationsId(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions } as UseMutationOptions<TData, TError,{id: string}, TContext>}
+
+    export type DeleteMedicationsIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMedicationsId>>>
+    
+    export type DeleteMedicationsIdMutationError = DeleteMedicationsId404
+
+    export const useDeleteMedicationsId = <TData = Awaited<ReturnType<typeof deleteMedicationsId>>, TError = DeleteMedicationsId404,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{id: string}, TContext>, }
+): UseMutationResult<
+        TData,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteMedicationsIdMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    /**
  * Marca ou desmarca um lembrete como tomado
  */
 export const putMedicationsMarkAsTaken = (

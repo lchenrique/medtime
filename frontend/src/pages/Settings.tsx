@@ -4,11 +4,13 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useNotifications } from '@/hooks/useNotifications'
 import { getVersion } from '@tauri-apps/api/app'
+import { Capacitor } from '@capacitor/core'
 import toast from 'react-hot-toast'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/stores/user'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
+import { capacitorNotificationClient } from '@/lib/notifications/capacitor'
 import { useDrawer } from '@/hooks/useDrawer'
 import { EditProfileSheet } from '@/components/EditProfileSheet'
 import { Heart, ChevronRight } from 'lucide-react'
@@ -19,6 +21,7 @@ export function Settings() {
   const { hasPermission, requestPermission } = useNotifications()
   const { open } = useDrawer()
   const [isTauri, setIsTauri] = useState(false)
+  const [isCapacitor, setIsCapacitor] = useState(false)
   const [whatsappNumber, setWhatsappNumber] = useState('')
   const [telegramChatId, setTelegramChatId] = useState('')
 
@@ -27,6 +30,9 @@ export function Settings() {
     getVersion()
       .then(() => setIsTauri(true))
       .catch(() => setIsTauri(false))
+
+    // Verifica se está rodando no Capacitor
+    setIsCapacitor(Capacitor.isNativePlatform())
   }, [])
 
   useEffect(() => {
@@ -58,6 +64,34 @@ export function Settings() {
       toast.error('Erro ao atualizar configurações')
     }
   }, [user.tauriEnabled, hasPermission, requestPermission, updateUser])
+
+  const handleCapacitorToggle = useCallback(async () => {
+    try {
+      // Se está ativando, solicita permissão
+      if (!user.capacitorEnabled) {
+        const client = capacitorNotificationClient
+        const granted = await client.requestPermission()
+        
+        if (!granted) {
+          toast.error('Permissão de notificação negada')
+          return
+        }
+      }
+
+      await updateUser({ capacitorEnabled: !user.capacitorEnabled })
+
+      // Se ativou, inicializa
+      if (!user.capacitorEnabled) {
+        const client = capacitorNotificationClient
+        await client.init()
+      }
+
+      toast.success('Configurações atualizadas com sucesso!')
+    } catch (error) {
+      console.error('Erro ao atualizar configurações:', error)
+      toast.error('Erro ao atualizar configurações')
+    }
+  }, [user.capacitorEnabled, updateUser])
 
   const handleWhatsappSubmit = useCallback(() => {
     if (whatsappNumber === user.whatsappNumber) return
@@ -142,7 +176,7 @@ export function Settings() {
         {isTauri && (
           <div className="flex items-center justify-between py-2">
             <div className="space-y-0.5">
-              <Label>Notificações do Sistema</Label>
+              <Label>Notificações do Sistema (Desktop)</Label>
               <p className="text-sm text-muted-foreground">
                 Receba notificações diretamente no seu computador
               </p>
@@ -150,6 +184,21 @@ export function Settings() {
             <Switch
               checked={user.tauriEnabled}
               onCheckedChange={handleTauriToggle}
+            />
+          </div>
+        )}
+
+        {isCapacitor && (
+          <div className="flex items-center justify-between py-2">
+            <div className="space-y-0.5">
+              <Label>Notificações do Sistema (Mobile)</Label>
+              <p className="text-sm text-muted-foreground">
+                Receba notificações diretamente no seu celular
+              </p>
+            </div>
+            <Switch
+              checked={user.capacitorEnabled}
+              onCheckedChange={handleCapacitorToggle}
             />
           </div>
         )}

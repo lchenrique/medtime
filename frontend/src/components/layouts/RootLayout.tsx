@@ -25,11 +25,7 @@ export function RootLayout() {
   return (
     <div className="min-h-screen bg-[#F5F3FF]">
       <div className="md:pl-64">
-        <Header
-          userName={profile?.name ?? ''}
-          onLogout={handleLogout}
-          onProfileUpdate={handleProfileUpdate}
-        />
+        <Header />
         <div className="pb-20 md:pb-6">
           <Outlet />
         </div>

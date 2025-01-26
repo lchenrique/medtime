@@ -1,18 +1,23 @@
+import { Capacitor } from '@capacitor/core'
+import { capacitorNotificationClient } from '@/lib/notifications/capacitor'
+import { tauriNotificationClient } from '@/lib/notifications/tauri'
 import { useEffect } from 'react'
-import { useUserStore } from '@/stores/user'
-import { TauriNotificationClient } from '@/lib/notifications/tauri'
+import { useNavigate } from 'react-router-dom'
 
 export function NotificationManager() {
-  const { user } = useUserStore()
+  const navigate = useNavigate()
+  const isCapacitor = Capacitor.isNativePlatform()
+  const isTauri = Boolean(window && 'Tauri' in window)
 
   useEffect(() => {
-    if (user?.tauriEnabled) {
-      const client = TauriNotificationClient.getInstance()
-      client.init()
-        .then(() => console.log('Notificações Tauri inicializadas'))
-        .catch(err => console.error('Erro ao inicializar notificações:', err))
+    const client = isCapacitor ? capacitorNotificationClient : tauriNotificationClient
+    client.setNavigate(navigate)
+    client.init()
+
+    return () => {
+      client.disconnect()
     }
-  }, [user?.tauriEnabled])
+  }, [navigate])
 
   return null
 } 

@@ -1,4 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { Preferences } from '@capacitor/preferences';
+import { storage } from '@/lib/storage'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
 
@@ -6,16 +8,24 @@ export const AXIOS_INSTANCE = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true' // Ignora o aviso do ngrok
   },
+  proxy: false, // Desabilita proxy local
+  family: 4 // Força IPv4
 });
 
 // Interceptor para adicionar o token de autenticação
-AXIOS_INSTANCE.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+AXIOS_INSTANCE.interceptors.request.use(async (config) => {
+  try {
+    const token = await storage.get('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  } catch (error) {
+    console.error('❌ Erro ao obter token:', error)
   }
-  return config;
+  return config
 });
 
 // Interceptor para tratamento de erros
@@ -44,10 +54,18 @@ AXIOS_INSTANCE.interceptors.response.use(
 
 export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
   const source = axios.CancelToken.source();
-  const promise = AXIOS_INSTANCE({
+  
+  // Garante que os headers personalizados são mantidos
+  const mergedConfig = {
     ...config,
+    headers: {
+      ...config.headers,
+      'ngrok-skip-browser-warning': 'true'
+    },
     cancelToken: source.token,
-  }).then(({ data }) => data);
+  };
+
+  const promise = AXIOS_INSTANCE(mergedConfig).then(({ data }) => data);
 
   // @ts-expect-error - Adicionando propriedade cancel ao Promise
   promise.cancel = () => {
@@ -55,4 +73,6 @@ export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
   };
 
   return promise;
-}; 
+};
+
+export default AXIOS_INSTANCE; 

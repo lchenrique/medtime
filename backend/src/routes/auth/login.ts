@@ -87,7 +87,8 @@ export const login: FastifyPluginAsyncZod = async (app) => {
           allergies: true,
           observations: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
+          capacitorEnabled: true
         }
       })
 

@@ -20,6 +20,13 @@ export type PostAuthLogin200User = {
   telegramChatId: string | null;
   timezone: string;
   tauriEnabled: boolean;
+  isDiabetic: boolean;
+  hasHeartCondition: boolean;
+  hasHypertension: boolean;
+  /** @nullable */
+  allergies: string | null;
+  /** @nullable */
+  observations: string | null;
   createdAt: string;
   updatedAt: string;
 };

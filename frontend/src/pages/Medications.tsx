@@ -2,10 +2,14 @@ import { useGetMedications } from '@/api/generated/medications/medications'
 import { useDrawer } from '@/hooks/useDrawer'
 import { MedicationDetails } from './MedicationDetails'
 import { Medication } from '@/types/medication'
-import { Search } from 'lucide-react'
+import { Search, Pill, ListFilter, Package2, AlertCircle, Plus, ChevronRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
+import { AddMedicationForm } from '@/components/home/AddMedicationForm'
+import { NoResults } from '@/components/ui/NoResults'
+import { MedicationCard } from '@/components/home/MedicationCard' // Adicionar esta importação
 
 // Tipo inferido da resposta da API
 type ApiMedication = {
@@ -37,29 +41,38 @@ export function Medications() {
   const handleMedicationClick = (med: ApiMedication) => {
     // Mapeia os dados da API para o formato Medication
     const medication: Medication = {
-      ...med,
+      id: med.id,
+      name: med.name,
       description: med.description || '',
+      startDate: med.startDate,
+      duration: med.duration,
+      interval: med.interval,
       dosage: `${med.dosageQuantity} ${med.unit}`,
-      time: new Date(med.startDate).toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
+      time: new Date(med.startDate).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
         minute: '2-digit',
-        timeZone: 'America/Sao_Paulo'
+        timeZone: 'UTC'
       }),
       instructions: med.description || '',
       status: 'pending',
       timeUntil: '',
       reminders: (med.reminders || []).map(reminder => ({
         ...reminder,
-        taken: reminder.taken || false,
-        takenAt: reminder.takenAt || null,
-        skipped: reminder.skipped || false,
-        skippedReason: reminder.skippedReason || null,
-        time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
+        taken: reminder.taken ?? false,
+        skipped: reminder.skipped ?? false,
+        time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
           minute: '2-digit',
-          timeZone: 'America/Sao_Paulo'
+          timeZone: 'UTC'
         })
-      }))
+      })),
+      unit: med.unit,
+      totalQuantity: med.totalQuantity,
+      remainingQuantity: med.remainingQuantity,
+      dosageQuantity: med.dosageQuantity,
+      userId: '',
+      createdAt: '',
+      updatedAt: ''
     }
 
     drawer.open({
@@ -68,11 +81,19 @@ export function Medications() {
     })
   }
 
-  const filteredMedications = medications?.filter(med => 
+  const filteredMedications =  medications?.filter(med =>
     med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     med.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     `${med.dosageQuantity} ${med.unit}`.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
+
+
+  const handleAddMedicationClick = () => {
+    drawer.open({
+      title: 'Adicionar Medicamento',
+      content: <AddMedicationForm onSuccess={() => drawer.close()} />
+    })
+  }
 
   if (isLoading) {
     return (
@@ -93,63 +114,123 @@ export function Medications() {
 
   return (
     <div className="min-h-screen bg-violet-50">
-      <div className="p-4 space-y-6">
-        <div className="space-y-4">
-          <div>
-            <h1 className="text-xl font-semibold text-violet-950">Medicamentos</h1>
-            <p className="text-sm text-violet-500">Gerencie seus medicamentos</p>
+      <div className="p-4 space-y-6 mx-auto">
+        {/* Header simplificado */}
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-violet-700 to-violet-600 rounded-3xl shadow-lg text-white">
+          <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6">
+            <div className="space-y-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">Medicamentos</h1>
+              <p className="text-sm text-violet-50/90">
+                {medications?.length || 0} medicamentos cadastrados
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl">
+              <Pill className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-400" />
+          {/* Stats cards mais compactos */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-white/20">
+                  <Package2 className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-xs sm:text-sm text-white/90">
+                  <span className="sm:hidden">Total</span>
+                  <span className="hidden sm:inline">Medicamentos</span>
+                </p>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-lg sm:text-2xl font-bold text-white">
+                  {medications?.length || 0}
+                </p>
+                <span className="text-xs sm:text-sm font-normal text-white/80">ativos</span>
+              </div>
+            </div>
+            
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-red-500/30">
+                  <AlertCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-xs sm:text-sm text-white/90">
+                  <span className="sm:hidden">Baixo</span>
+                  <span className="hidden sm:inline">Estoque Baixo</span>
+                </p>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-lg sm:text-2xl font-bold text-white">
+                  {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0}
+                </p>
+                <span className="text-xs sm:text-sm font-normal text-white/80">alertas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Barra de ações - mantém o mesmo layout da Home */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+              <Search className="w-5 h-5 text-violet-400" />
+            </div>
             <Input
               type="text"
               placeholder="Buscar medicamentos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-white border-violet-100 placeholder:text-violet-300 focus-visible:ring-violet-500"
+              className="pl-12 bg-white border-transparent placeholder:text-violet-300 h-14 rounded-2xl shadow-sm text-base"
             />
           </div>
+          <button 
+            onClick={handleAddMedicationClick}
+            className="h-14 px-6 bg-violet-700 text-white rounded-2xl font-medium hover:bg-violet-800 active:bg-violet-900 transition-colors shadow-sm flex items-center gap-2 justify-center whitespace-nowrap"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="sm:inline">Adicionar</span>
+          </button>
         </div>
 
-        <div className="bg-white rounded-3xl overflow-hidden shadow-sm divide-y divide-violet-100">
+        {/* Lista de medicamentos */}
+        <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
           {filteredMedications.length > 0 ? (
-            filteredMedications.map((medication) => (
-              <button
-                key={medication.id}
-                onClick={() => handleMedicationClick(medication)}
-                className={cn(
-                  "w-full flex items-center gap-4 p-4 text-left transition-colors",
-                  "hover:bg-violet-50/50 active:bg-violet-50"
-                )}
-              >
-                <div className="shrink-0 w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center">
-                  <span className="text-lg font-medium text-violet-500">
-                    {medication.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-violet-950 truncate">
-                    {medication.name}
-                  </h3>
-                  <p className="text-sm text-violet-500 truncate">
-                    {medication.dosageQuantity} {medication.unit} - {medication.description || 'Sem instruções'}
-                  </p>
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="p-12 text-center">
-              <p className="text-sm text-violet-400">
-                {searchTerm 
-                  ? `Nenhum medicamento encontrado para "${searchTerm}"`
-                  : 'Nenhum medicamento cadastrado'}
-              </p>
+            <div className="divide-y divide-gray-100">
+              {filteredMedications.map((medication) => (
+                <MedicationCard
+                  key={medication.id}
+                  medication={{
+                    ...medication,
+                    description: medication.description || '',
+                    dosage: `${medication.dosageQuantity} ${medication.unit}`,
+                    time: '',
+                    instructions: medication.description || '',
+                    status: 'pending',
+                    timeUntil: '',
+                    reminders: [],
+                  }}
+                  onClick={() => handleMedicationClick(medication)}
+                  variant="list"
+                  showStock={true}
+                />
+              ))}
             </div>
+          ) : (
+            searchTerm ? (
+              <NoResults message={`Nenhum medicamento encontrado para "${searchTerm}"`} />
+            ) : (
+              <EmptyMedicationState onAddClick={handleAddMedicationClick} />
+            )
           )}
         </div>
       </div>
     </div>
   )
-} 
+}
+
+// Função auxiliar com cores mais acessíveis
+function getProgressColor(remaining: number, dosage: number) {
+  if (remaining <= dosage) return '#dc2626' // Vermelho mais escuro
+  if (remaining <= dosage * 3) return '#ea580c' // Laranja mais escuro
+  return '#6d28d9' // Violeta mais escuro
+}

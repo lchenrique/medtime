@@ -7,51 +7,65 @@ import { Login } from '@/pages/Login'
 import { Register } from '@/pages/Register'
 import { AuthLayout } from '@/components/layouts/AuthLayout'
 import { Health } from '@/pages/Health'
-
-// Rotas públicas (sem autenticação)
-const publicRoutes = [
-  {
-    element: <AuthLayout />,
-    children: [
-      {
-        path: 'login',
-        element: <Login />
-      },
-      {
-        path: 'register',
-        element: <Register />
-      }
-    ]
-  }
-]
-
-// Rotas protegidas (com autenticação)
-const protectedRoutes = [
-  {
-    path: '/',
-    element: <AuthGuard><Layout /></AuthGuard>,
-    children: [
-      {
-        path: '/',
-        element: <Home />
-      },
-      {
-        path: '/settings',
-        element: <Settings />
-      },
-      {
-        path: '/health',
-        element: <Health />
-      }
-    ]
-  }
-]
+import { Medications } from '@/pages/Medications'
+import { AlarmWrapper } from '@/components/AlarmWrapper'
+import { Suspense } from 'react'
+import { Loading } from '@/components/Loading'
+import { Root } from '@/components/Root'
 
 export const router = createBrowserRouter([
-  ...publicRoutes,
-  ...protectedRoutes,
   {
-    path: '*',
-    element: <Navigate to="/login" replace />
+    element: <Root />,
+    children: [
+      // Rotas públicas (sem autenticação)
+      {
+        element: <AuthLayout />,
+        children: [
+          {
+            path: 'login',
+            element: <Login />
+          },
+          {
+            path: 'register',
+            element: <Register />
+          }
+        ]
+      },
+      // Rotas protegidas (com autenticação)
+      {
+        path: '/',
+        element: <AuthGuard><Layout /></AuthGuard>,
+        children: [
+          {
+            path: '/',
+            element: <Home />
+          },
+          {
+            path: '/medications',
+            element: <Medications />
+          },
+          {
+            path: '/settings',
+            element: <Settings />
+          },
+          {
+            path: '/health',
+            element: <Health />
+          },
+          {
+            path: '/alarm/:medicationId',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <AlarmWrapper />
+              </Suspense>
+            )
+          }
+        ]
+      },
+      {
+        path: '*',
+        element: <Navigate to="/login" replace />
+      }
+    ]
   }
 ]) 

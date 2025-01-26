@@ -136,3 +136,11 @@ npx cap sync ios
 
 ## 📝 Licença
 Este projeto está sob a licença MIT. 
+
+
+
+npx ngrok config add-authtoken 1tVtNB0ECnyvnyxyu90MAlL7baN_cycaXog67mcb22XWjXnZ
+npx ngrok http --url=ewe-simple-polecat.ngrok-free.app 5173
+
+npx ngrok config add-authtoken 2rbZ44Gn8AnwMW3p0GhQ07U1LWp_6eFqYvwTzCUoCjnnR6KMs
+npx ngrok http --url=jaguar-full-monkfish.ngrok-free.app 3333

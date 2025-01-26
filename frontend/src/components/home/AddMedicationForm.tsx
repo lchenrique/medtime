@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select"
 import { usePostMedications } from '@/api/generated/medications/medications'
 import { PostMedicationsBodyIntervalPreset } from '@/api/model/postMedicationsBodyIntervalPreset'
+import { PostMedicationsBodyUnit } from '@/api/model/postMedicationsBodyUnit'
 import { cn } from '@/lib/utils'
 import { DatetimePicker } from '@/components/ui/datetime-picker'
 import { DrawerContent } from '../DrawerContent'
@@ -28,11 +29,11 @@ interface MedicationForm {
   startDateTime: Date
   intervalPreset: PostMedicationsBodyIntervalPreset | 'custom'
   customInterval?: number
-  durationInDays: number | 'custom'
+  durationInDays: number | 'custom' | 'recurring'
   customDuration?: number
   totalQuantity?: number
   remainingQuantity?: number
-  unit?: string
+  unit?: PostMedicationsBodyUnit
   dosageQuantity?: number
 }
 
@@ -62,10 +63,10 @@ const INTERVAL_OPTIONS = [
 ]
 
 const UNIT_OPTIONS = [
-  { value: 'comprimidos', label: 'Comprimidos' },
-  { value: 'ml', label: 'Mililitros (ml)' },
-  { value: 'gotas', label: 'Gotas' },
-  { value: 'doses', label: 'Doses' },
+  { value: 'comprimidos' as PostMedicationsBodyUnit, label: 'Comprimidos' },
+  { value: 'ml' as PostMedicationsBodyUnit, label: 'Mililitros (ml)' },
+  { value: 'gotas' as PostMedicationsBodyUnit, label: 'Gotas' },
+  { value: 'doses' as PostMedicationsBodyUnit, label: 'Doses' },
 ]
 
 export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
@@ -127,45 +128,47 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Só deve prosseguir se estiver no último passo
-    if (step !== totalSteps) {
+    if (!form.unit || !form.totalQuantity || !form.dosageQuantity) {
+      toast.error('Preencha todos os campos')
+      return
+    }
+
+    const interval = form.intervalPreset === 'custom'
+      ? form.customInterval
+      : parseInt(form.intervalPreset.split('/')[0])
+
+    if (!interval) {
+      toast.error('Intervalo inválido')
+      return
+    }
+
+    const duration = form.durationInDays === 'custom'
+      ? form.customDuration
+      : form.durationInDays === 'recurring'
+        ? undefined
+        : form.durationInDays
+
+    if (form.durationInDays !== 'recurring' && !duration) {
+      toast.error('Duração inválida')
       return
     }
 
     try {
-      // Validações
-      if (form.name.trim().length < 2) {
-        throw new Error('O nome do medicamento deve ter pelo menos 2 caracteres')
-      }
-
-      if (!form.startDateTime) {
-        throw new Error('A data inicial é obrigatória')
-      }
-
-      if (form.intervalPreset === 'custom' && (!form.customInterval || form.customInterval <= 0)) {
-        throw new Error('O intervalo personalizado deve ser maior que 0')
-      }
-
-      if (form.durationInDays === 'custom' && (!form.customDuration || form.customDuration <= 0)) {
-        throw new Error('A duração personalizada deve ser maior que 0')
-      }
-
-      // Prepara os dados para envio
-      const finalData = {
-        name: form.name,
-        description: form.description,
-        startTime: form.startDateTime.toISOString(),
-        intervalPreset: form.intervalPreset === 'custom' 
-          ? `${form.customInterval}/${form.customInterval}` as PostMedicationsBodyIntervalPreset
-          : form.intervalPreset,
-        durationInDays: form.durationInDays === 'custom' ? form.customDuration! : form.durationInDays,
-        totalQuantity: Number(form.totalQuantity),
-        unit: form.unit!,
-        dosageQuantity: Number(form.dosageQuantity)
-      }
-
       createMedication(
-        { data: finalData },
+        { data: {
+          name: form.name,
+          description: form.description || null,
+          startTime: form.startDateTime.toISOString(),
+          intervalPreset: form.intervalPreset as PostMedicationsBodyIntervalPreset,
+          durationInDays: form.durationInDays === 'custom' 
+            ? form.customDuration!
+            : form.durationInDays === 'recurring'
+              ? 0 // Valor mínimo para medicamentos recorrentes
+              : form.durationInDays as number,
+          totalQuantity: form.totalQuantity!,
+          unit: form.unit!,
+          dosageQuantity: form.dosageQuantity!
+        } },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['/medications'] })
@@ -203,11 +206,11 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
     }))
   }
 
-  const handleSelectChange = (field: keyof MedicationForm) => (value: string) => {
+  const handleSelectChange = (field: keyof MedicationForm) => (value: string | number) => {
     if (field === 'durationInDays') {
       setForm(prev => ({
         ...prev,
-        [field]: value === 'custom' ? 'custom' : Number(value)
+        [field]: value === 'custom' ? 'custom' : value === 'recurring' ? 'recurring' : Number(value)
       }))
     } else {
       setForm(prev => ({
@@ -228,7 +231,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
               <span className="text-primary">{Math.round((step/totalSteps) * 100)}%</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div 
+              <div  
                 className="h-full bg-primary transition-all duration-300 ease-out"
                 style={{ width: `${(step/totalSteps) * 100}%` }}
               />
@@ -409,42 +412,68 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
           {step === 4 && (
             <div className="bg-white p-6 rounded-2xl space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Por quanto tempo?</h2>
-                <p className="text-gray-500">Escolha a duração do tratamento</p>
+                <h2 className="text-xl font-semibold">Duração do Tratamento</h2>
+                <p className="text-gray-500">Por quanto tempo você vai tomar?</p>
               </div>
 
               <div className="space-y-4">
-                {DURATION_OPTIONS.slice(0, -1).map(option => (
+                <div className="grid grid-cols-2 gap-3">
                   <Button
-                    key={option.value}
                     type="button"
                     variant="outline"
                     className={cn(
-                      "w-full h-auto py-6 px-6",
-                      form.durationInDays === option.value && "border-primary bg-primary/5"
+                      "h-auto py-4",
+                      form.durationInDays === 30 && "border-primary bg-primary/5"
                     )}
-                    onClick={() => handleSelectChange('durationInDays')(String(option.value))}
+                    onClick={() => handleSelectChange('durationInDays')(30)}
                   >
-                    <div className="text-lg font-medium">{option.label}</div>
+                    30 dias
                   </Button>
-                ))}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "w-full h-auto py-6 px-6",
-                    form.durationInDays === 'custom' && "border-primary bg-primary/5"
-                  )}
-                  onClick={() => handleSelectChange('durationInDays')('custom')}
-                >
-                  <div>
-                    <div className="text-lg font-medium">Outra Duração</div>
-                    <div className="text-base text-muted-foreground mt-1">
-                      Escolher uma duração diferente
-                    </div>
-                  </div>
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "h-auto py-4",
+                      form.durationInDays === 60 && "border-primary bg-primary/5"
+                    )}
+                    onClick={() => handleSelectChange('durationInDays')(60)}
+                  >
+                    60 dias
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "h-auto py-4",
+                      form.durationInDays === 90 && "border-primary bg-primary/5"
+                    )}
+                    onClick={() => handleSelectChange('durationInDays')(90)}
+                  >
+                    90 dias
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "h-auto py-4",
+                      form.durationInDays === 'custom' && "border-primary bg-primary/5"
+                    )}
+                    onClick={() => handleSelectChange('durationInDays')('custom')}
+                  >
+                    Personalizado
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "h-auto py-4 col-span-2",
+                      form.durationInDays === 'recurring' && "border-primary bg-primary/5"
+                    )}
+                    onClick={() => handleSelectChange('durationInDays')('recurring')}
+                  >
+                    Contínuo (sem data de término)
+                  </Button>
+                </div>
 
                 {form.durationInDays === 'custom' && (
                   <div className="flex items-center gap-3 mt-4">

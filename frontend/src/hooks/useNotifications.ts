@@ -1,46 +1,37 @@
 import { useEffect, useState } from 'react'
-import { TauriNotificationClient } from '@/lib/notifications/tauri'
 import { useUserStore } from '@/stores/user'
-import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification'
-
-declare module '@tauri-apps/plugin-notification' {
-  export function isPermissionGranted(): Promise<boolean>
-}
+import { Capacitor } from '@capacitor/core'
+import { capacitorNotificationClient } from '@/lib/notifications/capacitor'
+import { tauriNotificationClient } from '@/lib/notifications/tauri'
 
 export function useNotifications() {
-  const [error, setError] = useState<Error | null>(null)
+  const { user } = useUserStore()
   const [hasPermission, setHasPermission] = useState(false)
-  const { user, updateUser } = useUserStore()
+  const isCapacitor = Capacitor.isNativePlatform()
+  const isTauri = Boolean(window && 'Tauri' in window)
 
   useEffect(() => {
-    async function checkPermission() {
-      if (user?.tauriEnabled !== false) {
-        const granted = await isPermissionGranted()
-        setHasPermission(granted)
-      } else {
+    async function initializeClient() {
+      try {
+        const client = isCapacitor ? capacitorNotificationClient : tauriNotificationClient
+        await client.init()
+        setHasPermission(true)
+      } catch (error) {
+        console.error('❌ Erro ao inicializar cliente:', error)
         setHasPermission(false)
       }
     }
-    checkPermission()
-  }, [user?.tauriEnabled])
 
-  return {
-    hasPermission: hasPermission && user?.tauriEnabled,
-    error,
-    requestPermission: async () => {
-      try {
-        const client = TauriNotificationClient.getInstance()
-        await client.init()
-        const granted = await isPermissionGranted()
-        setHasPermission(granted)
-        if (granted) {
-          await updateUser({ tauriEnabled: true })
-        }
-        return granted
-      } catch (error) {
-        setError(error as Error)
-        return false
-      }
+    if ((isCapacitor && user?.capacitorEnabled) || (isTauri && user?.tauriEnabled)) {
+      initializeClient()
     }
+  }, [user?.capacitorEnabled, user?.tauriEnabled, isCapacitor, isTauri])
+
+  const requestPermission = async () => {
+    const client = isCapacitor ? capacitorNotificationClient : tauriNotificationClient
+    await client.init()
+    setHasPermission(true)
   }
+
+  return { hasPermission, requestPermission }
 } 

@@ -2,13 +2,7 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/UserMenu'
 
-interface HeaderProps {
-  userName: string
-  onLogout: () => void
-  onProfileUpdate: () => void
-}
-
-export function Header({ userName, onLogout, onProfileUpdate }: HeaderProps) {
+export function Header() {
   return (
     <header className="bg-white border-b border-gray-100">
       <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -26,11 +20,7 @@ export function Header({ userName, onLogout, onProfileUpdate }: HeaderProps) {
           >
             <Search className="h-5 w-5" />
           </Button>
-          <UserMenu
-            userName={userName}
-            onLogout={onLogout}
-            onProfileUpdate={onProfileUpdate}
-          />
+          <UserMenu />
         </div>
       </div>
     </header>

@@ -9,9 +9,9 @@ interface EmptyMedicationStateProps {
 export function EmptyMedicationState({ onAddClick }: EmptyMedicationStateProps) {
   return (
     <Card className="p-6 text-center space-y-4">
-      <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-        <Plus className="w-6 h-6 text-primary" />
-      </div>
+      <figure className="mx-auto w-28 h-28">
+        <img src="/imgs/no_data.png" alt="Sem medicamentos" className="w-full h-full object-contain" />
+      </figure>
       <div>
         <h2 className="text-lg font-medium">Nenhum medicamento cadastrado</h2>
         <p className="text-sm text-muted-foreground">
@@ -24,4 +24,4 @@ export function EmptyMedicationState({ onAddClick }: EmptyMedicationStateProps) 
       </Button>
     </Card>
   )
-} 
+}

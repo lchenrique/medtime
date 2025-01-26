@@ -1,30 +1,15 @@
-import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { z } from 'zod'
-import { prisma } from '../../lib/prisma'
-import { testRoutes } from './test'
+import { FastifyPluginAsync } from 'fastify'
 import { websocketRoutes } from './websocket'
+import testRoutes from './test'
+import resetRoutes from './reset'
 
-export const notificationRoutes: FastifyPluginAsyncZod = async (app) => {
-  await app.register(testRoutes)
-  await app.register(websocketRoutes)
+export const notificationRoutes: FastifyPluginAsync = async (app) => {
+  // Registra as rotas de WebSocket
+  await app.register(websocketRoutes, { prefix: '/ws' })
 
-  app.post('/:reminderId/notified', {
-    schema: {
-      tags: ['notifications'],
-      description: 'Marca um lembrete como notificado',
-      params: z.object({
-        reminderId: z.string()
-      })
-    }
-  }, async (request) => {
-    const { reminderId } = request.params
+  // Registra as rotas de teste
+  await app.register(testRoutes, { prefix: '/test' })
 
-    // Atualiza o lembrete para marcar que foi notificado
-    await prisma.reminder.update({
-      where: { id: reminderId },
-      data: { notified: true }
-    })
-
-    return { success: true }
-  })
+  // Registra a rota de reset
+  await app.register(resetRoutes)
 } 

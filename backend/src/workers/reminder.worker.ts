@@ -4,6 +4,7 @@ import { addMinutes } from 'date-fns'
 import { sendWebSocketNotification } from '../routes/notifications/websocket'
 import { TelegramService } from '../services/telegram.service'
 import { WhatsAppService } from '../services/whatsapp.service'
+import { calculateNextSchedules } from '../services/medication.service'
 
 export class ReminderWorker {
   private static isRunning = false
@@ -25,7 +26,7 @@ export class ReminderWorker {
     setInterval(() => this.checkReminders(), this.CHECK_INTERVAL)
   }
 
-  private static async sendNotification(reminder: any) {
+  private static async sendNotification(reminder: any, isVirtual = false) {
     const retryCount = this.notificationRetries.get(reminder.id) || 0
     let atLeastOneSuccess = false
     
@@ -33,8 +34,8 @@ export class ReminderWorker {
       // Verifica se é um lembrete de teste (duração = 1 dia)
       const isTestReminder = reminder.medication.duration === 1
 
-      // Só verifica estoque se não for teste
-      if (!isTestReminder && reminder.medication.remainingQuantity < reminder.medication.dosageQuantity) {
+      // Só verifica estoque se não for teste e não for recorrente
+      if (!isTestReminder && !reminder.medication.isRecurring && reminder.medication.remainingQuantity < reminder.medication.dosageQuantity) {
         console.log(`Estoque insuficiente para ${reminder.medication.name}`)
         return
       }
@@ -48,8 +49,11 @@ export class ReminderWorker {
             data: {
               title: `Hora do Medicamento: ${reminder.medication.name}`,
               body: `Tome ${reminder.medication.dosageQuantity} ${reminder.medication.unit}`,
-              id: reminder.id,
-              scheduledFor: reminder.scheduledFor.toISOString()
+              id: isVirtual ? `virtual_${reminder.id}` : reminder.id,
+              scheduledFor: reminder.scheduledFor.toISOString(),
+              medicationId: reminder.medication.id,
+              dosage: `${reminder.medication.dosageQuantity} ${reminder.medication.unit}`,
+              isVirtual
             }
           })
           atLeastOneSuccess = true
@@ -68,7 +72,7 @@ export class ReminderWorker {
             `${reminder.medication.dosageQuantity} ${reminder.medication.unit}`,
             reminder.scheduledFor,
             reminder.medication.remainingQuantity,
-            reminder.id,
+            isVirtual ? `virtual_${reminder.id}` : reminder.id,
             reminder.medication.description
           )
           atLeastOneSuccess = true
@@ -87,7 +91,7 @@ export class ReminderWorker {
             reminder.medication.dosageQuantity,
             reminder.scheduledFor,
             reminder.medication.remainingQuantity,
-            reminder.id,
+            isVirtual ? `virtual_${reminder.id}` : reminder.id,
             reminder.medication.description
           )
           atLeastOneSuccess = true
@@ -95,9 +99,24 @@ export class ReminderWorker {
           console.error('Erro ao enviar via WhatsApp:', error)
         }
       }
+
+      // Envia via FCM se tiver token configurado
+      if (reminder.medication.user.fcmToken) {
+        try {
+          console.log(`Enviando notificação via FCM para ${reminder.medication.name}`)
+          await sendMedicationReminder({
+            medicationId: reminder.medication.id,
+            scheduledFor: reminder.scheduledFor,
+            userId: reminder.medication.userId
+          })
+          atLeastOneSuccess = true
+        } catch (error) {
+          console.error('Erro ao enviar via FCM:', error)
+        }
+      }
       
-      // Se pelo menos um canal funcionou, marca como notificado
-      if (atLeastOneSuccess) {
+      // Se pelo menos um canal funcionou e não for virtual, marca como notificado
+      if (atLeastOneSuccess && !isVirtual) {
         await prisma.reminder.update({
           where: { id: reminder.id },
           data: { notified: true }
@@ -105,7 +124,7 @@ export class ReminderWorker {
         
         this.notificationRetries.delete(reminder.id)
         console.log('✅ Lembrete marcado como notificado:', reminder.id)
-      } else {
+      } else if (!atLeastOneSuccess) {
         throw new Error('Nenhum canal de notificação funcionou')
       }
 
@@ -121,10 +140,12 @@ export class ReminderWorker {
         })
       }
     } catch (error) {
+      console.error('Erro ao enviar notificação:', error)
+      
       // Se ainda não atingiu o máximo de tentativas, agenda retry
       if (retryCount < this.MAX_RETRIES) {
         this.notificationRetries.set(reminder.id, retryCount + 1)
-        setTimeout(() => this.sendNotification(reminder), this.RETRY_DELAY)
+        setTimeout(() => this.sendNotification(reminder, isVirtual), this.RETRY_DELAY)
         console.log(`Agendando retry ${retryCount + 1} para ${reminder.medication.name}`)
       } else {
         console.error(`Desistindo após ${retryCount} tentativas para ${reminder.medication.name}`)
@@ -144,12 +165,46 @@ export class ReminderWorker {
       console.log('- Janela de início (UTC):', windowStart.toISOString())
       console.log('- Janela de fim (UTC):', windowEnd.toISOString())
 
-      // Busca lembretes não tomados/pulados que estão próximos do horário
-      const reminders = await prisma.reminder.findMany({
+      // Busca medicamentos recorrentes
+      const recurringMedications = await prisma.medication.findMany({
+        where: {
+          isRecurring: true
+        },
+        include: {
+          user: {
+            select: {
+              tauriEnabled: true,
+              telegramEnabled: true,
+              telegramChatId: true,
+              whatsappEnabled: true,
+              whatsappNumber: true,
+              fcmToken: true
+            }
+          }
+        }
+      })
+
+      // Gera lembretes virtuais para medicamentos recorrentes
+      const virtualReminders = []
+      for (const medication of recurringMedications) {
+        const schedules = calculateNextSchedules(medication, { startFrom: windowStart, limit: 1 })
+        for (const schedule of schedules) {
+          if (schedule.scheduledFor >= windowStart && schedule.scheduledFor <= windowEnd) {
+            virtualReminders.push({
+              id: `${medication.id}_${schedule.scheduledFor.getTime()}`,
+              scheduledFor: schedule.scheduledFor,
+              medication
+            })
+          }
+        }
+      }
+
+      // Busca lembretes físicos não tomados/pulados que estão próximos do horário
+      const physicalReminders = await prisma.reminder.findMany({
         where: {
           taken: false,
           skipped: false,
-          notified: false, // Já filtra no banco os que não foram notificados
+          notified: false,
           scheduledFor: {
             gte: windowStart,
             lte: windowEnd
@@ -165,14 +220,16 @@ export class ReminderWorker {
               dosageQuantity: true,
               unit: true,
               description: true,
-              duration: true, // Adicionado para identificar lembretes de teste
+              duration: true,
+              isRecurring: true,
               user: {
                 select: {
                   tauriEnabled: true,
                   telegramEnabled: true,
                   telegramChatId: true,
                   whatsappEnabled: true,
-                  whatsappNumber: true
+                  whatsappNumber: true,
+                  fcmToken: true
                 }
               }
             }
@@ -180,22 +237,26 @@ export class ReminderWorker {
         }
       })
 
-      if (reminders.length === 0) {
+      if (physicalReminders.length === 0 && virtualReminders.length === 0) {
         console.log('❌ Nenhum lembrete encontrado para o período')
         return
       }
 
-      console.log(`✅ Encontrados ${reminders.length} lembretes:`)
-      for (const reminder of reminders) {
-        console.log(`- ${reminder.medication.name} agendado para ${reminder.scheduledFor.toLocaleString()}`)
+      console.log(`✅ Encontrados ${physicalReminders.length} lembretes físicos e ${virtualReminders.length} virtuais:`)
+      
+      // Processa lembretes físicos
+      for (const reminder of physicalReminders) {
+        console.log(`- ${reminder.medication.name} agendado para ${reminder.scheduledFor.toLocaleString()} (físico)`)
+        await this.sendNotification(reminder, false)
       }
 
-      // Processa cada lembrete
-      for (const reminder of reminders) {
-        await this.sendNotification(reminder)
+      // Processa lembretes virtuais
+      for (const reminder of virtualReminders) {
+        console.log(`- ${reminder.medication.name} agendado para ${reminder.scheduledFor.toLocaleString()} (virtual)`)
+        await this.sendNotification(reminder, true)
       }
     } catch (error) {
       console.error('Erro ao verificar lembretes:', error)
     }
   }
-} 
+}

@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage, type MessagePayload } from 'firebase/messaging'
 import toast from 'react-hot-toast'
+import { Capacitor } from '@capacitor/core'
+import { PushNotifications } from '@capacitor/push-notifications'
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWXyprAfPL7dJVf0XbfP8Q1RhZort5RYo",
@@ -35,40 +37,73 @@ async function registerServiceWorker() {
   throw new Error('Service Worker não suportado neste navegador')
 }
 
+// Variável para controlar se os listeners já foram configurados
+let listenersConfigured = false;
+
 // Função para registrar o token
-export async function registerFCMToken() {
+export async function registerFCMToken(): Promise<string | null> {
   try {
-    // Registra o Service Worker primeiro
-    await registerServiceWorker()
-    
-    // Solicita permissão
-    const permission = await Notification.requestPermission()
-    
-    if (permission === 'granted') {
-      // Obtém o token
-      const token = await getToken(messaging, {
-        vapidKey: "BNVpq57mFv0HZRq-j80qLa7K3zimPRsjDehwx7KSifM8DFAyQ2EHMXQqMPQd2Ffw0Ec_RPMFKuLm7VyMarWCteU",
-        serviceWorkerRegistration: await navigator.serviceWorker.ready
-      })
-      
-      return token
+    if (!Capacitor.isNativePlatform()) {
+      console.log('⚠️ Não é uma plataforma nativa, pulando registro FCM')
+      return null
     }
+
+    console.log('🔄 Iniciando registro FCM...')
+    await PushNotifications.register()
     
-    throw new Error('Permissão negada para notificações')
+    const token = await new Promise<string>((resolve, reject) => {
+      let tokenListener: any = null
+      let errorListener: any = null
+
+      tokenListener = PushNotifications.addListener('registration', (tokenData) => {
+        console.log('📱 Token recebido:', tokenData.value)
+        if (tokenListener) tokenListener.then((l: { remove: () => void }) => l.remove())
+        if (errorListener) errorListener.then((l: { remove: () => void }) => l.remove())
+        resolve(tokenData.value)
+      })
+
+      errorListener = PushNotifications.addListener('registrationError', (error) => {
+        console.error('❌ Erro ao registrar FCM:', error)
+        if (tokenListener) tokenListener.then((l: { remove: () => void }) => l.remove())
+        if (errorListener) errorListener.then((l: { remove: () => void }) => l.remove())
+        reject(error)
+      })
+    })
+
+    if (!token) {
+      throw new Error('Token FCM não recebido')
+    }
+
+    console.log('✅ Token FCM registrado:', token)
+
+    // Configura listeners para notificações
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('📬 Notificação recebida:', notification)
+      // Aqui você pode adicionar lógica para mostrar a notificação no app
+    })
+
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      console.log('🔔 Ação na notificação:', notification)
+      // Aqui você pode adicionar lógica para navegar para a tela apropriada
+    })
+
+    return token
   } catch (error) {
-    console.error('Erro ao registrar token FCM:', error)
-    throw error
+    console.error('❌ Erro ao registrar token FCM:', error)
+    return null
   }
 }
 
-// Listener para mensagens em foreground
-onMessage(messaging, (payload: MessagePayload) => {
-  console.log('Recebida mensagem em foreground:', payload)
-  
-  if (payload.notification) {
-    toast(payload.notification.body || 'Novo lembrete', {
-      icon: '💊',
-      duration: 6000
-    })
-  }
-}) 
+// Listener para mensagens em foreground (web)
+if (!Capacitor.isNativePlatform()) {
+  onMessage(messaging, (payload: MessagePayload) => {
+    console.log('Recebida mensagem em foreground:', payload)
+    
+    if (payload.notification) {
+      toast(payload.notification.body || 'Novo lembrete', {
+        icon: '💊',
+        duration: 6000
+      })
+    }
+  })
+} 

@@ -1,11 +1,14 @@
 import { useGetMedicationsId } from '@/api/generated/medications/medications'
 import { MedicationDetails } from './MedicationDetails'
 import type { Medication } from '@/types/medication'
+import { NoResults } from '@/components/ui/NoResults'
 
 export function Medication({ id }: { id: string }) {
   const { data } = useGetMedicationsId(id)
 
-  if (!data) return null
+  if (!data) {
+    return <NoResults message="Medicamento não encontrado" />
+  }
 
   const medicationWithReminders: Medication = {
     id: data.id,
@@ -23,7 +26,14 @@ export function Medication({ id }: { id: string }) {
     instructions: data.description || '',
     status: 'pending',
     timeUntil: '',
-    reminders: data.reminders || [],
+    reminders: (data.reminders || []).map(reminder => ({
+      ...reminder,
+      time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC'
+      })
+    })),
     unit: data.unit,
     totalQuantity: data.totalQuantity,
     remainingQuantity: data.remainingQuantity,
@@ -38,4 +48,4 @@ export function Medication({ id }: { id: string }) {
       medication={medicationWithReminders}
     />
   )
-} 
+}

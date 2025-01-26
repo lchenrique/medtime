@@ -6,25 +6,27 @@ import { z } from 'zod'
 import { supabase } from '../../lib/supabase'
 
 // Define o tipo da conexão WebSocket
-type Connection = WebSocket
+type Connection = WebSocket & { clientType: 'tauri' }
 
-// Map global para conexões
-const connections = new Map<string, Connection>()
+// Map global para conexões - agora armazena um array de conexões por usuário
+const connections = new Map<string, Connection[]>()
 
 export const websocketRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get('/ws', {
     websocket: true,
     schema: {
       tags: ['notifications'],
-      description: 'Conexão WebSocket para notificações em tempo real',
+      description: 'Conexão WebSocket para notificações em tempo real (apenas Tauri)',
       querystring: z.object({
-        token: z.string()
+        token: z.string(),
+        client: z.literal('tauri')
       })
     }
   }, async (connection, request) => {
     try {
-      const { token } = request.query as { token: string }
+      const { token, client } = request.query as { token: string, client: 'tauri' }
       console.log('Token recebido:', token)
+      console.log('Cliente:', client)
       console.log('Nova conexão WebSocket recebida')
 
       // Verifica o token do Supabase
@@ -56,15 +58,38 @@ export const websocketRoutes: FastifyPluginAsyncZod = async (app) => {
         return
       }
 
-      console.log(`WebSocket autenticado: ${userId}`)
+      // Adiciona o tipo de cliente à conexão
+      (connection as Connection).clientType = 'tauri'
+
+      console.log(`WebSocket autenticado: ${userId} (tauri)`)
       
       // Armazena conexão
-      connections.set(userId, connection)
+      if (!connections.has(userId)) {
+        connections.set(userId, [])
+      }
+      connections.get(userId)?.push(connection as Connection)
+
+      // Configura ping/pong para manter a conexão ativa
+      const pingInterval = setInterval(() => {
+        if (connection.readyState === WebSocket.OPEN) {
+          connection.ping()
+        }
+      }, 30000) // Ping a cada 30 segundos
 
       // Cleanup
       connection.on('close', () => {
-        console.log(`WebSocket fechado: ${userId}`)
-        connections.delete(userId)
+        console.log(`WebSocket fechado: ${userId} (tauri)`)
+        clearInterval(pingInterval)
+        const userConnections = connections.get(userId)
+        if (userConnections) {
+          const index = userConnections.indexOf(connection as Connection)
+          if (index > -1) {
+            userConnections.splice(index, 1)
+          }
+          if (userConnections.length === 0) {
+            connections.delete(userId)
+          }
+        }
       })
 
     } catch (error) {
@@ -83,15 +108,18 @@ export async function sendWebSocketNotification(userId: string, notification: { 
       data: notification.data
     })
 
-    const connection = connections.get(userId)
-    if (!connection) {
+    const userConnections = connections.get(userId)
+    if (!userConnections?.length) {
       console.log('❌ Usuário não conectado ao WebSocket:', userId)
       return
     }
 
     console.log('✅ Enviando notificação via WebSocket')
-    connection.send(JSON.stringify(notification))
-    console.log('✅ Notificação enviada com sucesso')
+    // Envia para todas as conexões do usuário
+    userConnections.forEach(connection => {
+      connection.send(JSON.stringify(notification))
+      console.log('✅ Notificação enviada com sucesso (tauri)')
+    })
   } catch (error) {
     console.error('❌ Erro ao enviar notificação:', error)
   }

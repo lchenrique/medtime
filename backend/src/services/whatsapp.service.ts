@@ -89,9 +89,11 @@ Sistema de Lembretes`
     remainingQuantity: number,
     reminderId: string,
     description?: string,
+    templateName?: string,
   ) {
     const formattedDate = format(scheduledFor, "HH:mm 'do dia' dd/MM", { locale: ptBR })
-    
+
+    // Sempre usa mensagem padrão
     let message = `🔔 Hora do seu medicamento!\n\n` +
       `💊 ${medicationName}\n` +
       `📝 Dose: ${dosage} unidade(s)\n` +
@@ -109,4 +111,4 @@ Sistema de Lembretes`
       { id: `medication_taken:${reminderId}`, title: 'Medicamento tomado ✅' }
     ])
   }
-} 
+}

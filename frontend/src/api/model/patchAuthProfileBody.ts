@@ -11,6 +11,7 @@ export type PatchAuthProfileBody = {
   /** @nullable */
   fcmToken?: string | null;
   tauriEnabled?: boolean;
+  capacitorEnabled?: boolean;
   whatsappEnabled?: boolean;
   /** @nullable */
   whatsappNumber?: string | null;

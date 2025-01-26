@@ -9,7 +9,7 @@ export function Avatar() {
   return (
     <AvatarRoot>
       <AvatarFallback className="bg-primary/10 text-primary">
-        {user.name[0].toUpperCase()}
+        {user?.name[0].toUpperCase()}
       </AvatarFallback>
     </AvatarRoot>
   )

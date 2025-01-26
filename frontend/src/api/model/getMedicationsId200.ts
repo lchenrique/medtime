@@ -5,7 +5,6 @@
  * API do sistema MedTime para gestão de medicamentos e lembretes
  * OpenAPI spec version: 1.0.0
  */
-import type { GetMedicationsId200Unit } from './getMedicationsId200Unit';
 import type { GetMedicationsId200RemindersItem } from './getMedicationsId200RemindersItem';
 
 export type GetMedicationsId200 = {
@@ -30,12 +29,9 @@ export type GetMedicationsId200 = {
    * @exclusiveMinimum
    */
   totalQuantity: number;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
+  /** @minimum 0 */
   remainingQuantity: number;
-  unit: GetMedicationsId200Unit;
+  unit: string;
   /**
    * @minimum 0
    * @exclusiveMinimum
@@ -45,4 +41,5 @@ export type GetMedicationsId200 = {
   createdAt: string;
   updatedAt: string;
   reminders?: GetMedicationsId200RemindersItem[];
+  isRecurring: boolean;
 };

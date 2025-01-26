@@ -1,10 +1,13 @@
 import { Health } from '@/pages/Health'
+import { PrivateRoute } from '@/components/PrivateRoute'
 
-      {
-        path: '/health',
-        element: (
-          <PrivateRoute>
-            <Health />
-          </PrivateRoute>
-        )
-      }, 
+export const routes = [
+  {
+    path: '/health',
+    element: (
+      <PrivateRoute>
+        <Health />
+      </PrivateRoute>
+    )
+  }
+] 

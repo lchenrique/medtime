@@ -1,25 +1,52 @@
-import { Clock, Calendar, AlertCircle, Package } from 'lucide-react'
+import { Clock, Calendar, AlertCircle, Package, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn, calculateTimeUntil } from '@/lib/utils'
 import { MedicationSchedule } from '@/components/MedicationSchedule'
 import { useState, useEffect, useMemo } from 'react'
 import { Medication } from '@/types/medication'
-import { useGetMedicationsId, usePutMedicationsMarkAsTaken } from '@/api/generated/medications/medications'
+import { useGetMedicationsId, usePutMedicationsMarkAsTaken, useDeleteMedicationsId } from '@/api/generated/medications/medications'
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
+import { customInstance } from '@/api/axios-client'
+import { DeleteMedicationsId200 } from '@/api/model/deleteMedicationsId200'
+import { PutMedicationsMarkAsTakenBody } from '@/api/model'
+import { GetMedicationsId200 } from '@/api/model/getMedicationsId200'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { useDrawer } from '@/hooks/useDrawer'
+import { GetMedications200ItemRemindersItem } from '@/api/model'
+import { format } from 'date-fns'
 
-interface MedicationDetailsProps {
-  medication: Medication // Usada apenas para inicialização
+interface MedicationWithRecurring extends GetMedicationsId200 {
+  isRecurring: boolean
 }
 
-export function MedicationDetails({ medication }: MedicationDetailsProps) {
+interface MedicationDetailsProps {
+  medication: Medication
+}
+
+export function MedicationDetails({ medication: initialMedication }: MedicationDetailsProps) {
   const queryClient = useQueryClient()
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
-  const { data: medicationData } = useGetMedicationsId(medication.id)
+  const { mutate: deleteMedication } = useDeleteMedicationsId()
+  const { data: medicationData } = useGetMedicationsId(initialMedication.id)
   const [timeUntil, setTimeUntil] = useState('')
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const { close: closeDrawer } = useDrawer()
 
   // Converter os dados da API para o formato do frontend
   const med = useMemo(() => {
-    if (!medicationData) return medication
+    if (!medicationData) return initialMedication
 
     return {
       ...medicationData,
@@ -40,12 +67,61 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
           minute: '2-digit',
           timeZone: 'America/Sao_Paulo'
         })
-      })) || []
+      })) || [],
+      isRecurring: medicationData.isRecurring // Usar o valor do backend
     } satisfies Medication
-  }, [medicationData, medication])
+  }, [medicationData, initialMedication])
+
+  // Calcula os horários do dia para medicamentos recorrentes
+  const calculateDaySchedules = (startTime: string, interval: number) => {
+    const schedules: GetMedications200ItemRemindersItem[] = []
+    const start = new Date(startTime)
+    const now = new Date()
+    
+    // Começa do dia anterior para não perder horários recentes
+    const baseTime = new Date(now)
+    baseTime.setDate(now.getDate() - 1)
+    baseTime.setHours(start.getHours(), start.getMinutes(), 0, 0)
+
+    // Gera horários até o fim do próximo dia
+    const endTime = new Date(now)
+    endTime.setDate(now.getDate() + 1)
+    endTime.setHours(23, 59, 59, 999)
+
+    // Gera horários baseado no intervalo
+    for (let time = baseTime; time <= endTime; time = new Date(time.getTime() + interval * 60 * 60 * 1000)) {
+      schedules.push({
+        id: `virtual_${med.id}_${time.toISOString()}`,
+        scheduledFor: time.toISOString(),
+        taken: false,
+        takenAt: null,
+        skipped: false,
+        skippedReason: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
+    }
+
+    return schedules
+  }
 
   // Pega o próximo lembrete não tomado
-  const nextReminder = med.reminders.find(r => !r.taken)
+  const nextReminder = useMemo(() => {
+    const now = new Date()
+    
+    if (med.isRecurring) {
+      // Para medicamentos recorrentes, gera os próximos horários
+      const schedules = calculateDaySchedules(med.startDate, med.interval)
+      // Encontra o próximo horário que ainda não passou
+      return schedules.find(schedule => {
+        const scheduleDate = new Date(schedule.scheduledFor)
+        return scheduleDate > now
+      })
+    } else {
+      // Para medicamentos não recorrentes, usa os lembretes existentes
+      return med.reminders.find((r: GetMedications200ItemRemindersItem) => !r.taken && new Date(r.scheduledFor) > now)
+    }
+  }, [med.isRecurring, med.startDate, med.interval, med.reminders])
 
   // Atualiza o tempo até a próxima dose
   useEffect(() => {
@@ -70,33 +146,81 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
   // Separa os lembretes em passados e futuros
   const now = new Date()
   const pastReminders = med.reminders
-    .filter(r => {
-      const reminderDate = new Date(r.scheduledFor)
-      return reminderDate < now
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.scheduledFor)
-      const dateB = new Date(b.scheduledFor)
-      return dateB.getTime() - dateA.getTime()
-    }) // Mais recente primeiro
+    .filter((r: GetMedications200ItemRemindersItem) => new Date(r.scheduledFor) < now)
+    .sort((a: GetMedications200ItemRemindersItem, b: GetMedications200ItemRemindersItem) => 
+      new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime()
+    )
 
-  const handleMarkAsTaken = (reminderId: string) => {
+  const handleMarkAsTaken = async (reminderId: string, scheduledFor: string, taken: boolean = true) => {
     markAsTaken({ 
       data: { 
         reminderId,
-        taken: true 
+        scheduledFor,
+        taken
       }
     }, {
       onSuccess: () => {
-        // Invalida a query do medicamento e da lista
-        queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}`] })
+        // Invalida todas as queries relacionadas ao medicamento
+        queryClient.invalidateQueries({ queryKey: [`/medications/${id}`] })
         queryClient.invalidateQueries({ queryKey: ['/medications'] })
+        queryClient.invalidateQueries({ queryKey: [`/medications/${id}/history`] })
       }
     })
   }
 
+  if (!medicationData) {
+    return <div>Carregando...</div>
+  }
+
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">{med.name}</h1>
+        <Button 
+          variant="destructive" 
+          size="sm"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Deletar
+        </Button>
+      </div>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Você tem certeza?</DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o medicamento {med.name} e todos os seus lembretes.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                deleteMedication({ id: med.id }, {
+                  onSuccess: () => {
+                    setShowDeleteDialog(false)
+                    toast.success('Medicação deletada com sucesso')
+                    queryClient.invalidateQueries({ queryKey: ['/medications'] })
+                    closeDrawer()
+                  },
+                  onError: () => {
+                    toast.error('Erro ao deletar medicação')
+                  }
+                })
+              }}
+            >
+              Deletar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Card Principal com Próxima Dose */}
       {nextReminder && (
         <div className="bg-white p-4 rounded-2xl space-y-4">
@@ -127,7 +251,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
             </div>
             <Button 
               className="rounded-xl"
-              onClick={() => handleMarkAsTaken(nextReminder.id)}
+              onClick={() => handleMarkAsTaken(nextReminder.id, nextReminder.scheduledFor, true)}
               disabled={!canTakeMedication(nextReminder.scheduledFor)}
             >
               Tomar agora
@@ -162,7 +286,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Duração</p>
-              <p className="font-medium">{med.duration} dias</p>
+              <p className="font-medium">{med.duration ?? 'Contínuo'}</p>
             </div>
           </div>
 
@@ -253,7 +377,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
               Nenhum histórico disponível
             </p>
           ) : (
-            pastReminders.map(reminder => {
+            pastReminders.map((reminder: GetMedications200ItemRemindersItem) => {
               const scheduledDate = new Date(reminder.scheduledFor)
               const takenDate = reminder.takenAt ? new Date(reminder.takenAt) : null
 

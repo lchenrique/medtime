@@ -13,6 +13,7 @@ export type PutAuthProfile200 = {
   /** @nullable */
   fcmToken: string | null;
   tauriEnabled: boolean;
+  capacitorEnabled: boolean;
   whatsappEnabled: boolean;
   /** @nullable */
   whatsappNumber: string | null;

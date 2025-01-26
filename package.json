@@ -1,0 +1,12 @@
+{
+	"devDependencies": {
+		"@types/node": "^22.10.7",
+		"concurrently": "^8.0.0"
+	},
+	"scripts": {
+		"dev": "concurrently \"pnpm --prefix backend run dev\" \"pnpm --prefix frontend run dev\"",
+		"tunnel:front": "cloudflared tunnel --url http://localhost:5173",
+		"tunnel:back": "cloudflared tunnel --url http://localhost:3333",
+		"start:tunnel": "concurrently \"pnpm run start:dev\" \"pnpm run tunnel:front\" \"pnpm run tunnel:back\""
+	}
+}

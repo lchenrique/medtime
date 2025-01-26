@@ -1,70 +1,81 @@
 import { Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Medication } from '@/types/medication'
+import { cn } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
+import { GetMedications200Item } from '@/api/model'
+import { ReminderStatus, MedicationGroup } from '@/pages/Home'
 
 interface NextMedicationCardProps {
-  medication: Medication
-  onTakeMedication: (id: string) => void
+  group: MedicationGroup
+  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string }) => void
 }
 
-export function NextMedicationCard({ medication, onTakeMedication }: NextMedicationCardProps) {
+export function NextMedicationCard({ group, onMedicationClick }: NextMedicationCardProps) {
+  const medication = group.medications[0]
+
   const canTakeMedication = () => {
-    const utcDate = new Date(medication.reminders[0].scheduledFor)
-    const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-    return localDate <= new Date()
+    if (!medication.reminders[0]) return false
+    const reminderDate = new Date(medication.reminders[0].scheduledFor)
+    const now = new Date()
+
+    // Ajusta para o fuso horário do Brasil
+    const formatTime = (date: Date) => {
+      return date.toLocaleTimeString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    const reminderTime = formatTime(reminderDate)
+    const currentTime = formatTime(now)
+
+    // Adiciona uma tolerância de 5 minutos antes do horário
+    const [hours, minutes] = reminderTime.split(':').map(Number)
+    const toleranceDate = new Date(now)
+    toleranceDate.setHours(hours, minutes - 5, 0, 0)
+
+    return now >= toleranceDate && currentTime <= reminderTime
   }
 
   const isToday = () => {
-    const utcDate = new Date(medication.reminders[0].scheduledFor)
-    const localDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
+    if (!medication.reminders[0]) return false
+    const reminderDate = new Date(medication.reminders[0].scheduledFor)
     const now = new Date()
-    return localDate.getDate() === now.getDate() &&
-           localDate.getMonth() === now.getMonth() &&
-           localDate.getFullYear() === now.getFullYear()
+
+    // Formata as datas usando o fuso horário do Brasil
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      }).format(date)
+    }
+
+    return formatDate(reminderDate) === formatDate(now)
   }
 
   return (
-    <div className="bg-primary p-4 rounded-2xl space-y-4 text-primary-foreground">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-primary-foreground/10 flex items-center justify-center shrink-0">
-            <Clock className="h-6 w-6 text-primary-foreground" />
-          </div>
+    <Card className="bg-primary text-primary-foreground">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium">Próximo Medicamento</h3>
-            <p className="text-sm text-primary-foreground/80">
-              {isToday() ? `em ${medication.timeUntil}` : 'amanhã às ' + medication.time}
+            <h2 className="text-2xl font-bold">{medication.name}</h2>
+            <p className="text-sm opacity-90">{medication.instructions}</p>
+            <p className="text-sm mt-2">
+              {medication.dosageQuantity} {medication.unit} • {group.hour}
             </p>
           </div>
+          <button
+            onClick={() => onMedicationClick(medication)}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors"
+          >
+            Tomar agora
+          </button>
         </div>
-        <div className="text-right">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">{medication.time}</span>
-            {!isToday() && (
-              <span className="text-sm bg-primary-foreground/10 px-2 py-0.5 rounded-lg">
-                amanhã
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{medication.name}</span>
-          <span className="text-sm bg-primary-foreground/10 px-2 py-0.5 rounded-lg">
-            {medication.dosageQuantity} {medication.unit}
-          </span>
-        </div>
-        <Button 
-          variant="secondary"
-          className="rounded-xl"
-          onClick={() => onTakeMedication(medication.id)}
-          disabled={!canTakeMedication()}
-        >
-          Tomar agora
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
-} 
+}

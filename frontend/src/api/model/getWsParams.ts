@@ -5,7 +5,9 @@
  * API do sistema MedTime para gestão de medicamentos e lembretes
  * OpenAPI spec version: 1.0.0
  */
+import type { GetWsClient } from './getWsClient';
 
 export type GetWsParams = {
 token: string;
+client: GetWsClient;
 };

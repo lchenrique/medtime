@@ -28,6 +28,7 @@ model User {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   tauriEnabled  Boolean      @default(false) // Indica se o usuário usa cliente Tauri
+  capacitorEnabled Boolean   @default(false) // Indica se o usuário usa cliente Capacitor
 
   @@index([email])
 }
@@ -38,8 +39,9 @@ model Medication {
   name             String
   description      String?
   startDate        DateTime
-  duration         Int
+  duration         Int?      // Opcional para medicamentos recorrentes
   interval         Int
+  isRecurring     Boolean    @default(false) // Novo campo
   // Adicionando campos de estoque
   totalQuantity    Float      // Quantidade total (ex: 30 comprimidos)
   remainingQuantity Float     // Quantidade restante

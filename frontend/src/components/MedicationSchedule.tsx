@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils"
-import { format, isToday, addDays, subDays } from "date-fns"
+import { format, isToday, addDays, subDays, isAfter, isBefore, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ChevronLeft, ChevronRight, CalendarDays, Check, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Medication } from "../types/medication"
-import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken } from "@/api/generated/medications/medications"
+import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken, getPutMedicationsMarkAsTakenMutationOptions } from "@/api/generated/medications/medications"
 import { useQueryClient } from "@tanstack/react-query"
+import toast from 'react-hot-toast'
 
 interface ScheduleDay {
   date: Date
@@ -23,69 +24,178 @@ interface MedicationScheduleProps {
   medication: Medication
 }
 
+interface Reminder {
+  id: string
+  scheduledFor: string
+  taken: boolean
+  takenAt: string | null
+  skipped: boolean
+  skippedReason: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const queryClient = useQueryClient()
-  const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
+  const [selectedDate, setSelectedDate] = useState(new Date())
   const [loadingSlots, setLoadingSlots] = useState<string[]>([])
-  
-  // Usar o useQuery para garantir que temos os dados mais atualizados
-  const { data: medicationData } = useGetMedicationsId(medication.id)
 
-  const handleMarkAsTaken = (reminderId: string, taken: boolean) => {
-    setLoadingSlots(prev => [...prev, reminderId])
+  const { data: medicationData, refetch } = useGetMedicationsId(medication.id)
+  console.log(medicationData, "TESTE")
 
-    markAsTaken({ 
-      data: { 
-        reminderId,
-        taken
-      }
-    }, {
+  const { mutate: markAsTaken, isPending } = usePutMedicationsMarkAsTaken({
+    mutation: {
       onSuccess: () => {
+        // Invalida todas as queries relacionadas ao medicamento
+        queryClient.invalidateQueries({ queryKey: ['/medications'] })
         queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}`] })
-        queryClient.invalidateQueries({ queryKey: getGetMedicationsQueryKey() })
-        setLoadingSlots(prev => prev.filter(id => id !== reminderId))
-      },
-      onError: () => {
-        setLoadingSlots(prev => prev.filter(id => id !== reminderId))
+        queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}/history`] })
+        toast.success('Medicamento marcado com sucesso!')
       }
-    })
+    }
+  })
+
+  const handleMarkAsTaken = async (reminderId: string, scheduledFor: string, taken: boolean) => {
+    try {
+      await markAsTaken({
+        data: {
+          reminderId,
+          scheduledFor,
+          taken
+        }
+      })
+    } catch (error) {
+      console.error('Erro ao marcar medicamento:', error)
+      toast.error('Erro ao marcar medicamento')
+    }
+  }
+
+  // Calcula os horários do dia para medicamentos recorrentes
+  const calculateDaySchedules = (startTime: string, interval: number) => {
+    const schedules = []
+    const start = new Date(startTime)
+    const now = new Date()
+    
+    console.log('=== Gerando horários ===')
+    console.log('Data de início:', start.toISOString())
+    console.log('Data atual:', now.toISOString())
+    
+    // Começa da data de início do medicamento
+    const baseTime = new Date(start)
+    baseTime.setHours(start.getHours(), start.getMinutes(), 0, 0)
+    console.log('Hora base:', baseTime.toISOString())
+
+    // Gera horários até o fim do próximo dia
+    const endTime = new Date(now)
+    endTime.setDate(now.getDate() + 3)
+    endTime.setHours(23, 59, 59, 999)
+    console.log('Hora fim:', endTime.toISOString())
+
+    // Gera horários baseado no intervalo
+    for (let time = baseTime; time <= endTime; time = new Date(time.getTime() + interval * 60 * 60 * 1000)) {
+      console.log('Gerando horário:', {
+        time: time.toISOString(),
+        medicationId: medication.id,
+        medicationName: medication.name
+      })
+      
+      // Verifica se existe um lembrete físico para este horário
+      const existingReminder = medicationData?.reminders?.find(r => {
+        const rDate = new Date(r.scheduledFor)
+        return format(rDate, 'yyyy-MM-dd HH:mm') === format(time, 'yyyy-MM-dd HH:mm')
+      })
+
+      if (existingReminder) {
+        console.log('Encontrou reminder existente:', existingReminder)
+        schedules.push(existingReminder)
+      } else {
+        console.log('Criando reminder virtual para:', time.toISOString())
+        schedules.push({
+          id: `virtual_${medication.id}_${time.getTime()}`,
+          scheduledFor: time.toISOString(),
+          taken: false,
+          takenAt: null,
+          skipped: false,
+          skippedReason: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      }
+    }
+
+    console.log('=== Horários gerados ===', schedules)
+    return schedules
   }
 
   // Converte os reminders em dias com slots
   const convertRemindersToSchedule = (): ScheduleDay[] => {
-    if (!medicationData?.reminders) {
-      return []
-    }
-
     const days = new Map<string, ScheduleDay>()
     
-    medicationData.reminders.forEach(reminder => {
-      const reminderDate = new Date(reminder.scheduledFor)
-      const dateKey = format(reminderDate, 'yyyy-MM-dd')
+    // Se for medicamento recorrente, usa os horários calculados
+    if (medication.isRecurring) {
+      const virtualSlots = calculateDaySchedules(medication.startDate, medication.interval)
       
-      const time = reminderDate.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Sao_Paulo'
-      })
-
-      if (!days.has(dateKey)) {
-        days.set(dateKey, {
-          date: reminderDate,
-          slots: []
+      virtualSlots.forEach(slot => {
+        const slotDate = new Date(slot.scheduledFor)
+        const dateKey = format(slotDate, 'yyyy-MM-dd')
+        
+        // Ajusta o horário para o fuso do Brasil
+        const time = new Date(slot.scheduledFor).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: 'America/Sao_Paulo'
         })
-      }
 
-      const day = days.get(dateKey)!
-      day.slots.push({
-        id: reminder.id,
-        time,
-        taken: reminder.taken,
-        skipped: reminder.skipped,
-        scheduledFor: reminder.scheduledFor
+        if (!days.has(dateKey)) {
+          days.set(dateKey, {
+            date: slotDate,
+            slots: []
+          })
+        }
+
+        const day = days.get(dateKey)!
+        day.slots.push({
+          id: slot.id,
+          time,
+          taken: slot.taken,
+          skipped: slot.skipped,
+          scheduledFor: slot.scheduledFor
+        })
       })
+    } 
+    // Se não for recorrente, usa os reminders do banco
+    else if (medicationData?.reminders) {
+      medicationData.reminders.forEach(reminder => {
+        const reminderDate = new Date(reminder.scheduledFor)
+        const dateKey = format(reminderDate, 'yyyy-MM-dd')
+        
+        const time = reminderDate.toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Sao_Paulo'
+        })
 
-      // Ordenar os slots pelo horário completo (data + hora)
+        if (!days.has(dateKey)) {
+          days.set(dateKey, {
+            date: reminderDate,
+            slots: []
+          })
+        }
+
+        const day = days.get(dateKey)!
+        day.slots.push({
+          id: reminder.id,
+          time,
+          taken: reminder.taken,
+          skipped: reminder.skipped,
+          scheduledFor: reminder.scheduledFor
+        })
+      })
+    }
+
+    // Ordenar os slots de cada dia pelo horário
+    days.forEach(day => {
       day.slots.sort((a, b) => {
         const dateA = new Date(a.scheduledFor)
         const dateB = new Date(b.scheduledFor)
@@ -104,7 +214,6 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   // Ajusta a data inicial para o fuso horário local
   const startDate = new Date(medication.startDate)
   
-  const [selectedDate, setSelectedDate] = useState(startDate)
   const today = new Date()
 
   // Encontra a primeira e última data do schedule
@@ -154,12 +263,15 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
 
   const canMarkTime = (date: Date, time: string) => {
     const now = new Date()
-    const reminderDateTime = new Date(date)
+    const reminderDateTime =date
     const [hours, minutes] = time.split(':').map(Number)
-    reminderDateTime.setHours(hours, minutes, 0, 0)
+    // Permite marcar se o horário for menor ou igual ao atual
+    
+    // E se não for mais que 7 dias atrás
+    const sevenDaysAgo = new Date(now)
+    sevenDaysAgo.setDate(now.getDate() - 7)
 
-    // Não pode marcar horários futuros
-    return reminderDateTime <= now
+    return reminderDateTime <= now && reminderDateTime >= sevenDaysAgo
   }
 
   // Função para verificar se tem dias anteriores disponíveis
@@ -236,7 +348,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
 
       {/* Dias da semana */}
       <div className="flex gap-2">
-        {days.map((date) => {
+        {days.map(date => {
           const isSelected = date.getTime() === selectedDate.getTime()
           const isCurrentDay = isToday(date)
           const allTaken = isAllTakenForDate(date)
@@ -311,15 +423,17 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                     <p className="text-sm font-medium">Todos os horários deste dia foram tomados!</p>
                   </div>
                 )}
-                {currentDay.slots.map((slot) => {
-                  const canMark = canMarkTime(selectedDate, slot.time)
-                  const isLoading = loadingSlots.includes(slot.id)
+                {currentDay.slots.map(slot => {
+                  const slotDate = new Date(slot.scheduledFor)
+                  const canMark = canMarkTime(slotDate, slot.time)
+                  const isLoading = isPending && loadingSlots.includes(slot.id)
                   return (
                     <button
                       key={slot.id}
                       onClick={() => {
                         if (!canMark || isLoading) return
-                        handleMarkAsTaken(slot.id, !slot.taken)
+                        setLoadingSlots(prev => [...prev, slot.id])
+                        handleMarkAsTaken(slot.id, slot.scheduledFor, !slot.taken)
                       }}
                       disabled={!canMark || isLoading}
                       className={cn(

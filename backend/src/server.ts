@@ -30,7 +30,7 @@ const app = Fastify({
     transport: {
       target: 'pino-pretty',
       options: {
-        translateTime: 'HH:MM:ss Z',
+        translateTime: 'HH:MM:ss Z',  
         ignore: 'pid,hostname',
         colorize: true
       },
@@ -43,11 +43,15 @@ const app = Fastify({
 
 // Plugins
 await app.register(cors, {
-  origin: true,
+  origin: [
+    env.FRONTEND_URL,
+    env.API_URL
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Sec-WebSocket-Protocol'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Sec-WebSocket-Protocol', 'ngrok-skip-browser-warning'],
   exposedHeaders: ['Authorization'],
+  maxAge: 86400 // 24 horas
 })
 
 // Registra o plugin WebSocket
@@ -101,9 +105,12 @@ TelegramService.initialize()
 
 // Start
 try {
-  await app.listen({ port: env.PORT })
-  console.log(`🚀 Server running at http://localhost:${env.PORT}`)
-  console.log(`📚 Documentation available at http://localhost:${env.PORT}/docs`)
+  await app.listen({ 
+    port: env.PORT,
+    host: '0.0.0.0'
+  })
+  console.log(`🚀 Server running at http://0.0.0.0:${env.PORT}`)
+  console.log(`📚 Documentation available at http://0.0.0.0:${env.PORT}/docs`)
   console.log(`🤖 Telegram bot initialized`)
 } catch (err) {
   app.log.error(err)

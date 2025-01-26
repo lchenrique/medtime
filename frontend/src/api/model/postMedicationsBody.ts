@@ -6,24 +6,23 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PostMedicationsBodyIntervalPreset } from './postMedicationsBodyIntervalPreset';
+import type { PostMedicationsBodyUnit } from './postMedicationsBodyUnit';
 
 export type PostMedicationsBody = {
   /** @minLength 2 */
   name: string;
-  description?: string;
+  /** @nullable */
+  description: string | null;
   startTime: string;
   intervalPreset: PostMedicationsBodyIntervalPreset;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
+  /** @minimum 0 */
   durationInDays: number;
   /**
    * @minimum 0
    * @exclusiveMinimum
    */
   totalQuantity: number;
-  unit: string;
+  unit: PostMedicationsBodyUnit;
   /**
    * @minimum 0
    * @exclusiveMinimum

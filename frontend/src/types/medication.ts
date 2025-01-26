@@ -1,26 +1,26 @@
-export interface Medication {
-  id: string
-  name: string
-  description: string
-  startDate: string
-  duration: number
-  interval: number
-  totalQuantity: number
-  remainingQuantity: number
-  unit: string
-  dosageQuantity: number
-  dosage: string
+import { GetMedications200Item, GetMedications200ItemRemindersItem } from '@/api/generated/medications/medications'
+
+export interface Reminder {
+  id: string // Pode ser um ID real ou virtual (virtual_medicationId_timestamp)
+  scheduledFor: string
+  taken: boolean
+  takenAt: string | null
+  skipped: boolean
+  skippedReason: string | null
+  createdAt: string
+  updatedAt: string
   time: string
+  isVirtual?: boolean // Indica se é um lembrete virtual
+}
+
+export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
+
+export type Medication = GetMedications200Item & {
+  description: string
+  dosage: string
   instructions: string
-  status: 'pending' | 'taken' | 'late'
-  timeUntil: string
-  reminders: {
-    id: string
-    scheduledFor: string
-    taken: boolean
-    takenAt: string | null
-    skipped: boolean
-    skippedReason: string | null
-    time: string
-  }[]
+  status?: ReminderStatus
+  time?: string
+  timeUntil?: string
+  reminders: GetMedications200ItemRemindersItem[]
 } 

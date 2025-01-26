@@ -4,7 +4,7 @@ import { z } from 'zod'
 export const IntervalPresetEnum = z.enum(['6/6', '8/8', '12/12', '24/24'])
 
 // Enum para unidades de medida
-export const UnitEnum = z.enum(['comprimidos', 'ml', 'gotas', 'doses'])
+export const UnitEnum = z.string()
 
 // Mapa de intervalos para doses diárias
 const intervalToDoses = {
@@ -43,7 +43,7 @@ export const medicationSchema = z.object({
   interval: z.number().positive(),
   // Novos campos para controle de estoque
   totalQuantity: z.number().positive(),
-  remainingQuantity: z.number().positive(),
+  remainingQuantity: z.number().min(0),
   unit: UnitEnum,
   dosageQuantity: z.number().positive(),
   userId: z.string(),
