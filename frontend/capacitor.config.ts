@@ -6,9 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    url: process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:5173'
-      : 'https://medtime.vercel.app', // URL da Vercel
+    url: 'https://medtime-w8a2.vercel.app',
     cleartext: true
   },
   plugins: {
