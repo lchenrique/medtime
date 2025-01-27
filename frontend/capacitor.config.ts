@@ -5,7 +5,11 @@ const config: CapacitorConfig = {
   appName: 'MedTime',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    url: process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:5173'
+      : 'https://medtime.vercel.app', // URL da Vercel
+    cleartext: true
   },
   plugins: {
     SplashScreen: {
