@@ -1,6 +1,11 @@
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const ANDROID_ICON_SIZES = {
   mdpi: 48,
@@ -20,7 +25,7 @@ const NOTIFICATION_ICON_SIZES = {
 
 async function generateIcons() {
   const sourceIcon = path.resolve(__dirname, '../public/icon.svg')
-  const androidResPath = path.resolve(__dirname, '../android/app/src/main/res')
+  const androidResPath = path.join(__dirname, '../android/app/src/main/res')
 
   // Gerar ícones do launcher
   for (const [density, size] of Object.entries(ANDROID_ICON_SIZES)) {

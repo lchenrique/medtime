@@ -8,7 +8,7 @@ import { ReminderStatus, MedicationGroup } from '@/pages/Home'
 
 interface NextMedicationCardProps {
   group: MedicationGroup
-  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string }) => void
+  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string, isRecurring?: boolean }) => void
 }
 
 export function NextMedicationCard({ group, onMedicationClick }: NextMedicationCardProps) {

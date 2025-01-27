@@ -1,4 +1,4 @@
-import { GetMedications200Item, GetMedications200ItemRemindersItem } from '@/api/generated/medications/medications'
+import type { GetMedications200Item } from '@/api/model'
 
 export interface Reminder {
   id: string // Pode ser um ID real ou virtual (virtual_medicationId_timestamp)
@@ -15,12 +15,15 @@ export interface Reminder {
 
 export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
 
-export type Medication = GetMedications200Item & {
-  description: string
-  dosage: string
-  instructions: string
+export type ApiMedication = GetMedications200Item
+export type ApiReminder = ApiMedication['reminders'][number]
+
+export type Medication = ApiMedication & {
+  description?: string | null
+  dosage?: string | null
+  instructions?: string | null
   status?: ReminderStatus
   time?: string
   timeUntil?: string
-  reminders: GetMedications200ItemRemindersItem[]
+  isRecurring?: boolean
 } 

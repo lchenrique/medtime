@@ -55,14 +55,25 @@ function buildApp() {
 function start() {
   const app = buildApp()
 
-  // Plugins
+  // Origens necessárias para o Capacitor em todos os ambientes
+  const capacitorOrigins = [
+    'capacitor://localhost',
+    'http://localhost',
+    'http://localhost:5173',
+    'http://127.0.0.1',
+    'http://127.0.0.1:5173'
+  ];
+
+  // Origens específicas do ambiente
+  const envOrigins = [
+    env.FRONTEND_URL,
+    env.API_URL
+  ];
+
   app.register(cors, {
-    origin: [
-      env.FRONTEND_URL,
-      env.API_URL
-    ],
+    origin: [...capacitorOrigins, ...envOrigins].filter(Boolean),
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Sec-WebSocket-Protocol', 'ngrok-skip-browser-warning'],
     exposedHeaders: ['Authorization'],
     maxAge: 86400 // 24 horas

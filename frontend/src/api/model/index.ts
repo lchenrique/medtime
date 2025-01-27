@@ -49,6 +49,8 @@ export * from './postAuthLogin200';
 export * from './postAuthLogin200User';
 export * from './postAuthLogin401';
 export * from './postAuthLoginBody';
+export * from './postAuthLogout200';
+export * from './postAuthLogout500';
 export * from './postAuthRegister201';
 export * from './postAuthRegister201User';
 export * from './postAuthRegister400';

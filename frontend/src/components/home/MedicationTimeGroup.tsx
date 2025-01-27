@@ -10,7 +10,7 @@ interface MedicationTimeGroupProps {
     timeUntil?: string
     instructions?: string
   })[]
-  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string }) => void
+  onMedicationClick: (medication: GetMedications200Item & { status?: ReminderStatus, timeUntil?: string, isRecurring?: boolean }) => void
 }
 
 export function MedicationTimeGroup({ time, medications, onMedicationClick }: MedicationTimeGroupProps) {
@@ -37,6 +37,7 @@ export function MedicationTimeGroup({ time, medications, onMedicationClick }: Me
             instructions: medication.description || '',
             status: medication.status || 'pending',
             timeUntil: medication.timeUntil || '',
+            isRecurring: medication.isRecurring,
             reminders: medication.reminders.map(r => ({
               ...r,
               time: new Date(r.scheduledFor).toLocaleTimeString('pt-BR', {

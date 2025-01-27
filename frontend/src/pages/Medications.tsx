@@ -1,4 +1,5 @@
 import { useGetMedications } from '@/api/generated/medications/medications'
+import { GetMedications200Item } from '@/api/model/getMedications200Item'
 import { useDrawer } from '@/hooks/useDrawer'
 import { MedicationDetails } from './MedicationDetails'
 import { Medication } from '@/types/medication'
@@ -30,6 +31,8 @@ type ApiMedication = {
     takenAt: string | null
     skipped: boolean | null
     skippedReason: string | null
+    createdAt: string
+    updatedAt: string
   }> | null
 }
 
@@ -38,7 +41,7 @@ export function Medications() {
   const drawer = useDrawer()
   const { data: medications, isLoading } = useGetMedications()
 
-  const handleMedicationClick = (med: ApiMedication) => {
+  const handleMedicationClick = (med: GetMedications200Item) => {
     // Mapeia os dados da API para o formato Medication
     const medication: Medication = {
       id: med.id,
@@ -47,6 +50,7 @@ export function Medications() {
       startDate: med.startDate,
       duration: med.duration,
       interval: med.interval,
+      isRecurring: med.interval > 0,
       dosage: `${med.dosageQuantity} ${med.unit}`,
       time: new Date(med.startDate).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -64,7 +68,9 @@ export function Medications() {
           hour: '2-digit',
           minute: '2-digit',
           timeZone: 'UTC'
-        })
+        }),
+        createdAt: reminder.createdAt || new Date().toISOString(),
+        updatedAt: reminder.updatedAt || new Date().toISOString()
       })),
       unit: med.unit,
       totalQuantity: med.totalQuantity,

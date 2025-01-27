@@ -22,7 +22,8 @@ export function AlarmWrapper() {
     markAsTaken({ 
       data: { 
         reminderId: nextReminder.id,
-        taken: true 
+        taken: true,
+        scheduledFor: nextReminder.scheduledFor
       }
     });
 

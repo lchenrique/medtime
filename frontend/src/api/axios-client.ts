@@ -1,11 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { Preferences } from '@capacitor/preferences';
 import { storage } from '@/lib/storage'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
+import { getApiUrl } from './api'
 
 export const AXIOS_INSTANCE = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

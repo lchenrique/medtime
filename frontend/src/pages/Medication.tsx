@@ -40,7 +40,8 @@ export function Medication({ id }: { id: string }) {
     dosageQuantity: data.dosageQuantity,
     userId: data.userId,
     createdAt: data.createdAt,
-    updatedAt: data.updatedAt
+    updatedAt: data.updatedAt,
+    isRecurring: data.isRecurring
   }
 
   return (

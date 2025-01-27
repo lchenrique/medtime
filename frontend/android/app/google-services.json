@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "702754798149",
+    "firebase_url": "https://remind-560ac.firebaseio.com",
+    "project_id": "remind-560ac",
+    "storage_bucket": "remind-560ac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:702754798149:android:7ff2c6e83164906299812c",
+        "android_client_info": {
+          "package_name": "com.medtime.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWXyprAfPL7dJVf0XbfP8Q1RhZort5RYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ]
+} 

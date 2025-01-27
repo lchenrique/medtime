@@ -17,12 +17,22 @@ const messaging = firebase.messaging()
 
 // Manipula mensagens em background
 messaging.onBackgroundMessage((payload) => {
-  console.log('Recebida mensagem em background:', payload)
+  console.log('[firebase-messaging-sw.js] Recebida mensagem em background:', payload)
 
-  const notificationTitle = payload.notification.title
+  const notificationTitle = payload.notification?.title || 'Nova notificação'
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon-192x192.png'
+    body: payload.notification?.body || '',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    tag: 'notification-' + Date.now(),
+    data: payload.data,
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'open',
+        title: 'Abrir'
+      }
+    ]
   }
 
   return self.registration.showNotification(notificationTitle, notificationOptions)
