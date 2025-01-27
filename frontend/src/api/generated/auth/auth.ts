@@ -30,6 +30,9 @@ import type {
   PatchAuthProfile401,
   PatchAuthProfile500,
   PatchAuthProfileBody,
+  PostAuthGoogle200,
+  PostAuthGoogle400,
+  PostAuthGoogleBody,
   PostAuthLogin200,
   PostAuthLogin401,
   PostAuthLoginBody,
@@ -494,6 +497,70 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getPutAuthTauriEnabledMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    /**
+ * Autentica um usuário usando o token do Google.
+ * @summary Login com Google
+ */
+export const postAuthGoogle = (
+    postAuthGoogleBody: PostAuthGoogleBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<PostAuthGoogle200>(
+      {url: `/auth/google`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postAuthGoogleBody, signal
+    },
+      );
+    }
+  
+
+
+export const getPostAuthGoogleMutationOptions = <TData = Awaited<ReturnType<typeof postAuthGoogle>>, TError = PostAuthGoogle400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PostAuthGoogleBody}, TContext>, }
+) => {
+const mutationKey = ['postAuthGoogle'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postAuthGoogle>>, {data: PostAuthGoogleBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postAuthGoogle(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions } as UseMutationOptions<TData, TError,{data: PostAuthGoogleBody}, TContext>}
+
+    export type PostAuthGoogleMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthGoogle>>>
+    export type PostAuthGoogleMutationBody = PostAuthGoogleBody
+    export type PostAuthGoogleMutationError = PostAuthGoogle400
+
+    /**
+ * @summary Login com Google
+ */
+export const usePostAuthGoogle = <TData = Awaited<ReturnType<typeof postAuthGoogle>>, TError = PostAuthGoogle400,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PostAuthGoogleBody}, TContext>, }
+): UseMutationResult<
+        TData,
+        TError,
+        {data: PostAuthGoogleBody},
+        TContext
+      > => {
+
+      const mutationOptions = getPostAuthGoogleMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

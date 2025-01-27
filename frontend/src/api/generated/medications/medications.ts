@@ -36,7 +36,7 @@ import type {
   PostMedications400,
   PostMedicationsBody,
   PutMedicationsMarkAsTaken200,
-  PutMedicationsMarkAsTaken404,
+  PutMedicationsMarkAsTaken400,
   PutMedicationsMarkAsTakenBody
 } from '../../model'
 import { customInstance } from '../../axios-client';
@@ -329,7 +329,7 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     /**
- * Marca ou desmarca um lembrete como tomado
+ * Marca um medicamento como tomado
  */
 export const putMedicationsMarkAsTaken = (
     putMedicationsMarkAsTakenBody: PutMedicationsMarkAsTakenBody,
@@ -346,7 +346,7 @@ export const putMedicationsMarkAsTaken = (
   
 
 
-export const getPutMedicationsMarkAsTakenMutationOptions = <TData = Awaited<ReturnType<typeof putMedicationsMarkAsTaken>>, TError = PutMedicationsMarkAsTaken404,
+export const getPutMedicationsMarkAsTakenMutationOptions = <TData = Awaited<ReturnType<typeof putMedicationsMarkAsTaken>>, TError = PutMedicationsMarkAsTaken400,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PutMedicationsMarkAsTakenBody}, TContext>, }
 ) => {
 const mutationKey = ['putMedicationsMarkAsTaken'];
@@ -372,9 +372,9 @@ const {mutation: mutationOptions} = options ?
 
     export type PutMedicationsMarkAsTakenMutationResult = NonNullable<Awaited<ReturnType<typeof putMedicationsMarkAsTaken>>>
     export type PutMedicationsMarkAsTakenMutationBody = PutMedicationsMarkAsTakenBody
-    export type PutMedicationsMarkAsTakenMutationError = PutMedicationsMarkAsTaken404
+    export type PutMedicationsMarkAsTakenMutationError = PutMedicationsMarkAsTaken400
 
-    export const usePutMedicationsMarkAsTaken = <TData = Awaited<ReturnType<typeof putMedicationsMarkAsTaken>>, TError = PutMedicationsMarkAsTaken404,
+    export const usePutMedicationsMarkAsTaken = <TData = Awaited<ReturnType<typeof putMedicationsMarkAsTaken>>, TError = PutMedicationsMarkAsTaken400,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<TData, TError,{data: PutMedicationsMarkAsTakenBody}, TContext>, }
 ): UseMutationResult<
         TData,

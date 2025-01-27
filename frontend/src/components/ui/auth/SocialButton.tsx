@@ -1,20 +1,33 @@
 import { Button } from "@/components/ui/button"
-import { ComponentProps } from "react"
+import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
-interface SocialButtonProps extends ComponentProps<typeof Button> {
+interface SocialButtonProps {
+  provider: 'google' | 'facebook'
   icon: React.ReactNode
   label: string
 }
 
-export function SocialButton({ icon, label, ...props }: SocialButtonProps) {
+export function SocialButton({ provider, icon, label }: SocialButtonProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleClick = () => {
+    if (provider === 'google') {
+      setIsLoading(true)
+      // Redireciona para o endpoint de autenticação do backend
+      window.location.href = `${import.meta.env.VITE_API_URL}/auth/google/login`
+    }
+  }
+
   return (
-    <Button
-      variant="outline"
-      className="h-11 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors"
-      {...props}
+    <Button 
+      variant="outline" 
+      className="w-full h-12 text-base font-medium rounded-xl"
+      onClick={handleClick}
+      disabled={isLoading}
     >
-      {icon}
-      <span className="text-sm">{label}</span>
+      <span className="mr-2">{icon}</span>
+      {isLoading ? "Entrando..." : label}
     </Button>
   )
 } 

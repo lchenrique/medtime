@@ -9,37 +9,20 @@ import type { GetMedicationsId200RemindersItem } from './getMedicationsId200Remi
 
 export type GetMedicationsId200 = {
   id: string;
-  /** @minLength 2 */
   name: string;
   /** @nullable */
   description: string | null;
   startDate: string;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
-  duration: number;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
+  /** @nullable */
+  duration: number | null;
   interval: number;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
+  isRecurring: boolean;
   totalQuantity: number;
-  /** @minimum 0 */
   remainingQuantity: number;
   unit: string;
-  /**
-   * @minimum 0
-   * @exclusiveMinimum
-   */
   dosageQuantity: number;
   userId: string;
   createdAt: string;
   updatedAt: string;
-  reminders?: GetMedicationsId200RemindersItem[];
-  isRecurring: boolean;
+  reminders: GetMedicationsId200RemindersItem[];
 };

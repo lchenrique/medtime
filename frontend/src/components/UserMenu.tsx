@@ -28,6 +28,11 @@ export function UserMenu() {
     })
   }
 
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -63,7 +68,7 @@ export function UserMenu() {
         
         <DropdownMenuItem 
           className="text-red-600 focus:text-red-600" 
-          onClick={logout}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>

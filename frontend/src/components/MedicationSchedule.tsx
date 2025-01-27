@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, Check, Loader2 } from "lucide-
 import { useState, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Medication } from "../types/medication"
-import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken, getPutMedicationsMarkAsTakenMutationOptions } from "@/api/generated/medications/medications"
+import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken} from "@/api/generated/medications/medications"
 import { useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 

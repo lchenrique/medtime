@@ -1022,6 +1022,68 @@
         }
       }
     },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ],
+        "description": "Encerra a sessão do usuário.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/medications": {
       "get": {
         "tags": [
@@ -1642,6 +1704,120 @@
         }
       }
     },
+    "/medications/mark-as-taken": {
+      "put": {
+        "tags": [
+          "medications"
+        ],
+        "description": "Marca um medicamento como tomado",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reminderId": {
+                    "type": "string"
+                  },
+                  "scheduledFor": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "taken": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "reminderId",
+                  "scheduledFor",
+                  "taken"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "scheduledFor": {
+                      "type": "string"
+                    },
+                    "taken": {
+                      "type": "boolean"
+                    },
+                    "takenAt": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "skipped": {
+                      "type": "boolean"
+                    },
+                    "skippedReason": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "scheduledFor",
+                    "taken",
+                    "takenAt",
+                    "skipped",
+                    "skippedReason",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/medications/{medicationId}/stock": {
       "patch": {
         "tags": [
@@ -1767,6 +1943,43 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Verifica o status da API",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "uptime": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "timestamp",
+                    "uptime"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }

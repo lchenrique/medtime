@@ -4,7 +4,7 @@ import { list } from './list'
 import { get } from './get'
 import { updateStock } from './updateStock'
 import { deleteMedication } from './delete'
-import { markAsTaken } from './markAsTaken'
+import { markAsTaken } from './mark-as-taken'
 
 export const medicationRoutes: FastifyPluginAsyncZod = async (app) => {
   app.addHook('onRequest', app.authenticate)
@@ -12,7 +12,7 @@ export const medicationRoutes: FastifyPluginAsyncZod = async (app) => {
   await app.register(list)
   await app.register(create)
   await app.register(get)
-  await app.register(markAsTaken)
+  await app.register(markAsTaken, { prefix: '/mark-as-taken' })
   await app.register(updateStock)
   await app.register(deleteMedication)
 } 

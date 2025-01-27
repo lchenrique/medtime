@@ -130,8 +130,8 @@ export function Login() {
         <AuthDivider />
 
         <div className="grid grid-cols-2 gap-3">
-          <SocialButton icon={<GoogleIcon />} label="Google" />
-          <SocialButton icon={<FacebookIcon />} label="Facebook" />
+          <SocialButton icon={<GoogleIcon />} label="Google" provider="google" />
+          <SocialButton icon={<FacebookIcon />} label="Facebook" provider="facebook" />
         </div>
 
         <div className="text-center text-sm text-gray-500">

@@ -5,7 +5,7 @@ import { useUserStore } from '@/stores/user'
 import { storage } from '@/lib/storage'
 
 export function useAuth() {
-  const { setUser } = useUserStore()
+  const { setUser, logout: storeLogout } = useUserStore()
 
   const loadUser = async () => {
     try {
@@ -23,8 +23,7 @@ export function useAuth() {
       return null
     } catch (error) {
       console.error('❌ Erro ao carregar usuário:', error)
-      await storage.remove('token')
-      setUser(null)
+      await storeLogout()
       throw error
     }
   }
@@ -49,9 +48,15 @@ export function useAuth() {
   }
 
   const logout = async () => {
-    await storage.remove('token')
-    setUser(null)
-    TauriNotificationClient.getInstance().disconnect()
+    try {
+      // Desconecta o cliente Tauri antes de fazer logout
+      TauriNotificationClient.getInstance().disconnect()
+      await storeLogout()
+    } catch (error) {
+      console.error('❌ Erro ao fazer logout:', error)
+      // Mesmo que falhe, tenta fazer logout local
+      await storeLogout()
+    }
   }
 
   const isAuthenticated = async () => {
