@@ -366,7 +366,27 @@ export async function getMedicationsWithSchedules(userId: string, startDate: Dat
 }
 
 // Função para marcar um lembrete virtual como tomado
-export async function markVirtualReminderAsTaken(medicationId: string, scheduledFor: Date, taken: boolean) {
+export async function markVirtualReminderAsTaken(reminderId: string, scheduledFor: Date, taken: boolean) {
+  console.log('Marcando medicamento como tomado:', { reminderId, scheduledFor, taken })
+  
+  // Primeiro tenta buscar o reminder se for um ID direto
+  let medicationId = reminderId;
+  if (!reminderId.includes('_')) {
+    const reminder = await prisma.reminder.findUnique({
+      where: { id: reminderId }
+    });
+    
+    if (reminder) {
+      medicationId = reminder.medicationId;
+    }
+  } else {
+    // Se for um ID virtual, extrai o ID do medicamento
+    const [, id] = reminderId.split('_');
+    medicationId = id;
+  }
+  
+  console.log('ID do medicamento:', medicationId);
+  
   // Busca o medicamento
   const medication = await prisma.medication.findUnique({
     where: { id: medicationId },
@@ -384,11 +404,15 @@ export async function markVirtualReminderAsTaken(medicationId: string, scheduled
     }
   })
   
+  console.log('Medicamento encontrado:', medication)
+  
   if (!medication) {
-    throw new Error('Medicamento não encontrado')
+    console.error('Medicamento não encontrado com ID:', medicationId)
+    throw new Error(`Medicamento não encontrado com ID: ${medicationId}`)
   }
   
   // Cria um registro físico do lembrete
+  console.log('Criando registro do lembrete...')
   const reminder = await prisma.reminder.create({
     data: {
       medicationId,
@@ -399,8 +423,11 @@ export async function markVirtualReminderAsTaken(medicationId: string, scheduled
     }
   })
   
+  console.log('Lembrete criado:', reminder)
+  
   // Atualiza o estoque se foi marcado como tomado
   if (taken) {
+    console.log('Atualizando estoque...')
     await prisma.medication.update({
       where: { id: medicationId },
       data: {
@@ -409,12 +436,15 @@ export async function markVirtualReminderAsTaken(medicationId: string, scheduled
         }
       }
     })
+    console.log('Estoque atualizado')
   }
 
   // Verifica se precisa gerar mais lembretes para manter 5 dias preenchidos
   const remindersNeededFor5Days = Math.ceil((5 * 24) / medication.interval)
   if (medication.reminders.length < remindersNeededFor5Days) {
+    console.log('Gerando mais lembretes...')
     await generateRecurringReminders(medicationId)
+    console.log('Lembretes gerados')
   }
   
   return reminder
