@@ -22,8 +22,12 @@ export class SchedulingService {
     const notifications: ScheduleNotification[] = []
     const { startDate, duration, interval } = medication
     
+    // Se não tiver duração, retorna array vazio
+    if (!duration) return notifications
+    
     let currentDate = new Date(startDate)
-    const endDate = addDays(startDate, duration)
+    // Aqui duration já foi verificado que não é null
+    const endDate = addDays(startDate, duration as number)
 
     while (currentDate < endDate) {
       notifications.push({

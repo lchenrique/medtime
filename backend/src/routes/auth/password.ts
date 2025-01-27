@@ -28,14 +28,14 @@ export const password: FastifyPluginAsyncZod = async (app) => {
       security: [{ bearerAuth: [] }]
     }
   }, async (request, reply) => {
-    const { sub: userId } = request.user
-    const { currentPassword, newPassword } = request.body
+    const { id: userId } = request.user
+    const { currentPassword, newPassword } = request.body as { currentPassword: string; newPassword: string }
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: userId }
     })
 
-    const validPassword = await bcrypt.compare(currentPassword, user.password)
+    const validPassword = await bcrypt.compare(currentPassword, user.hashedPassword)
 
     if (!validPassword) {
       return reply.status(401).send({
@@ -48,7 +48,7 @@ export const password: FastifyPluginAsyncZod = async (app) => {
 
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword }
+      data: { hashedPassword }
     })
 
     return reply.status(204).send()
@@ -72,7 +72,7 @@ export const password: FastifyPluginAsyncZod = async (app) => {
       }
     }
   }, async (request, reply) => {
-    const { email } = request.body
+    const { email } = request.body as { email: string }
 
     const user = await prisma.user.findUnique({
       where: { email }
@@ -117,7 +117,7 @@ export const password: FastifyPluginAsyncZod = async (app) => {
       }
     }
   }, async (request, reply) => {
-    const { token, password } = request.body
+    const { token, password } = request.body as { token: string; password: string }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -140,7 +140,7 @@ export const password: FastifyPluginAsyncZod = async (app) => {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: hashedPassword,
+        hashedPassword,
         resetToken: null,
         resetTokenExpiresAt: null
       }

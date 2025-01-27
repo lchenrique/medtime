@@ -42,21 +42,21 @@ export function MedicationCard({
   return (
     <button
       onClick={() => onClick(medication)}
-      className="w-full bg-white hover:bg-gray-50/80 transition-colors"
+      className="w-full bg-white hover:bg-gray-50 transition-colors"
     >
-      <div className="py-3 px-4">
-        <div className="flex items-center gap-3">
+      <div className="p-4">
+        <div className="flex items-start gap-3">
           {/* Avatar */}
           <div className={cn(
-            "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
+            "shrink-0 w-12 h-12 rounded-xl flex items-center justify-center",
             isLate 
               ? "bg-gradient-to-br from-red-600 to-red-500" 
               : "bg-gradient-to-br from-violet-600 to-violet-500"
           )}>
             {medication.duration === null ? (
-              <Infinity className="w-5 h-5 text-white" />
+              <Infinity className="w-6 h-6 text-white" />
             ) : (
-              <Pill className="w-5 h-5 text-white" />
+              <Pill className="w-6 h-6 text-white" />
             )}
           </div>
 
@@ -66,7 +66,7 @@ export function MedicationCard({
                 <h3 className="font-medium text-gray-900 leading-tight truncate">
                   {medication.name}
                 </h3>
-                <p className="text-sm text-gray-500 truncate">
+                <p className="text-sm text-gray-500 truncate mt-0.5">
                   {variant === 'list' 
                     ? `A cada ${medication.interval}h • ${medication.dosageQuantity} ${medication.unit}`
                     : `${medication.dosageQuantity} ${medication.unit}`}
@@ -79,7 +79,7 @@ export function MedicationCard({
                     onClick={handleTake}
                     disabled={!canTakeMedication()}
                     className={cn(
-                      "h-8 px-3 rounded-lg text-sm font-medium flex items-center gap-1.5 shrink-0",
+                      "px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shrink-0",
                       !canTakeMedication() && "opacity-50 cursor-not-allowed",
                       isLate 
                         ? "bg-red-100 text-red-700 hover:bg-red-200" 
@@ -105,7 +105,7 @@ export function MedicationCard({
             </div>
 
             {medication.instructions && (
-              <p className="text-sm text-gray-600 truncate">
+              <p className="text-sm text-gray-600 truncate mt-1">
                 {medication.instructions}
               </p>
             )}
