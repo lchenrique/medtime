@@ -8,6 +8,8 @@ export default defineConfig({
     host: '0.0.0.0', // Permite acesso externo
     port: 5173,
     strictPort: true,
+    // Proxy apenas para desenvolvimento local
+    // Em produção, as chamadas usam VITE_API_URL diretamente
     proxy: {
       '/api': {
         target: 'http://localhost:3333',
