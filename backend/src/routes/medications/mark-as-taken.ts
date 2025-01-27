@@ -38,8 +38,16 @@ export const markAsTaken: FastifyPluginAsyncZod = async (app) => {
     const { reminderId, scheduledFor, taken } = request.body as MarkAsTakenBody
 
     try {
-      // Extrai o medicationId do reminderId virtual (formato: virtual_medicationId_timestamp)
-      const [, medicationId] = reminderId.split('_')
+      // Verifica se é um ID virtual ou um ID direto
+      let medicationId: string;
+      if (reminderId.includes('_')) {
+        // Formato virtual: virtual_medicationId_timestamp
+        const [, id] = reminderId.split('_');
+        medicationId = id;
+      } else {
+        // ID direto do banco
+        medicationId = reminderId;
+      }
 
       const reminder = await markVirtualReminderAsTaken(
         medicationId,
