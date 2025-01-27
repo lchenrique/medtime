@@ -1,16 +1,14 @@
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getMessaging } from 'firebase-admin/messaging'
-import { fileURLToPath } from 'node:url'
-import { join, dirname } from 'node:path'
-import { readFileSync } from 'node:fs'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const credentialsPath = join(__dirname, '../config/credentials/firebase-admin.json')
-const credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'))
+import { env } from '../env'
 
 // Inicializa o Firebase Admin
 const app = initializeApp({
-  credential: cert(credentials)
+  credential: cert({
+    projectId: env.FIREBASE_PROJECT_ID,
+    privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    clientEmail: env.FIREBASE_CLIENT_EMAIL,
+  })
 })
 
 // Exporta a instância do Firebase Messaging

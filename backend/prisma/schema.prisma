@@ -12,9 +12,6 @@ model User {
   id            String       @id @default(cuid())
   email         String       @unique
   name          String
-  hashedPassword String      // Senha criptografada
-  resetToken    String?      // Token para reset de senha
-  resetTokenExpiresAt DateTime? // Data de expiração do token
   fcmToken      String?      // Token para notificações push web
   whatsappEnabled Boolean    @default(false)  // Habilita notificações via WhatsApp
   whatsappNumber String?     // Número do WhatsApp do usuário

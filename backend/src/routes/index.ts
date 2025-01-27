@@ -1,10 +1,10 @@
-import { FastifyPluginAsync } from 'fastify'
+import { FastifyPluginAsync, type FastifyInstance } from 'fastify'
 import { authRoutes } from './auth'
 import { medicationRoutes } from './medications'
 import { notificationRoutes } from './notifications'
 import { whatsappWebhookRoutes } from './webhooks/whatsapp'
 
-export const routes: FastifyPluginAsync = async (app) => {
+export default async function routes(app: FastifyInstance) {
   await app.register(authRoutes, { prefix: '/auth' })
   await app.register(medicationRoutes, { prefix: '/medications' })
   await app.register(notificationRoutes, { prefix: '/notifications' })

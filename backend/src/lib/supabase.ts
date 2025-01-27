@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { env } from '../config/env'
+import { env } from '../env'
 
 // Cliente com service role key para operações administrativas
 export const supabaseAdmin = createClient(

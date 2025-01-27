@@ -15,6 +15,9 @@ const envSchema = z.object({
   WHATSAPP_TEST_NUMBER: z.string(),
   WHATSAPP_VERIFY_TOKEN: z.string(),
   TELEGRAM_BOT_TOKEN: z.string(),
+  FIREBASE_PROJECT_ID: z.string(),
+  FIREBASE_PRIVATE_KEY: z.string(),
+  FIREBASE_CLIENT_EMAIL: z.string(),
 })
 
 export const env = envSchema.parse(process.env) 
