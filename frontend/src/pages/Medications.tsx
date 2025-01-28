@@ -13,6 +13,7 @@ import { NoResults } from '@/components/ui/NoResults'
 import { MedicationCard } from '@/components/home/MedicationCard'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { useSheetStore } from '@/stores/sheet-store'
 
 // Tipo inferido da resposta da API
 type ApiMedication = {
@@ -40,7 +41,8 @@ type ApiMedication = {
 
 export function Medications() {
   const [searchTerm, setSearchTerm] = useState('')
-  const drawer = useDrawer()
+  const open = useSheetStore(state => state.open)
+  const close = useSheetStore(state => state.close)
   const { data: medications, isLoading } = useGetMedications()
 
   const handleMedicationClick = (med: GetMedications200Item) => {
@@ -83,7 +85,7 @@ export function Medications() {
       updatedAt: ''
     }
 
-    drawer.open({
+    open({
       title: medication.name,
       content: <MedicationDetails medication={medication} />
     })
@@ -97,9 +99,9 @@ export function Medications() {
 
 
   const handleAddMedicationClick = () => {
-    drawer.open({
+    open({
       title: 'Adicionar Medicamento',
-      content: <AddMedicationForm onSuccess={() => drawer.close()} />
+      content: <AddMedicationForm onSuccess={() => close()} />
     })
   }
 

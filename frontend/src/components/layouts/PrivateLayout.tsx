@@ -1,6 +1,4 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { Drawer } from '@/components/ui/drawer'
-
 interface PrivateLayoutProps {
   isAuthenticated: boolean
 }
@@ -13,7 +11,6 @@ export function PrivateLayout({ isAuthenticated }: PrivateLayoutProps) {
   return (
     <>
       <Outlet />
-      <Drawer />
     </>
   )
 } 

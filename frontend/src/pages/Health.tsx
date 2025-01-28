@@ -6,10 +6,11 @@ import { EditProfileSheet } from '@/components/EditProfileSheet'
 import { Heart, Pill, Activity, AlertCircle, FileText, PenSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useSheetStore } from '@/stores/sheet-store'
 
 export function Health() {
   const { user } = useUserStore()
-  const { open } = useDrawer()
+  const open = useSheetStore(state => state.open)
 
   if (!user) return null
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetMedications, usePutMedicationsMarkAsTaken } from '@/api/generated/medications/medications'
 import { useDrawer } from '@/hooks/useDrawer'
@@ -20,7 +20,7 @@ import { StatsCard } from '@/components/home/StatsCard'
 import { useUserStore } from '@/stores/user'
 import { formatInTimeZone } from 'date-fns-tz'
 import { GetMedications200Item, GetMedications200ItemRemindersItem } from '@/api/model'
-import { formatDistanceToNow, parseISO } from 'date-fns'
+import { formatDistanceToNow, parseISO, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from 'react-router-dom'
+import { useSheetStore } from '@/stores/sheet-store'
 
 export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
 
@@ -45,178 +46,101 @@ export interface MedicationGroup {
   })[]
 }
 
+// Funções auxiliares movidas para fora do componente
+const sortGroups = (groups: Record<string, MedicationGroup>) => {
+  return Object.values(groups).sort((a, b) => {
+    const [aHours, aMinutes] = a.hour.split(':').map(Number)
+    const [bHours, bMinutes] = b.hour.split(':').map(Number)
+    return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes)
+  })
+}
+
+const processReminder = (
+  reminder: GetMedications200ItemRemindersItem,
+  medication: GetMedications200Item,
+  now: Date,
+  spTimeZone: string
+): { hour: string; isLate: boolean; medication: GetMedications200Item & { status: ReminderStatus; timeUntil: string; instructions: string } } | null => {
+  if (reminder.taken || reminder.skipped) return null
+
+  const reminderDate = parseISO(reminder.scheduledFor)
+  const hour = formatInTimeZone(reminderDate, spTimeZone, 'HH:mm')
+  const isLate = reminderDate < now
+  const status: ReminderStatus = isLate ? 'late' : 'pending'
+
+  return {
+    hour,
+    isLate,
+    medication: {
+      ...medication,
+      status,
+      timeUntil: formatDistanceToNow(reminderDate, {
+        locale: ptBR,
+        addSuffix: true
+      }),
+      instructions: medication.description || ''
+    }
+  }
+}
+
 export function Home() {
   const { user } = useUserStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null)
-  const drawer = useDrawer()
+  const openSheet = useSheetStore(state => state.open)
+  const closeSheet = useSheetStore(state => state.close)
   const queryClient = useQueryClient()
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
-  const { data: medications, isLoading } = useGetMedications()
+  const { data: medications, isLoading } = useGetMedications({
+    query: {
+      staleTime: 1000 * 60 // 1 minuto
+    }
+  })
 
-  const now = new Date()
+  const now = useMemo(() => new Date(), [])
   const spTimeZone = 'America/Sao_Paulo'
-  const nowInSP = formatInTimeZone(now, spTimeZone, 'yyyy-MM-dd HH:mm')
-  const todayInSP = formatInTimeZone(now, spTimeZone, 'yyyy-MM-dd')
 
-  // Separa grupos atrasados dos no horário
+  // Processamento de grupos otimizado
   const { lateGroups, onTimeGroups } = useMemo(() => {
     if (!medications) return { lateGroups: [], onTimeGroups: [] }
-
-    console.log('=== RAW DATA FROM API ===')
-    console.log('Current time:', now.toISOString())
-    medications.forEach(med => {
-      console.log('\nMedication:', {
-        id: med.id,
-        name: med.name,
-        reminders: med.reminders.map(r => ({
-          id: r.id,
-          scheduledFor: r.scheduledFor,
-          taken: r.taken,
-          skipped: r.skipped
-        }))
-      })
-    })
-    console.log('=== END RAW DATA ===\n')
 
     const late: Record<string, MedicationGroup> = {}
     const onTime: Record<string, MedicationGroup> = {}
 
-    console.log('Current time in SP:', nowInSP)
-    console.log('Today in SP:', todayInSP)
-
     medications.forEach(medication => {
-      console.log('\n=== Processing medication ===', {
-        name: medication.name,
-        totalReminders: medication.reminders.length,
-        reminders: medication.reminders.map(r => ({
-          scheduledFor: r.scheduledFor,
-          taken: r.taken,
-          skipped: r.skipped
-        }))
-      })
-      
-      // Primeiro, encontra os reminders do dia atual
-      const todayReminders = medication.reminders.filter(reminder => {
-        const reminderDate = parseISO(reminder.scheduledFor)
-        const reminderDayInSP = formatInTimeZone(reminderDate, spTimeZone, 'yyyy-MM-dd')
-        const reminderTimeInSP = formatInTimeZone(reminderDate, spTimeZone, 'HH:mm')
-        const isToday = reminderDayInSP === todayInSP
-        
-        console.log('Checking reminder:', {
-          medication: medication.name,
-          scheduledFor: reminder.scheduledFor,
-          reminderDayInSP,
-          reminderTimeInSP,
-          todayInSP,
-          isToday,
-          taken: reminder.taken,
-          skipped: reminder.skipped
+      medication.reminders
+        .filter(reminder => {
+          const reminderDate = parseISO(reminder.scheduledFor)
+          return isToday(reminderDate)
         })
-        return isToday
-      })
+        .forEach(reminder => {
+          const result = processReminder(reminder, medication, now, spTimeZone)
+          if (!result) return
 
-      console.log(`Found ${todayReminders.length} reminders for today`)
+          const { hour, isLate, medication: processedMedication } = result
+          const targetGroups = isLate ? late : onTime
 
-      // Depois, processa cada reminder do dia
-      todayReminders.forEach(reminder => {
-        const reminderDate = parseISO(reminder.scheduledFor)
-        const reminderInSP = formatInTimeZone(reminderDate, spTimeZone, 'yyyy-MM-dd HH:mm')
-        const hour = formatInTimeZone(reminderDate, spTimeZone, 'HH:mm')
-        
-        // Verifica se o lembrete está atrasado (antes do horário atual)
-        const isLate = reminderDate < now
-
-        // Pula apenas reminders já tomados ou pulados
-        if (reminder.taken || reminder.skipped) {
-          console.log('Skipping reminder (taken/skipped):', {
-            medication: medication.name,
-            scheduledFor: reminder.scheduledFor,
-            taken: reminder.taken,
-            skipped: reminder.skipped
-          })
-          return
-        }
-
-        console.log('Processing active reminder:', {
-          medication: medication.name,
-          scheduledFor: reminder.scheduledFor,
-          reminderInSP,
-          nowInSP,
-          isLate,
-          hour,
-          reminderTime: reminderDate.toISOString(),
-          currentTime: now.toISOString()
-        })
-
-        const targetGroups = isLate ? late : onTime
-
-        if (!targetGroups[hour]) {
-          targetGroups[hour] = {
-            hour,
-            medications: []
+          if (!targetGroups[hour]) {
+            targetGroups[hour] = { hour, medications: [] }
           }
-        }
 
-        // Verifica se o medicamento já não foi adicionado neste horário
-        const medicationAlreadyAdded = targetGroups[hour].medications.some(
-          med => med.id === medication.id
-        )
-
-        if (!medicationAlreadyAdded) {
-          targetGroups[hour].medications.push({
-            ...medication,
-            status: isLate ? 'late' : 'pending',
-            timeUntil: formatDistanceToNow(reminderDate, { 
-              locale: ptBR, 
-              addSuffix: true 
-            }),
-            instructions: medication.description || ''
-          })
-        }
-      })
-    })
-
-    // Ordena os grupos por hora
-    const sortGroups = (groups: Record<string, MedicationGroup>) => {
-      return Object.values(groups).sort((a, b) => {
-        const [aHours, aMinutes] = a.hour.split(':').map(Number)
-        const [bHours, bMinutes] = b.hour.split(':').map(Number)
-        return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes)
-      })
-    }
-
-    const sortedLateGroups = sortGroups(late)
-    const sortedOnTimeGroups = sortGroups(onTime)
-
-    console.log('=== ATRASADOS ===')
-    sortedLateGroups.forEach(group => {
-      console.log(`${group.hour}:`, group.medications.map(med => ({
-        name: med.name,
-        status: med.status,
-        timeUntil: med.timeUntil
-      })))
-    })
-
-    console.log('=== PENDENTES ===')
-    sortedOnTimeGroups.forEach(group => {
-      console.log(`${group.hour}:`, group.medications.map(med => ({
-        name: med.name,
-        status: med.status,
-        timeUntil: med.timeUntil
-      })))
+          // Evita duplicatas
+          if (!targetGroups[hour].medications.some(med => med.id === medication.id)) {
+            targetGroups[hour].medications.push(processedMedication)
+          }
+        })
     })
 
     return {
-      lateGroups: sortedLateGroups,
-      onTimeGroups: sortedOnTimeGroups
+      lateGroups: sortGroups(late),
+      onTimeGroups: sortGroups(onTime)
     }
-  }, [medications, nowInSP, todayInSP])
+  }, [medications, now])
 
-  // Encontra o próximo grupo de medicamentos
+  // Próximo grupo otimizado
   const nextGroup = useMemo(() => {
     return onTimeGroups.find(group => {
       const [hours, minutes] = group.hour.split(':').map(Number)
@@ -226,65 +150,59 @@ export function Home() {
     })
   }, [onTimeGroups, now])
 
-  const handleMedicationClick = (medication: Medication) => {
-    drawer.open({
+  const handleMedicationClick = useCallback((medication: Medication) => {
+    openSheet({
       title: medication.name,
-      content: <MedicationDetails medication={medication} />
+      content: <MedicationDetails medication={medication} />,
     })
-  }
+  }, [openSheet])
 
-  const handleAddMedicationClick = () => {
-    drawer.open({
+  const handleAddMedicationClick = useCallback(() => {
+    openSheet({
       title: 'Adicionar Medicamento',
-      content: <AddMedicationForm onSuccess={() => drawer.close()} />
+      content: <AddMedicationForm onSuccess={() => closeSheet()} />,
     })
-  }
+  }, [openSheet, closeSheet])
 
-  const handleTakeMedication = (medicationId: string) => {
+  const handleTakeMedication = useCallback((medicationId: string) => {
     const now = new Date()
     const medication = medications?.find(m => m.id === medicationId)
 
     if (!medication) return
 
-    const nextReminder = medication.reminders.find(r => {
-      if (r.taken) return false
-      const reminderDate = parseISO(r.scheduledFor)
-      // Adiciona uma tolerância de 5 minutos antes do horário
-      const fiveMinutesBefore = new Date(reminderDate.getTime() - 5 * 60 * 1000)
-      return now >= fiveMinutesBefore && now <= reminderDate
-    })
-
+    const nextReminder = medication.reminders.find(r => !r.taken && !r.skipped)
     if (!nextReminder) return
 
-    markAsTaken({ 
-      data: { 
-        reminderId: nextReminder.id,
-        scheduledFor: nextReminder.scheduledFor,
-        taken: true 
+    markAsTaken(
+      {
+        data: {
+          reminderId: nextReminder.id,
+          scheduledFor: nextReminder.scheduledFor,
+          taken: true
+        }
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['getMedications'] })
+        }
       }
-    }, {
-      onSuccess: () => {
-        // Invalida a query do medicamento e da lista
-        queryClient.invalidateQueries({ queryKey: [`/medications/${medicationId}`] })
-        queryClient.invalidateQueries({ queryKey: ['/medications'] })
-      }
-    })
-  }
+    )
+  }, [medications, markAsTaken, queryClient])
 
-  const handleSearch = () => {
-    drawer.open({
+  const handleSearch = useCallback(() => {
+    openSheet({
       title: 'Pesquisar',
       content: (
         <div className="p-4">
-          <Input 
-            placeholder="Pesquisar medicamento..." 
+          <Input
+            placeholder="Pesquisar medicamento..."
             className="w-full"
             autoFocus
           />
         </div>
-      )
+      ),
     })
-  }
+  }, [openSheet])
 
   if (isLoading) {
     return (
@@ -309,25 +227,25 @@ export function Home() {
               <h1 className="text-xl font-normal text-foreground">MedTime</h1>
             </div>
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={handleAddMedicationClick}
                 className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300"
               >
                 <Plus className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={handleSearch}
                 className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
               >
                 <Search className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={toggleTheme}
                 className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
               >
@@ -339,8 +257,8 @@ export function Home() {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
                   >
@@ -392,7 +310,7 @@ export function Home() {
                             {group.hour}
                           </span>
                         </div>
-                        
+
                         <div className="divide-y divide-border">
                           {group.medications.map((medication) => (
                             <MedicationCard
@@ -429,7 +347,7 @@ export function Home() {
                             {group.hour}
                           </span>
                         </div>
-                        
+
                         <div className="divide-y divide-border">
                           {group.medications.map((medication) => (
                             <MedicationCard

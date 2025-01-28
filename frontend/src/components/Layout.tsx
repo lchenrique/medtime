@@ -1,22 +1,18 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { Navigation } from './layouts/Navigation'
-import { Drawer } from '@/components/ui/drawer'
 import { useDrawer } from '@/hooks/useDrawer'
 import { cn } from '@/lib/utils'
 import { memo } from 'react'
 import { Home, Heart, Pill } from 'lucide-react'
+import { SheetContainer } from './ui/sheet-container'
+import { useSheetStore } from '@/stores/sheet-store'
 
 export const Layout = memo(function Layout() {
-  const { isOpen } = useDrawer()
+  const isOpen = useSheetStore(state => state.isOpen)
 
   return (
     <div className="min-h-screen bg-background relative">
-      <div 
-        className={cn(
-          "transition-transform duration-500 ease-ios",
-          isOpen && "scale-[0.96] -translate-x-[30px] rounded-l-[2rem] overflow-hidden"
-        )}
-      >
+      <div >
         {/* Main Content */}
         <main className="pb-20">
           <div className="max-w-2xl mx-auto">
@@ -25,15 +21,15 @@ export const Layout = memo(function Layout() {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t">
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center justify-around">
-              <NavLink 
-                to="/" 
+              <NavLink
+                to="/"
                 className={({ isActive }) => cn(
                   "flex flex-col items-center gap-1 px-4 py-3 text-sm transition-colors",
-                  isActive 
-                    ? "text-violet-600 dark:text-violet-400" 
+                  isActive
+                    ? "text-violet-600 dark:text-violet-400"
                     : "text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
                 )}
               >
@@ -41,12 +37,12 @@ export const Layout = memo(function Layout() {
                 <span>Hoje</span>
               </NavLink>
 
-              <NavLink 
-                to="/medications" 
+              <NavLink
+                to="/medications"
                 className={({ isActive }) => cn(
                   "flex flex-col items-center gap-1 px-4 py-3 text-sm transition-colors",
-                  isActive 
-                    ? "text-violet-600 dark:text-violet-400" 
+                  isActive
+                    ? "text-violet-600 dark:text-violet-400"
                     : "text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
                 )}
               >
@@ -54,12 +50,12 @@ export const Layout = memo(function Layout() {
                 <span>Medicamentos</span>
               </NavLink>
 
-              <NavLink 
-                to="/health" 
+              <NavLink
+                to="/health"
                 className={({ isActive }) => cn(
                   "flex flex-col items-center gap-1 px-4 py-3 text-sm transition-colors",
-                  isActive 
-                    ? "text-violet-600 dark:text-violet-400" 
+                  isActive
+                    ? "text-violet-600 dark:text-violet-400"
                     : "text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
                 )}
               >
@@ -71,7 +67,8 @@ export const Layout = memo(function Layout() {
         </nav>
       </div>
 
-      <Drawer />
+      {/* Sheet Container - Agora depois do conteúdo principal */}
+      <SheetContainer />
     </div>
   )
 })
