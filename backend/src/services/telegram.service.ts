@@ -135,12 +135,15 @@ export class TelegramService {
     reminderId: string,
     description?: string
   ) {
-    const formattedDate = format(scheduledFor, "HH:mm 'do dia' dd/MM", { locale: ptBR })
+    // Formata a hora no formato HH:mm
+    const formattedTime = format(scheduledFor, "HH:mm", { locale: ptBR })
+    // Formata a data no formato dd/MM
+    const formattedDate = format(scheduledFor, "dd/MM", { locale: ptBR })
     
     let message = `🔔 Hora do seu medicamento!\n\n` +
       `💊 ${medicationName}\n` +
       `📝 Dose: ${dosage}\n` +
-      `🕐 Horário: ${formattedDate}`
+      `🕐 Horário: ${formattedTime} do dia ${formattedDate}`
 
     if (description) {
       message += `\n📋 Observações: ${description}`

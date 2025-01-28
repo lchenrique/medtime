@@ -70,102 +70,11 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
     }
   }
 
-  // Calcula os horários do dia para medicamentos recorrentes
-  const calculateDaySchedules = (startTime: string, interval: number) => {
-    const schedules = []
-    const start = new Date(startTime)
-    const now = new Date()
-    
-    console.log('=== Gerando horários ===')
-    console.log('Data de início:', start.toISOString())
-    console.log('Data atual:', now.toISOString())
-    
-    // Começa da data de início do medicamento
-    const baseTime = new Date(start)
-    baseTime.setHours(start.getHours(), start.getMinutes(), 0, 0)
-    console.log('Hora base:', baseTime.toISOString())
-
-    // Gera horários até o fim do próximo dia
-    const endTime = new Date(now)
-    endTime.setDate(now.getDate() + 3)
-    endTime.setHours(23, 59, 59, 999)
-    console.log('Hora fim:', endTime.toISOString())
-
-    // Gera horários baseado no intervalo
-    for (let time = baseTime; time <= endTime; time = new Date(time.getTime() + interval * 60 * 60 * 1000)) {
-      console.log('Gerando horário:', {
-        time: time.toISOString(),
-        medicationId: medication.id,
-        medicationName: medication.name
-      })
-      
-      // Verifica se existe um lembrete físico para este horário
-      const existingReminder = medicationData?.reminders?.find(r => {
-        const rDate = new Date(r.scheduledFor)
-        return format(rDate, 'yyyy-MM-dd HH:mm') === format(time, 'yyyy-MM-dd HH:mm')
-      })
-
-      if (existingReminder) {
-        console.log('Encontrou reminder existente:', existingReminder)
-        schedules.push(existingReminder)
-      } else {
-        console.log('Criando reminder virtual para:', time.toISOString())
-        schedules.push({
-          id: `virtual_${medication.id}_${time.getTime()}`,
-          scheduledFor: time.toISOString(),
-          taken: false,
-          takenAt: null,
-          skipped: false,
-          skippedReason: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-      }
-    }
-
-    console.log('=== Horários gerados ===', schedules)
-    return schedules
-  }
-
   // Converte os reminders em dias com slots
   const convertRemindersToSchedule = (): ScheduleDay[] => {
     const days = new Map<string, ScheduleDay>()
     
-    // Se for medicamento recorrente, usa os horários calculados
-    if (medication.isRecurring) {
-      const virtualSlots = calculateDaySchedules(medication.startDate, medication.interval)
-      
-      virtualSlots.forEach(slot => {
-        const slotDate = new Date(slot.scheduledFor)
-        const dateKey = format(slotDate, 'yyyy-MM-dd')
-        
-        // Ajusta o horário para o fuso do Brasil
-        const time = new Date(slot.scheduledFor).toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-          timeZone: 'America/Sao_Paulo'
-        })
-
-        if (!days.has(dateKey)) {
-          days.set(dateKey, {
-            date: slotDate,
-            slots: []
-          })
-        }
-
-        const day = days.get(dateKey)!
-        day.slots.push({
-          id: slot.id,
-          time,
-          taken: slot.taken,
-          skipped: slot.skipped,
-          scheduledFor: slot.scheduledFor
-        })
-      })
-    } 
-    // Se não for recorrente, usa os reminders do banco
-    else if (medicationData?.reminders) {
+    if (medicationData?.reminders) {
       medicationData.reminders.forEach(reminder => {
         const reminderDate = new Date(reminder.scheduledFor)
         const dateKey = format(reminderDate, 'yyyy-MM-dd')

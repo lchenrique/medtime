@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma'
 import { Prisma } from '@prisma/client'
-import { addDays, addHours, addMinutes, endOfDay, isAfter, isBefore, startOfDay } from 'date-fns'
+import { addDays, addHours, addMinutes, endOfDay, isAfter, isBefore, startOfDay, getHours, getMinutes } from 'date-fns'
+import { toZonedTime } from 'date-fns-tz'
 
 interface CreateMedicationParams {
   name: string
@@ -18,15 +19,25 @@ interface CreateMedicationParams {
 // Função auxiliar para gerar os horários dos lembretes
 function generateReminders(startDate: Date, durationInDays: number, intervalHours: number): Prisma.ReminderCreateWithoutMedicationInput[] {
   const reminders: Prisma.ReminderCreateWithoutMedicationInput[] = []
-  const endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + durationInDays)
+  const endDate = addDays(startDate, durationInDays)
+
+  // Pega a hora e minuto base do horário inicial
+  const baseHour = startDate.getHours()
+  const baseMinutes = startDate.getMinutes()
 
   let currentDate = new Date(startDate)
   while (currentDate < endDate) {
+    // Garante que estamos usando a hora e minuto base
+    currentDate.setMinutes(baseMinutes)
+    currentDate.setSeconds(0)
+    currentDate.setMilliseconds(0)
+
     reminders.push({
       scheduledFor: new Date(currentDate)
     })
-    currentDate.setHours(currentDate.getHours() + intervalHours)
+
+    // Avança para o próximo horário mantendo os minutos originais
+    currentDate = addHours(currentDate, intervalHours)
   }
 
   return reminders
@@ -178,32 +189,57 @@ export async function generateRecurringReminders(medicationId: string) {
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
 
   // Pega o último lembrete ou a data de início
-  const lastScheduledDate = medication.reminders[0]
+  let lastScheduledDate = medication.reminders[0]
     ? new Date(medication.reminders[0].scheduledFor)
     : new Date(medication.startDate)
+
+  // Se o último lembrete é muito antigo, começa do agora
+  if (lastScheduledDate < now) {
+    lastScheduledDate = now
+  }
 
   // Gera novos lembretes
   const newReminders = []
   let currentDate = new Date(lastScheduledDate)
 
+  // Intervalo em milissegundos
+  const intervalMs = medication.interval * 60 * 60 * 1000
+
   while (currentDate <= thirtyDaysFromNow) {
-    currentDate = new Date(currentDate.getTime() + medication.interval * 60 * 60 * 1000)
+    // Avança para o próximo horário
+    currentDate = new Date(currentDate.getTime() + intervalMs)
     
     if (currentDate <= thirtyDaysFromNow) {
-      newReminders.push({
-        medicationId: medication.id,
-        scheduledFor: currentDate,
-        taken: false,
-        skipped: false
+      // Verifica se já existe um lembrete neste horário
+      const existingReminder = await prisma.reminder.findFirst({
+        where: {
+          medicationId: medication.id,
+          scheduledFor: currentDate
+        }
       })
+
+      // Só cria se não existir
+      if (!existingReminder) {
+        newReminders.push({
+          medicationId: medication.id,
+          scheduledFor: currentDate,
+          taken: false,
+          skipped: false,
+          notified: false
+        })
+      }
     }
   }
 
   if (newReminders.length > 0) {
+    console.log(`Gerando ${newReminders.length} novos lembretes para ${medication.name}`)
     await prisma.reminder.createMany({
-      data: newReminders
+      data: newReminders,
+      skipDuplicates: true // Garante que não haverá duplicatas
     })
   }
+
+  return newReminders
 }
 
 // Função para verificar e gerar lembretes quando necessário
@@ -241,10 +277,11 @@ export async function checkAndGenerateReminders(userId: string) {
 interface CalculateSchedulesOptions {
   startFrom?: Date
   limit?: number
+  timezone?: string
 }
 
 export function calculateNextSchedules(medication: any, options: CalculateSchedulesOptions = {}) {
-  const { startFrom = new Date(), limit = 24 } = options
+  const { startFrom = new Date(), limit = 24, timezone = 'America/Sao_Paulo' } = options
   const schedules: {
     id: string;
     scheduledFor: Date;
@@ -261,35 +298,47 @@ export function calculateNextSchedules(medication: any, options: CalculateSchedu
     return schedules
   }
 
-  // Pega a hora inicial do medicamento
-  const startTime = new Date(medication.startDate)
-  const baseHour = startTime.getHours()
-  const baseMinutes = startTime.getMinutes()
+  // Converte as datas para o timezone do usuário
+  const userStartFrom = toZonedTime(startFrom, timezone)
+  const userStartTime = toZonedTime(medication.startDate, timezone)
+  
+  // Pega a hora e minuto base do medicamento
+  const baseHour = getHours(userStartTime)
+  const baseMinutes = getMinutes(userStartTime)
   
   // Começa da data de início do medicamento se for depois da data atual
-  let currentTime = isAfter(startTime, startFrom) 
-    ? new Date(startTime) 
-    : new Date(startFrom)
+  let currentTime = isAfter(userStartTime, userStartFrom) 
+    ? new Date(userStartTime) 
+    : new Date(userStartFrom)
   
+  // Ajusta para a hora/minuto base
   currentTime.setHours(baseHour, baseMinutes, 0, 0)
   
   // Se o horário inicial já passou hoje, avança para o próximo horário
-  if (isBefore(currentTime, startFrom)) {
-    while (isBefore(currentTime, startFrom)) {
+  if (isBefore(currentTime, userStartFrom)) {
+    while (isBefore(currentTime, userStartFrom)) {
       currentTime = addHours(currentTime, medication.interval)
     }
   }
 
   // Calcula a data final (6 dias a partir de agora para manter 5 dias à frente)
-  const endDate = addDays(startFrom, 6)
+  const endDate = addDays(userStartFrom, 6)
 
   // Gera os próximos horários até atingir 6 dias completos
   while (currentTime < endDate) {
     // Só adiciona horários após a data de início do medicamento
-    if (!isBefore(currentTime, startTime)) {
+    if (!isBefore(currentTime, userStartTime)) {
+      // Garante que mantemos os minutos originais
+      currentTime.setMinutes(baseMinutes)
+      currentTime.setSeconds(0)
+      currentTime.setMilliseconds(0)
+      
+      // Converte para UTC antes de salvar
+      const utcScheduledFor = toZonedTime(currentTime, 'UTC')
+      
       schedules.push({
-        id: `virtual_${medication.id}_${currentTime.getTime()}`,
-        scheduledFor: new Date(currentTime),
+        id: `virtual_${medication.id}_${utcScheduledFor.getTime()}`,
+        scheduledFor: utcScheduledFor,
         taken: false,
         takenAt: null,
         skipped: false,
@@ -299,27 +348,69 @@ export function calculateNextSchedules(medication: any, options: CalculateSchedu
       })
     }
     
-    // Avança para o próximo horário baseado no intervalo
+    // Avança para o próximo horário usando addHours para manter consistência
     currentTime = addHours(currentTime, medication.interval)
   }
 
-  // Garante que temos pelo menos 18 horários (6 dias com intervalo de 8 horas)
-  const minimumSlots = Math.ceil((6 * 24) / medication.interval)
-  while (schedules.length < minimumSlots) {
-    schedules.push({
-      id: `virtual_${medication.id}_${currentTime.getTime()}`,
-      scheduledFor: new Date(currentTime),
-      taken: false,
-      takenAt: null,
-      skipped: false,
-      skippedReason: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    })
-    currentTime = addHours(currentTime, medication.interval)
-  }
-  
   return schedules
+}
+
+interface MedicationGroup {
+  time: string
+  medications: Array<{
+    medication: any
+    reminder: any
+    isLate: boolean
+  }>
+}
+
+// Função auxiliar para agrupar medicamentos por horário
+function groupMedicationsByTime(medications: any[]): { late: MedicationGroup[], onTime: MedicationGroup[] } {
+  const now = new Date()
+  const groups: { [key: string]: any[] } = {}
+  const lateGroups: { [key: string]: any[] } = {}
+
+  medications.forEach(med => {
+    med.reminders.forEach((reminder: any) => {
+      const scheduledFor = new Date(reminder.scheduledFor)
+      if (reminder.taken || reminder.skipped) return
+
+      const timeKey = scheduledFor.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
+
+      const isLate = scheduledFor < now
+
+      const groupData = {
+        medication: med,
+        reminder,
+        isLate
+      }
+
+      if (isLate) {
+        lateGroups[timeKey] = lateGroups[timeKey] || []
+        lateGroups[timeKey].push(groupData)
+      } else {
+        groups[timeKey] = groups[timeKey] || []
+        groups[timeKey].push(groupData)
+      }
+    })
+  })
+
+  const sortedLate = Object.entries(lateGroups)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([time, medications]) => ({ time, medications }))
+
+  const sortedOnTime = Object.entries(groups)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([time, medications]) => ({ time, medications }))
+
+  return {
+    late: sortedLate,
+    onTime: sortedOnTime
+  }
 }
 
 // Função para buscar medicamentos com seus próximos horários
@@ -333,14 +424,21 @@ export async function getMedicationsWithSchedules(userId: string, startDate: Dat
           scheduledFor: {
             gte: startOfDay(startDate),
             lte: endDate
-          }
+          },
+          OR: [
+            { taken: false },
+            { skipped: false }
+          ]
+        },
+        orderBy: {
+          scheduledFor: 'asc'
         }
       }
     }
   })
   
   // Para cada medicamento, adiciona os horários calculados se for recorrente
-  return medications.map(medication => {
+  const medicationsWithSchedules = medications.map(medication => {
     if (medication.isRecurring) {
       // Usa a data de início do medicamento se for depois do início do dia
       const scheduleStartDate = isAfter(medication.startDate, startOfDay(startDate)) 
@@ -363,6 +461,14 @@ export async function getMedicationsWithSchedules(userId: string, startDate: Dat
     
     return medication
   })
+
+  // Agrupa os medicamentos por horário
+  const groupedMedications = groupMedicationsByTime(medicationsWithSchedules)
+
+  return {
+    medications: medicationsWithSchedules,
+    groups: groupedMedications
+  }
 }
 
 // Função para marcar um lembrete virtual como tomado
@@ -502,4 +608,78 @@ export async function markVirtualReminderAsTaken(reminderId: string, scheduledFo
   }
   
   return reminder
+}
+
+// Função para limpar reminders antigos
+export async function cleanupOldReminders() {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  try {
+    // Primeiro, move reminders tomados/pulados para o histórico
+    const takenOrSkippedReminders = await prisma.reminder.findMany({
+      where: {
+        OR: [
+          { taken: true },
+          { skipped: true }
+        ],
+        scheduledFor: {
+          lt: thirtyDaysAgo
+        }
+      },
+      include: {
+        medication: true
+      }
+    })
+
+    // Cria registros de histórico para cada reminder
+    if (takenOrSkippedReminders.length > 0) {
+      await prisma.medicationLog.createMany({
+        data: takenOrSkippedReminders.map(reminder => ({
+          medicationId: reminder.medicationId,
+          takenAt: reminder.takenAt || reminder.scheduledFor, // Usa scheduledFor como fallback
+          skipped: reminder.skipped,
+          skippedReason: reminder.skippedReason || undefined,
+          notes: `Reminder ${reminder.id} movido para histórico`
+        })),
+        skipDuplicates: true
+      })
+
+      // Deleta os reminders que foram movidos para o histórico
+      await prisma.reminder.deleteMany({
+        where: {
+          id: {
+            in: takenOrSkippedReminders.map(r => r.id)
+          }
+        }
+      })
+    }
+
+    // Depois, limpa reminders não tomados/pulados mais antigos que 30 dias
+    await prisma.reminder.deleteMany({
+      where: {
+        taken: false,
+        skipped: false,
+        scheduledFor: {
+          lt: thirtyDaysAgo
+        }
+      }
+    })
+
+    // Limpa registros do histórico mais antigos que 6 meses
+    await prisma.medicationLog.deleteMany({
+      where: {
+        takenAt: {
+          lt: sixMonthsAgo
+        }
+      }
+    })
+
+    console.log('Limpeza de reminders e histórico antigos concluída')
+  } catch (error) {
+    console.error('Erro ao limpar reminders antigos:', error)
+  }
 } 

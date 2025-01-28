@@ -156,11 +156,16 @@ async function sendNotification({ userId, title, body, data }: SendNotificationP
     // Envia notificação via WhatsApp se habilitado
     if (user.whatsappEnabled && user.whatsappNumber) {
       try {
+        const scheduledFor = data?.timestamp ? new Date(data.timestamp) : new Date()
+        const [medicationName] = title.includes('-') ? title.split('-') : [title]
+        const dosageMatch = body.match(/(\d+)\s+(\w+)/)
+        const dosageQuantity = dosageMatch ? parseInt(dosageMatch[1]) : 1
+
         await WhatsAppService.sendMedicationReminder(
           user.whatsappNumber,
-          title,
-          1, // dosage
-          new Date(), // scheduledFor
+          medicationName.trim(),
+          dosageQuantity,
+          scheduledFor,
           0, // remainingQuantity
           data?.medicationId || '', // reminderId
           body // description
@@ -172,8 +177,24 @@ async function sendNotification({ userId, title, body, data }: SendNotificationP
 
     // Envia notificação via Telegram se habilitado
     if (user.telegramEnabled && user.telegramChatId) {
-      const telegramMessage = `<b>${title}</b>\n\n${body}`
-      await TelegramService.sendMessage(user.telegramChatId, telegramMessage)
+      try {
+        const scheduledFor = data?.timestamp ? new Date(data.timestamp) : new Date()
+        const [medicationName] = title.includes('-') ? title.split('-') : [title]
+        const dosageMatch = body.match(/(\d+)\s+(\w+)/)
+        const dosage = dosageMatch ? `${dosageMatch[1]} ${dosageMatch[2]}` : '1 unidade'
+
+        await TelegramService.sendMedicationReminder(
+          user.telegramChatId,
+          medicationName.trim(),
+          dosage,
+          scheduledFor,
+          0, // remainingQuantity
+          data?.medicationId || '', // reminderId
+          body // description
+        )
+      } catch (error) {
+        console.error('Erro ao enviar Telegram notification:', error)
+      }
     }
   } catch (error) {
     console.error('Erro detalhado ao enviar notificação:', error)
@@ -203,9 +224,12 @@ async function sendMedicationReminder({ medicationId, scheduledFor, userId }: Me
       throw new Error('Medicamento não encontrado')
     }
 
-    const formattedTime = format(scheduledFor, 'HH:mm', { locale: ptBR })
+    // Formata a hora no formato HH:mm
+    const formattedTime = format(scheduledFor, "HH:mm", { locale: ptBR })
+    // Formata a data no formato dd/MM
+    const formattedDate = format(scheduledFor, "dd/MM", { locale: ptBR })
     const title = 'Hora do Medicamento'
-    const body = `${medication.name} - ${medication.dosageQuantity} ${medication.unit} às ${formattedTime}`
+    const body = `${medication.name} - ${medication.dosageQuantity} ${medication.unit} às ${formattedTime} do dia ${formattedDate}`
 
     await sendNotification({
       userId,

@@ -43,7 +43,16 @@ export function Medications() {
   const [searchTerm, setSearchTerm] = useState('')
   const open = useSheetStore(state => state.open)
   const close = useSheetStore(state => state.close)
-  const { data: medications, isLoading } = useGetMedications()
+  const { data, isLoading } = useGetMedications(
+    { period: 'all' },
+    { 
+      query: {
+        refetchOnWindowFocus: true
+      }
+    }
+  )
+
+  const medications = Array.isArray(data) ? data : data?.medications || []
 
   const handleMedicationClick = (med: GetMedications200Item) => {
     // Mapeia os dados da API para o formato Medication
@@ -91,12 +100,11 @@ export function Medications() {
     })
   }
 
-  const filteredMedications =  medications?.filter(med =>
+  const filteredMedications = medications?.filter(med =>
     med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     med.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     `${med.dosageQuantity} ${med.unit}`.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
-
 
   const handleAddMedicationClick = () => {
     open({

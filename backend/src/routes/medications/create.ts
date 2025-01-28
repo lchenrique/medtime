@@ -122,19 +122,17 @@ export const create: FastifyPluginAsyncZod = async (app) => {
         }
       })
 
-      // Se não for recorrente, gera os lembretes físicos
-      if (!isRecurring) {
-        const reminders = generateReminders(
-          medication.id,
-          new Date(data.startTime),
-          duration!,
-          interval
-        )
+      // Gera os lembretes físicos para os próximos 7 dias
+      const reminders = generateReminders(
+        medication.id,
+        new Date(data.startTime),
+        isRecurring ? 7 : duration!, // Se for recorrente, gera para 7 dias
+        interval
+      )
 
-        await prisma.reminder.createMany({
-          data: reminders
-        })
-      }
+      await prisma.reminder.createMany({
+        data: reminders
+      })
 
       // Busca o medicamento com os lembretes
       const medicationWithReminders = await prisma.medication.findUnique({

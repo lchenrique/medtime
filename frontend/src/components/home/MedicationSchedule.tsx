@@ -46,9 +46,17 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
     })
   }
 
+  // Filtra apenas os lembretes futuros e não tomados/pulados
+  const futureReminders = medication.reminders
+    .filter(reminder => {
+      const scheduledFor = new Date(reminder.scheduledFor)
+      return !reminder.taken && !reminder.skipped && scheduledFor >= new Date()
+    })
+    .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())
+
   return (
     <div className="space-y-4">
-      {medication.reminders.map((reminder) => (
+      {futureReminders.map((reminder) => (
         <div 
           key={reminder.id}
           className={cn(
@@ -61,7 +69,8 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
               <p className="text-sm text-muted-foreground">
                 {new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', { 
                   hour: '2-digit', 
-                  minute: '2-digit' 
+                  minute: '2-digit',
+                  timeZone: 'America/Sao_Paulo'
                 })}
               </p>
             </div>

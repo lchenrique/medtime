@@ -63,7 +63,7 @@ export function NextMedicationCard({ group, onMedicationClick }: NextMedicationC
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">{medication.name}</h2>
-            <p className="text-sm opacity-90">{medication.instructions}</p>
+            <p className="text-sm opacity-90">{medication.description}</p>
             <p className="text-sm mt-2">
               {medication.dosageQuantity} {medication.unit} • {group.hour}
             </p>

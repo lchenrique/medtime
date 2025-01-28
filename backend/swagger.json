@@ -1090,125 +1090,701 @@
           "medications"
         ],
         "description": "Lista todos os medicamentos do usuário",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "today",
+                "all"
+              ],
+              "default": "all"
+            },
+            "in": "query",
+            "name": "period",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "startDate": {
-                        "type": "string"
-                      },
-                      "duration": {
-                        "type": "number",
-                        "nullable": true
-                      },
-                      "interval": {
-                        "type": "number"
-                      },
-                      "isRecurring": {
-                        "type": "boolean"
-                      },
-                      "totalQuantity": {
-                        "type": "number"
-                      },
-                      "remainingQuantity": {
-                        "type": "number"
-                      },
-                      "unit": {
-                        "type": "string"
-                      },
-                      "dosageQuantity": {
-                        "type": "number"
-                      },
-                      "userId": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "updatedAt": {
-                        "type": "string"
-                      },
-                      "reminders": {
-                        "type": "array",
-                        "items": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "startDate": {
+                            "type": "string"
+                          },
+                          "interval": {
+                            "type": "number"
+                          },
+                          "duration": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "isRecurring": {
+                            "type": "boolean"
+                          },
+                          "totalQuantity": {
+                            "type": "number"
+                          },
+                          "remainingQuantity": {
+                            "type": "number"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "dosageQuantity": {
+                            "type": "number"
+                          },
+                          "userId": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          },
+                          "reminders": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "scheduledFor": {
+                                  "type": "string"
+                                },
+                                "taken": {
+                                  "type": "boolean"
+                                },
+                                "takenAt": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "skipped": {
+                                  "type": "boolean"
+                                },
+                                "skippedReason": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "createdAt": {
+                                  "type": "string"
+                                },
+                                "updatedAt": {
+                                  "type": "string"
+                                },
+                                "medicationId": {
+                                  "type": "string"
+                                },
+                                "notified": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "scheduledFor",
+                                "taken",
+                                "takenAt",
+                                "skipped",
+                                "skippedReason",
+                                "createdAt",
+                                "updatedAt",
+                                "medicationId",
+                                "notified"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "startDate",
+                          "interval",
+                          "duration",
+                          "isRecurring",
+                          "totalQuantity",
+                          "remainingQuantity",
+                          "unit",
+                          "dosageQuantity",
+                          "userId",
+                          "createdAt",
+                          "updatedAt",
+                          "reminders"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "medications": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "startDate": {
+                                "type": "string"
+                              },
+                              "interval": {
+                                "type": "number"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "isRecurring": {
+                                "type": "boolean"
+                              },
+                              "totalQuantity": {
+                                "type": "number"
+                              },
+                              "remainingQuantity": {
+                                "type": "number"
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "dosageQuantity": {
+                                "type": "number"
+                              },
+                              "userId": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              },
+                              "reminders": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "scheduledFor": {
+                                      "type": "string"
+                                    },
+                                    "taken": {
+                                      "type": "boolean"
+                                    },
+                                    "takenAt": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "skipped": {
+                                      "type": "boolean"
+                                    },
+                                    "skippedReason": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "createdAt": {
+                                      "type": "string"
+                                    },
+                                    "updatedAt": {
+                                      "type": "string"
+                                    },
+                                    "medicationId": {
+                                      "type": "string"
+                                    },
+                                    "notified": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "scheduledFor",
+                                    "taken",
+                                    "takenAt",
+                                    "skipped",
+                                    "skippedReason",
+                                    "createdAt",
+                                    "updatedAt",
+                                    "medicationId",
+                                    "notified"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "startDate",
+                              "interval",
+                              "duration",
+                              "isRecurring",
+                              "totalQuantity",
+                              "remainingQuantity",
+                              "unit",
+                              "dosageQuantity",
+                              "userId",
+                              "createdAt",
+                              "updatedAt",
+                              "reminders"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "groups": {
                           "type": "object",
                           "properties": {
-                            "id": {
-                              "type": "string"
+                            "late": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "time": {
+                                    "type": "string"
+                                  },
+                                  "medications": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "medication": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "description": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "startDate": {
+                                              "type": "string"
+                                            },
+                                            "interval": {
+                                              "type": "number"
+                                            },
+                                            "duration": {
+                                              "type": "number",
+                                              "nullable": true
+                                            },
+                                            "isRecurring": {
+                                              "type": "boolean"
+                                            },
+                                            "totalQuantity": {
+                                              "type": "number"
+                                            },
+                                            "remainingQuantity": {
+                                              "type": "number"
+                                            },
+                                            "unit": {
+                                              "type": "string"
+                                            },
+                                            "dosageQuantity": {
+                                              "type": "number"
+                                            },
+                                            "userId": {
+                                              "type": "string"
+                                            },
+                                            "createdAt": {
+                                              "type": "string"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string"
+                                            },
+                                            "reminders": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "id": {
+                                                    "type": "string"
+                                                  },
+                                                  "scheduledFor": {
+                                                    "type": "string"
+                                                  },
+                                                  "taken": {
+                                                    "type": "boolean"
+                                                  },
+                                                  "takenAt": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                  },
+                                                  "skipped": {
+                                                    "type": "boolean"
+                                                  },
+                                                  "skippedReason": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                  },
+                                                  "createdAt": {
+                                                    "type": "string"
+                                                  },
+                                                  "updatedAt": {
+                                                    "type": "string"
+                                                  },
+                                                  "medicationId": {
+                                                    "type": "string"
+                                                  },
+                                                  "notified": {
+                                                    "type": "boolean"
+                                                  }
+                                                },
+                                                "required": [
+                                                  "id",
+                                                  "scheduledFor",
+                                                  "taken",
+                                                  "takenAt",
+                                                  "skipped",
+                                                  "skippedReason",
+                                                  "createdAt",
+                                                  "updatedAt",
+                                                  "medicationId",
+                                                  "notified"
+                                                ],
+                                                "additionalProperties": false
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "description",
+                                            "startDate",
+                                            "interval",
+                                            "duration",
+                                            "isRecurring",
+                                            "totalQuantity",
+                                            "remainingQuantity",
+                                            "unit",
+                                            "dosageQuantity",
+                                            "userId",
+                                            "createdAt",
+                                            "updatedAt",
+                                            "reminders"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "reminder": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "scheduledFor": {
+                                              "type": "string"
+                                            },
+                                            "taken": {
+                                              "type": "boolean"
+                                            },
+                                            "takenAt": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "skipped": {
+                                              "type": "boolean"
+                                            },
+                                            "skippedReason": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "createdAt": {
+                                              "type": "string"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string"
+                                            },
+                                            "medicationId": {
+                                              "type": "string"
+                                            },
+                                            "notified": {
+                                              "type": "boolean"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "scheduledFor",
+                                            "taken",
+                                            "takenAt",
+                                            "skipped",
+                                            "skippedReason",
+                                            "createdAt",
+                                            "updatedAt",
+                                            "medicationId",
+                                            "notified"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "isLate": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "medication",
+                                        "reminder",
+                                        "isLate"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "time",
+                                  "medications"
+                                ],
+                                "additionalProperties": false
+                              }
                             },
-                            "scheduledFor": {
-                              "type": "string"
-                            },
-                            "taken": {
-                              "type": "boolean"
-                            },
-                            "takenAt": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "skipped": {
-                              "type": "boolean"
-                            },
-                            "skippedReason": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "createdAt": {
-                              "type": "string"
-                            },
-                            "updatedAt": {
-                              "type": "string"
+                            "onTime": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "time": {
+                                    "type": "string"
+                                  },
+                                  "medications": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "medication": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "description": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "startDate": {
+                                              "type": "string"
+                                            },
+                                            "interval": {
+                                              "type": "number"
+                                            },
+                                            "duration": {
+                                              "type": "number",
+                                              "nullable": true
+                                            },
+                                            "isRecurring": {
+                                              "type": "boolean"
+                                            },
+                                            "totalQuantity": {
+                                              "type": "number"
+                                            },
+                                            "remainingQuantity": {
+                                              "type": "number"
+                                            },
+                                            "unit": {
+                                              "type": "string"
+                                            },
+                                            "dosageQuantity": {
+                                              "type": "number"
+                                            },
+                                            "userId": {
+                                              "type": "string"
+                                            },
+                                            "createdAt": {
+                                              "type": "string"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string"
+                                            },
+                                            "reminders": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "id": {
+                                                    "type": "string"
+                                                  },
+                                                  "scheduledFor": {
+                                                    "type": "string"
+                                                  },
+                                                  "taken": {
+                                                    "type": "boolean"
+                                                  },
+                                                  "takenAt": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                  },
+                                                  "skipped": {
+                                                    "type": "boolean"
+                                                  },
+                                                  "skippedReason": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                  },
+                                                  "createdAt": {
+                                                    "type": "string"
+                                                  },
+                                                  "updatedAt": {
+                                                    "type": "string"
+                                                  },
+                                                  "medicationId": {
+                                                    "type": "string"
+                                                  },
+                                                  "notified": {
+                                                    "type": "boolean"
+                                                  }
+                                                },
+                                                "required": [
+                                                  "id",
+                                                  "scheduledFor",
+                                                  "taken",
+                                                  "takenAt",
+                                                  "skipped",
+                                                  "skippedReason",
+                                                  "createdAt",
+                                                  "updatedAt",
+                                                  "medicationId",
+                                                  "notified"
+                                                ],
+                                                "additionalProperties": false
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "description",
+                                            "startDate",
+                                            "interval",
+                                            "duration",
+                                            "isRecurring",
+                                            "totalQuantity",
+                                            "remainingQuantity",
+                                            "unit",
+                                            "dosageQuantity",
+                                            "userId",
+                                            "createdAt",
+                                            "updatedAt",
+                                            "reminders"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "reminder": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "scheduledFor": {
+                                              "type": "string"
+                                            },
+                                            "taken": {
+                                              "type": "boolean"
+                                            },
+                                            "takenAt": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "skipped": {
+                                              "type": "boolean"
+                                            },
+                                            "skippedReason": {
+                                              "type": "string",
+                                              "nullable": true
+                                            },
+                                            "createdAt": {
+                                              "type": "string"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string"
+                                            },
+                                            "medicationId": {
+                                              "type": "string"
+                                            },
+                                            "notified": {
+                                              "type": "boolean"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "scheduledFor",
+                                            "taken",
+                                            "takenAt",
+                                            "skipped",
+                                            "skippedReason",
+                                            "createdAt",
+                                            "updatedAt",
+                                            "medicationId",
+                                            "notified"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "isLate": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "medication",
+                                        "reminder",
+                                        "isLate"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "time",
+                                  "medications"
+                                ],
+                                "additionalProperties": false
+                              }
                             }
                           },
                           "required": [
-                            "id",
-                            "scheduledFor",
-                            "taken",
-                            "takenAt",
-                            "skipped",
-                            "skippedReason",
-                            "createdAt",
-                            "updatedAt"
+                            "late",
+                            "onTime"
                           ],
                           "additionalProperties": false
                         }
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name",
-                      "description",
-                      "startDate",
-                      "duration",
-                      "interval",
-                      "isRecurring",
-                      "totalQuantity",
-                      "remainingQuantity",
-                      "unit",
-                      "dosageQuantity",
-                      "userId",
-                      "createdAt",
-                      "updatedAt",
-                      "reminders"
-                    ],
-                    "additionalProperties": false
-                  }
+                      },
+                      "required": [
+                        "medications",
+                        "groups"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
                 }
               }
             }

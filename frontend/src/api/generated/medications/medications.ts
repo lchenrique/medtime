@@ -25,10 +25,11 @@ import type {
 import type {
   DeleteMedicationsId200,
   DeleteMedicationsId404,
-  GetMedications200Item,
+  GetMedications200,
   GetMedicationsId200,
   GetMedicationsId404,
   GetMedicationsId500,
+  GetMedicationsParams,
   PatchMedicationsMedicationIdStock200,
   PatchMedicationsMedicationIdStock404,
   PatchMedicationsMedicationIdStockBody,
@@ -47,33 +48,34 @@ import { customInstance } from '../../axios-client';
  * Lista todos os medicamentos do usuário
  */
 export const getMedications = (
-    
+    params?: GetMedicationsParams,
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<GetMedications200Item[]>(
-      {url: `/medications`, method: 'GET', signal
+      return customInstance<GetMedications200>(
+      {url: `/medications`, method: 'GET',
+        params, signal
     },
       );
     }
   
 
-export const getGetMedicationsQueryKey = () => {
-    return [`/medications`] as const;
+export const getGetMedicationsQueryKey = (params?: GetMedicationsParams,) => {
+    return [`/medications`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetMedicationsQueryOptions = <TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
+export const getGetMedicationsQueryOptions = <TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(params?: GetMedicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetMedicationsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetMedicationsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMedications>>> = ({ signal }) => getMedications(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMedications>>> = ({ signal }) => getMedications(params, signal);
 
       
 
@@ -87,7 +89,7 @@ export type GetMedicationsQueryError = unknown
 
 
 export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
+ params: undefined |  GetMedicationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMedications>>,
           TError,
@@ -97,7 +99,7 @@ export function useGetMedications<TData = Awaited<ReturnType<typeof getMedicatio
 
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
+ params?: GetMedicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMedications>>,
           TError,
@@ -107,16 +109,16 @@ export function useGetMedications<TData = Awaited<ReturnType<typeof getMedicatio
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
+ params?: GetMedicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetMedications<TData = Awaited<ReturnType<typeof getMedications>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
+ params?: GetMedicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedications>>, TError, TData>>, }
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetMedicationsQueryOptions(options)
+  const queryOptions = getGetMedicationsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

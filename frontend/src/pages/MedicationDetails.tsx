@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useDrawer } from '@/hooks/useDrawer'
+import { useSheetStore } from '@/stores/sheet-store'
 import { GetMedications200ItemRemindersItem } from '@/api/model'
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
@@ -43,7 +43,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   const navigate = useNavigate()
   const { id } = useParams()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const { close: closeDrawer } = useDrawer()
+  const close = useSheetStore(state => state.close)
 
   // Converter os dados da API para o formato do frontend
   const med = useMemo(() => {
@@ -69,60 +69,17 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
           timeZone: 'America/Sao_Paulo'
         })
       })) || [],
-      isRecurring: medicationData.isRecurring // Usar o valor do backend
+      isRecurring: medicationData.isRecurring
     } satisfies Medication
   }, [medicationData, initialMedication])
-
-  // Calcula os horários do dia para medicamentos recorrentes
-  const calculateDaySchedules = (startTime: string, interval: number) => {
-    const schedules: GetMedications200ItemRemindersItem[] = []
-    const start = new Date(startTime)
-    const now = new Date()
-    
-    // Começa do dia anterior para não perder horários recentes
-    const baseTime = new Date(now)
-    baseTime.setDate(now.getDate() - 1)
-    baseTime.setHours(start.getHours(), start.getMinutes(), 0, 0)
-
-    // Gera horários até o fim do próximo dia
-    const endTime = new Date(now)
-    endTime.setDate(now.getDate() + 1)
-    endTime.setHours(23, 59, 59, 999)
-
-    // Gera horários baseado no intervalo
-    for (let time = baseTime; time <= endTime; time = new Date(time.getTime() + interval * 60 * 60 * 1000)) {
-      schedules.push({
-        id: `virtual_${med.id}_${time.toISOString()}`,
-        scheduledFor: time.toISOString(),
-        taken: false,
-        takenAt: null,
-        skipped: false,
-        skippedReason: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })
-    }
-
-    return schedules
-  }
 
   // Pega o próximo lembrete não tomado
   const nextReminder = useMemo(() => {
     const now = new Date()
-    
-    if (med.isRecurring) {
-      // Para medicamentos recorrentes, gera os próximos horários
-      const schedules = calculateDaySchedules(med.startDate, med.interval)
-      // Encontra o próximo horário que ainda não passou
-      return schedules.find(schedule => {
-        const scheduleDate = new Date(schedule.scheduledFor)
-        return scheduleDate > now
-      })
-    } else {
-      // Para medicamentos não recorrentes, usa os lembretes existentes
-      return med.reminders.find((r: GetMedications200ItemRemindersItem) => !r.taken && new Date(r.scheduledFor) > now)
-    }
-  }, [med.isRecurring, med.startDate, med.interval, med.reminders])
+    return med.reminders.find((r: GetMedications200ItemRemindersItem) => 
+      !r.taken && !r.skipped && new Date(r.scheduledFor) > now
+    )
+  }, [med.reminders])
 
   // Atualiza o tempo até a próxima dose
   useEffect(() => {
@@ -151,6 +108,32 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
     .sort((a: GetMedications200ItemRemindersItem, b: GetMedications200ItemRemindersItem) => 
       new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime()
     )
+
+  // Pega os horários do dia atual
+  const todayReminders = useMemo(() => {
+    if (!med.reminders) return []
+    
+    const now = new Date()
+    const startOfToday = new Date(now)
+    startOfToday.setHours(0, 0, 0, 0)
+    const endOfToday = new Date(now)
+    endOfToday.setHours(23, 59, 59, 999)
+
+    return med.reminders
+      .filter(reminder => {
+        const reminderDate = new Date(reminder.scheduledFor)
+        return reminderDate >= startOfToday && reminderDate <= endOfToday
+      })
+      .map(reminder => ({
+        ...reminder,
+        time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Sao_Paulo'
+        })
+      }))
+      .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())
+  }, [med.reminders])
 
   const handleMarkAsTaken = async (reminderId: string, scheduledFor: string, taken: boolean = true) => {
     markAsTaken({ 
@@ -413,6 +396,17 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
         </div>
       </div>
 
+      {/* Timeline do dia */}
+      <div className="p-4">
+        <div className="flex justify-between">
+          {todayReminders.map((reminder) => (
+            <div key={reminder.scheduledFor} className="text-sm text-muted-foreground">
+              {reminder.time}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Ações */}
       <div className="p-4">
         <Button 
@@ -447,7 +441,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
                     setShowDeleteDialog(false)
                     toast.success('Medicação deletada com sucesso')
                     queryClient.invalidateQueries({ queryKey: ['/medications'] })
-                    closeDrawer()
+                    close()
                   },
                   onError: () => {
                     toast.error('Erro ao deletar medicação')

@@ -21,6 +21,35 @@ const config: CapacitorConfig = {
       spinnerColor: "#FFFFFF",
       splashFullScreen: true,
       splashImmersive: true
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+      importance: "high",
+      sound: "notification_19_270138",
+      foregroundPresentation: true,
+      launchActivity: true,
+      android: {
+        autoCancel: true,
+        clickAction: ".MainActivity",
+        priority: "high",
+        visibility: "public",
+        sound: "notification_19_270138"
+      }
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_medtimelogo",
+      iconColor: "#7C3AED",
+      sound: "notification_19_270138",
+      schedule: {
+        allowWhileIdle: true
+      },
+      actions: [
+        {
+          id: "REMINDER_ACTION",
+          title: "Tomar Medicamento",
+          requiresAuthentication: false
+        }
+      ]
     }
   }
 }
