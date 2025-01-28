@@ -18,7 +18,7 @@ export const SheetContainer = memo(function SheetContainer() {
       <SheetPortal>
         <SheetOverlay className="fixed inset-0 bg-black/40" />
         <SheetContent 
-          className="fixed flex flex-col bg-white border border-gray-200 border-b-none rounded-t-[10px] bottom-0 left-0 right-0 h-full max-h-[97%] "
+          className="fixed flex flex-col bg-background border border-border border-b-none rounded-t-[10px] bottom-0 left-0 right-0 h-full max-h-[97%] "
         >
           <div 
            className={cn('flex flex-col overflow-y-auto')}
