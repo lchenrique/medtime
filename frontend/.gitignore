@@ -1,28 +1,51 @@
-# Logs
-logs
-*.log
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Production
+dist
+build
+dev-dist
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
 # Local env files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-# Editor directories and files
+.env.*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.idea
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Capacitor
+android/app/release
+android/app/debug
+android/app/build
+android/build
+ios/App/build
+ios/App/Pods
+ios/App/App/public
+
+# Tauri
+src-tauri/target
+src-tauri/WixTools
