@@ -410,20 +410,72 @@ export async function markVirtualReminderAsTaken(reminderId: string, scheduledFo
     console.error('Medicamento não encontrado com ID:', medicationId)
     throw new Error(`Medicamento não encontrado com ID: ${medicationId}`)
   }
-  
-  // Cria um registro físico do lembrete
-  console.log('Criando registro do lembrete...')
-  const reminder = await prisma.reminder.create({
-    data: {
-      medicationId,
-      scheduledFor,
-      taken,
-      takenAt: taken ? new Date() : null,
-      notified: true
+
+  let reminder;
+
+  // Tratamento diferente para medicamentos recorrentes e não recorrentes
+  if (medication.isRecurring) {
+    // Para medicamentos recorrentes, verifica se já existe um reminder para este horário
+    const existingReminder = await prisma.reminder.findFirst({
+      where: {
+        medicationId,
+        scheduledFor: {
+          gte: startOfDay(scheduledFor),
+          lte: endOfDay(scheduledFor)
+        }
+      }
+    });
+
+    if (existingReminder) {
+      // Atualiza o reminder existente
+      console.log('Atualizando reminder existente (recorrente):', existingReminder.id);
+      reminder = await prisma.reminder.update({
+        where: { id: existingReminder.id },
+        data: {
+          taken,
+          takenAt: taken ? new Date() : null,
+          notified: true
+        }
+      });
+    } else {
+      // Cria um novo reminder apenas se não existir
+      console.log('Criando novo registro do lembrete (recorrente)...')
+      reminder = await prisma.reminder.create({
+        data: {
+          medicationId,
+          scheduledFor,
+          taken,
+          takenAt: taken ? new Date() : null,
+          notified: true
+        }
+      });
     }
-  })
+  } else {
+    // Para medicamentos não recorrentes, busca o reminder exato pelo horário
+    const existingReminder = await prisma.reminder.findFirst({
+      where: {
+        medicationId,
+        scheduledFor: scheduledFor // Busca pelo horário exato
+      }
+    });
+
+    if (!existingReminder) {
+      throw new Error('Lembrete não encontrado para este medicamento não recorrente');
+    }
+
+    // Atualiza o reminder existente
+    console.log('Atualizando reminder não recorrente:', existingReminder.id);
+    reminder = await prisma.reminder.update({
+      where: { id: existingReminder.id },
+      data: {
+        taken,
+        takenAt: taken ? new Date() : null,
+        notified: true
+      }
+    });
+  }
   
-  console.log('Lembrete criado:', reminder)
+  console.log('Lembrete processado:', reminder)
   
   // Atualiza o estoque se foi marcado como tomado
   if (taken) {
@@ -439,12 +491,14 @@ export async function markVirtualReminderAsTaken(reminderId: string, scheduledFo
     console.log('Estoque atualizado')
   }
 
-  // Verifica se precisa gerar mais lembretes para manter 5 dias preenchidos
-  const remindersNeededFor5Days = Math.ceil((5 * 24) / medication.interval)
-  if (medication.reminders.length < remindersNeededFor5Days) {
-    console.log('Gerando mais lembretes...')
-    await generateRecurringReminders(medicationId)
-    console.log('Lembretes gerados')
+  // Verifica se precisa gerar mais lembretes APENAS para medicamentos recorrentes
+  if (medication.isRecurring) {
+    const remindersNeededFor5Days = Math.ceil((5 * 24) / medication.interval)
+    if (medication.reminders.length < remindersNeededFor5Days) {
+      console.log('Gerando mais lembretes...')
+      await generateRecurringReminders(medicationId)
+      console.log('Lembretes gerados')
+    }
   }
   
   return reminder

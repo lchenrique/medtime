@@ -310,13 +310,13 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   return (
     <div className="space-y-4">
       {/* Cabeçalho com mês */}
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-base font-medium">{formatMonth(selectedDate)}</h3>
+          <h3 className="text-base font-medium text-foreground">{formatMonth(selectedDate)}</h3>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-violet-600 dark:text-violet-400"
             onClick={handleTodayClick}
             title="Ir para hoje"
             disabled={!schedule.some(day => format(day.date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd'))}
@@ -328,7 +328,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-violet-600 dark:text-violet-400"
             onClick={() => setSelectedDate(date => subDays(date, 1))}
             disabled={!hasPreviousDays()}
           >
@@ -337,7 +337,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-violet-600 dark:text-violet-400"
             onClick={() => setSelectedDate(date => addDays(date, 1))}
             disabled={!hasNextDays()}
           >
@@ -358,32 +358,34 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
               key={date.toISOString()}
               onClick={() => setSelectedDate(date)}
               className={cn(
-                "relative w-[72px] py-3 rounded-2xl text-center transition-colors",
+                "relative w-[72px] py-3 rounded-xl text-center transition-colors",
                 "border-2 border-transparent",
-                isToday(date) && "bg-primary text-white",
+                isToday(date) && "bg-violet-600 dark:bg-violet-500",
                 date.getTime() === selectedDate.getTime() && !isToday(date) && 
-                  "bg-primary/5 border-primary text-primary",
-                !isSelected && !isToday(date) && "bg-white hover:bg-primary/5"
+                  "bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400",
+                !isSelected && !isToday(date) && "hover:bg-violet-50 dark:hover:bg-violet-950/30"
               )}
             >
               <p className={cn(
                 "text-xs font-medium mb-1",
-                isToday(date) && "text-white/90",
-                !isToday(date) && "text-muted-foreground"
+                isToday(date) && "text-violet-50 dark:text-violet-100",
+                !isToday(date) && isSelected && "text-violet-600 dark:text-violet-400",
+                !isToday(date) && !isSelected && "text-muted-foreground"
               )}>
                 {formatWeekDay(date)}
               </p>
               <p className={cn(
                 "text-sm font-bold",
                 isToday(date) && "text-white",
-                date.getTime() === selectedDate.getTime() && !isToday(date) && "text-primary"
+                !isToday(date) && isSelected && "text-violet-600 dark:text-violet-400",
+                !isToday(date) && !isSelected && "text-foreground"
               )}>
                 {format(date, "dd")}
               </p>
               
               {/* Indicador de todos tomados */}
               {allTaken && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
                   <Check className="w-3 h-3 text-white" />
                 </div>
               )}
@@ -392,8 +394,8 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
         })}
       </div>
       
-      {/* Card de Horários */}
-      <div className="bg-white p-4 rounded-2xl">
+      {/* Horários */}
+      <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4">
         <div className="grid grid-cols-3 gap-2">
           {(() => {
             const currentDay = schedule.find(d => {
@@ -418,7 +420,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
             return (
               <>
                 {allTaken && (
-                  <div className="col-span-3 bg-green-50 text-green-700 p-3 rounded-xl flex items-center gap-2 mb-2">
+                  <div className="col-span-3 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg flex items-center gap-2 mb-2">
                     <Check className="w-4 h-4" />
                     <p className="text-sm font-medium">Todos os horários deste dia foram tomados!</p>
                   </div>
@@ -437,11 +439,11 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                       }}
                       disabled={!canMark || isLoading}
                       className={cn(
-                        "relative py-2 px-4 rounded-xl text-sm font-medium text-center transition-colors",
+                        "relative py-2 px-4 rounded-lg text-sm font-medium text-center transition-colors",
                         !canMark && "opacity-50 cursor-not-allowed",
-                        canMark && !slot.taken && !isLoading && "hover:bg-primary/5",
-                        slot.taken && "bg-green-100 text-green-700",
-                        isLoading && "bg-primary/5"
+                        canMark && !slot.taken && !isLoading && "bg-white dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50",
+                        slot.taken && "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400",
+                        isLoading && "bg-violet-100 dark:bg-violet-950/50"
                       )}
                     >
                       {isLoading ? (
@@ -453,7 +455,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                         <>
                           {slot.time}
                           {slot.taken && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
                               <Check className="w-3 h-3 text-white" />
                             </div>
                           )}

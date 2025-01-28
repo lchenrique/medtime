@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -13,7 +12,7 @@ import { TauriNotificationClient } from '@/lib/notifications/tauri'
 import { capacitorNotificationClient } from '@/lib/notifications/capacitor'
 import { useDrawer } from '@/hooks/useDrawer'
 import { EditProfileSheet } from '@/components/EditProfileSheet'
-import { Heart, ChevronRight } from 'lucide-react'
+import { Heart, ChevronRight, Bell, MessageCircle, BellRing, Database, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function Settings() {
@@ -148,136 +147,176 @@ export function Settings() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Configurações</h1>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-xl mx-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md px-4 py-3">
+          <h1 className="text-xl font-normal text-foreground mb-3">Configurações</h1>
+        </div>
 
-      <Link to="/health">
-        <Card className="p-4 hover:bg-muted/50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Heart className="h-5 w-5 text-primary" />
+        {/* Lista de Configurações */}
+        <div className="divide-y divide-border">
+          {/* Informações de Saúde */}
+          <Link to="/health">
+            <div className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition-colors">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
+                <Heart className="w-5 h-5" />
               </div>
-              <div>
-                <h2 className="font-semibold">Informações de Saúde</h2>
-                <p className="text-sm text-muted-foreground">
-                  Gerencie suas condições de saúde e alergias
-                </p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-foreground">Informações de Saúde</h3>
+                <p className="text-sm text-muted-foreground">Gerencie suas condições de saúde e alergias</p>
               </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </div>
-        </Card>
-      </Link>
+          </Link>
 
-      <Card className="p-4">
-        <h2 className="text-xl font-semibold mb-4">Notificações</h2>
-
-        {isTauri && (
-          <div className="flex items-center justify-between py-2">
-            <div className="space-y-0.5">
-              <Label>Notificações do Sistema (Desktop)</Label>
-              <p className="text-sm text-muted-foreground">
-                Receba notificações diretamente no seu computador
-              </p>
+          {/* Seção de Notificações */}
+          <div className="p-4">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                <Bell className="w-5 h-5" />
+              </div>
+              <h2 className="font-medium text-foreground">Notificações</h2>
             </div>
-            <Switch
-              checked={user.tauriEnabled}
-              onCheckedChange={handleTauriToggle}
-            />
-          </div>
-        )}
 
-        {isCapacitor && (
-          <div className="flex items-center justify-between py-2">
-            <div className="space-y-0.5">
-              <Label>Notificações do Sistema (Mobile)</Label>
-              <p className="text-sm text-muted-foreground">
-                Receba notificações diretamente no seu celular
-              </p>
-            </div>
-            <Switch
-              checked={user.capacitorEnabled}
-              onCheckedChange={handleCapacitorToggle}
-            />
-          </div>
-        )}
+            {/* Notificações do Sistema */}
+            {isTauri && (
+              <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-violet-100/50 dark:bg-violet-950/30 flex items-center justify-center text-violet-600/70 dark:text-violet-400/70">
+                    <BellRing className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Desktop</p>
+                    <p className="text-xs text-muted-foreground">Notificações no computador</p>
+                  </div>
+                </div>
+                <Switch checked={user.tauriEnabled} onCheckedChange={handleTauriToggle} />
+              </div>
+            )}
 
-        <div className="flex items-center justify-between py-2">
-          <div className="space-y-0.5">
-            <Label>WhatsApp</Label>
-            <p className="text-sm text-muted-foreground">
-              Receba notificações via WhatsApp
-            </p>
-          </div>
-          <Switch
-            checked={user.whatsappEnabled}
-            onCheckedChange={(checked) => 
-              updateUser({ whatsappEnabled: checked })
-                .then(() => toast.success('Configurações atualizadas com sucesso!'))
-                .catch(() => toast.error('Erro ao atualizar configurações'))
-            }
-          />
-        </div>
+            {/* Notificações Mobile */}
+            {isCapacitor && (
+              <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-violet-100/50 dark:bg-violet-950/30 flex items-center justify-center text-violet-600/70 dark:text-violet-400/70">
+                    <BellRing className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Mobile</p>
+                    <p className="text-xs text-muted-foreground">Notificações no celular</p>
+                  </div>
+                </div>
+                <Switch checked={user.capacitorEnabled} onCheckedChange={handleCapacitorToggle} />
+              </div>
+            )}
 
-        {user.whatsappEnabled && (
-          <div className="mt-2 space-y-2">
-            <Label>Número do WhatsApp</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ex: +5511999999999"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
+            {/* WhatsApp */}
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-100/50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600/70 dark:text-emerald-400/70">
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">WhatsApp</p>
+                  <p className="text-xs text-muted-foreground">Notificações via WhatsApp</p>
+                </div>
+              </div>
+              <Switch 
+                checked={user.whatsappEnabled} 
+                onCheckedChange={(checked) => 
+                  updateUser({ whatsappEnabled: checked })
+                    .then(() => toast.success('Configurações atualizadas com sucesso!'))
+                    .catch(() => toast.error('Erro ao atualizar configurações'))
+                }
               />
-              <Button onClick={handleWhatsappSubmit}>Salvar</Button>
             </div>
-          </div>
-        )}
 
-        <div className="flex items-center justify-between py-2">
-          <div className="space-y-0.5">
-            <Label>Telegram</Label>
-            <p className="text-sm text-muted-foreground">
-              Receba notificações via Telegram
-            </p>
-          </div>
-          <Switch
-            checked={user.telegramEnabled}
-            onCheckedChange={(checked) => 
-              updateUser({ telegramEnabled: checked })
-                .then(() => toast.success('Configurações atualizadas com sucesso!'))
-                .catch(() => toast.error('Erro ao atualizar configurações'))
-            }
-          />
-        </div>
+            {user.whatsappEnabled && (
+              <div className="ml-11 mt-2 mb-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: +5511999999999"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                  <Button size="sm" onClick={handleWhatsappSubmit}>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
-        {user.telegramEnabled && (
-          <div className="mt-2 space-y-2">
-            <Label>Chat ID do Telegram</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ex: 123456789"
-                value={telegramChatId}
-                onChange={(e) => setTelegramChatId(e.target.value)}
+            {/* Telegram */}
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100/50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600/70 dark:text-blue-400/70">
+                  <Send className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Telegram</p>
+                  <p className="text-xs text-muted-foreground">Notificações via Telegram</p>
+                </div>
+              </div>
+              <Switch 
+                checked={user.telegramEnabled}
+                onCheckedChange={(checked) => 
+                  updateUser({ telegramEnabled: checked })
+                    .then(() => toast.success('Configurações atualizadas com sucesso!'))
+                    .catch(() => toast.error('Erro ao atualizar configurações'))
+                }
               />
-              <Button onClick={handleTelegramSubmit}>Salvar</Button>
+            </div>
+
+            {user.telegramEnabled && (
+              <div className="ml-11 mt-2 mb-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: 123456789"
+                    value={telegramChatId}
+                    onChange={(e) => setTelegramChatId(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                  <Button size="sm" onClick={handleTelegramSubmit}>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Seção de Desenvolvimento */}
+          <div className="p-4">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-950/50 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                <Database className="w-5 h-5" />
+              </div>
+              <h2 className="font-medium text-foreground">Desenvolvimento</h2>
+            </div>
+
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleTestWebSocket}
+                className="text-sm"
+              >
+                Testar WebSocket
+              </Button>
+
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={handleResetDatabase}
+                className="text-sm text-red-600 hover:text-red-600 border-red-200 hover:border-red-300 hover:bg-red-50"
+              >
+                Resetar Banco
+              </Button>
             </div>
           </div>
-        )}
-
-        <div className="flex gap-2 mt-4">
-          <Button onClick={handleTestWebSocket}>
-            Testar WebSocket
-          </Button>
-
-          <Button 
-            variant="destructive" 
-            onClick={handleResetDatabase}
-          >
-            Resetar Banco
-          </Button>
         </div>
-      </Card>
+      </div>
     </div>
   )
 } 

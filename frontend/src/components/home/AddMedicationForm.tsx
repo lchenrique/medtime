@@ -222,35 +222,35 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
 
   return (
     <DrawerContent>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Barra de Progresso */}
-        <div className="bg-white p-4 rounded-2xl">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md p-4 border-b">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium">Passo {step} de {totalSteps}</span>
-              <span className="text-primary">{Math.round((step/totalSteps) * 100)}%</span>
+              <span className="text-muted-foreground">Passo {step} de {totalSteps}</span>
+              <span className="text-violet-600 dark:text-violet-400">{Math.round((step/totalSteps) * 100)}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
               <div  
-                className="h-full bg-primary transition-all duration-300 ease-out"
+                className="h-full bg-violet-600 dark:bg-violet-400 transition-all duration-300 ease-out"
                 style={{ width: `${(step/totalSteps) * 100}%` }}
               />
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="px-4 space-y-4">
           {/* Passo 1: Nome e Descrição */}
           {step === 1 && (
-            <div className="bg-white p-6 rounded-2xl space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Qual medicamento você vai tomar?</h2>
-                <p className="text-gray-500">Digite o nome do remédio e uma descrição se quiser</p>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xl font-normal">Qual medicamento você vai tomar?</h2>
+                <p className="text-sm text-muted-foreground">Digite o nome do remédio e uma descrição se quiser</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium mb-2">
+                  <label htmlFor="name" className="text-sm text-muted-foreground">
                     Nome do Medicamento
                   </label>
                   <Input
@@ -258,12 +258,12 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                     placeholder="Ex: Dipirona, Paracetamol..."
                     value={form.name}
                     onChange={handleChange('name')}
-                    className="text-lg h-12"
+                    className="mt-1.5"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium mb-2">
+                  <label htmlFor="description" className="text-sm text-muted-foreground">
                     Instruções (opcional)
                   </label>
                   <Textarea
@@ -271,7 +271,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                     placeholder="Ex: Tomar com água, após as refeições..."
                     value={form.description}
                     onChange={handleChange('description')}
-                    className="min-h-[100px] text-base"
+                    className="mt-1.5 min-h-[100px]"
                   />
                 </div>
               </div>
@@ -280,79 +280,77 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
 
           {/* Passo 2: Data e Hora Inicial */}
           {step === 2 && (
-            <div className="bg-white p-6 rounded-2xl space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Quando você vai começar?</h2>
-                <p className="text-gray-500">Escolha a data e o primeiro horário do dia</p>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xl font-normal">Quando você vai começar?</h2>
+                <p className="text-sm text-muted-foreground">Escolha a data e o primeiro horário do dia</p>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Data e Hora de Início
-                  </label>
-                  <DatetimePicker
-                    value={form.startDateTime}
-                    onChange={(date) => {
-                      if (date) {
-                        setForm(prev => ({
-                          ...prev,
-                          startDateTime: date
-                        }))
-                      }
-                    }}
-                    format={[
-                      ["days", "months", "years"],
-                      ["hours", "minutes"]
-                    ]}
-                    className={cn(
-                      "w-full border p-2 rounded-lg",
-                      canAdvance() 
-                        ? "border-input hover:border-primary" 
-                        : "border-destructive/50 hover:border-destructive"
-                    )}
-                    dtOptions={{
-                      hour12: false,
-                      date: form.startDateTime,
-                    }}
-                  />
-                  {/* Mensagem de erro/ajuda */}
-                  {form.startDateTime && !canAdvance() && (
-                    <p className="mt-2 text-sm text-destructive">
-                      A data deve estar dentro do intervalo de 1 ano (passado ou futuro)
-                    </p>
+              <div>
+                <label className="text-sm text-muted-foreground">
+                  Data e Hora de Início
+                </label>
+                <DatetimePicker
+                  value={form.startDateTime}
+                  onChange={(date) => {
+                    if (date) {
+                      setForm(prev => ({
+                        ...prev,
+                        startDateTime: date
+                      }))
+                    }
+                  }}
+                  format={[
+                    ["days", "months", "years"],
+                    ["hours", "minutes"]
+                  ]}
+                  className={cn(
+                    "mt-1.5 w-full border rounded-lg",
+                    canAdvance() 
+                      ? "border-input hover:border-violet-600 dark:hover:border-violet-400" 
+                      : "border-destructive/50 hover:border-destructive"
                   )}
-                </div>
+                  dtOptions={{
+                    hour12: false,
+                    date: form.startDateTime,
+                  }}
+                />
+                {/* Mensagem de erro/ajuda */}
+                {form.startDateTime && !canAdvance() && (
+                  <p className="mt-2 text-sm text-destructive">
+                    A data deve estar dentro do intervalo de 1 ano (passado ou futuro)
+                  </p>
+                )}
               </div>
             </div>
           )}
 
           {/* Passo 3: Intervalo */}
           {step === 3 && (
-            <div className="bg-white p-6 rounded-2xl space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Quantas vezes por dia?</h2>
-                <p className="text-gray-500">Escolha o intervalo entre as doses</p>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xl font-normal">Quantas vezes por dia?</h2>
+                <p className="text-sm text-muted-foreground">Escolha o intervalo entre as doses</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {INTERVAL_OPTIONS.slice(0, -1).map(option => (
                   <Button
                     key={option.value}
                     type="button"
                     variant="outline"
                     className={cn(
-                      "w-full h-auto py-4 px-6",
-                      form.intervalPreset === option.value && "border-primary bg-primary/5"
+                      "w-full h-auto py-3 justify-start",
+                      form.intervalPreset === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
                     )}
                     onClick={() => handleSelectChange('intervalPreset')(option.value)}
                   >
-                    <div className="w-full flex flex-col items-start">
-                      <div className="flex w-full items-center justify-between mb-1">
-                        <span className="text-lg font-medium">
+                    <div className="w-full">
+                      <div className="flex w-full items-center justify-between">
+                        <span className="font-normal">
                           A cada {option.value.split('/')[0]} horas
                         </span>
-                        <span className="text-muted-foreground">
+                        <span className="text-sm text-muted-foreground">
                           {option.value === '6/6' && '4 vezes ao dia'}
                           {option.value === '8/8' && '3 vezes ao dia'}
                           {option.value === '12/12' && '2 vezes ao dia'}
@@ -373,32 +371,31 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   type="button"
                   variant="outline"
                   className={cn(
-                    "w-full h-auto py-4 px-6",
-                    form.intervalPreset === 'custom' && "border-primary bg-primary/5"
+                    "w-full h-auto py-3 justify-start",
+                    form.intervalPreset === 'custom' && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
                   )}
                   onClick={() => handleSelectChange('intervalPreset')('custom')}
                 >
                   <div className="w-full flex items-center justify-between">
-                    <span className="text-lg font-medium">Outro Intervalo</span>
-                    <span className="text-muted-foreground">Personalizado</span>
+                    <span className="font-normal">Outro Intervalo</span>
+                    <span className="text-sm text-muted-foreground">Personalizado</span>
                   </div>
                 </Button>
 
                 {form.intervalPreset === 'custom' && (
                   <div className="mt-4">
-                    <label className="block text-sm font-medium mb-2">
+                    <label className="text-sm text-muted-foreground">
                       Intervalo em horas
                     </label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 mt-1.5">
                       <Input
                         type="number"
                         placeholder="1"
                         value={form.customInterval || ''}
                         onChange={handleChange('customInterval')}
                         min={1}
-                        className="text-lg h-12"
                       />
-                      <span className="text-base text-muted-foreground whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
                         horas
                       </span>
                     </div>
@@ -410,82 +407,57 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
 
           {/* Passo 4 - Duração */}
           {step === 4 && (
-            <div className="bg-white p-6 rounded-2xl space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Duração do Tratamento</h2>
-                <p className="text-gray-500">Por quanto tempo você vai tomar?</p>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xl font-normal">Por quanto tempo?</h2>
+                <p className="text-sm text-muted-foreground">Escolha a duração do tratamento</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "h-auto py-4",
-                      form.durationInDays === 30 && "border-primary bg-primary/5"
-                    )}
-                    onClick={() => handleSelectChange('durationInDays')(30)}
-                  >
-                    30 dias
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "h-auto py-4",
-                      form.durationInDays === 60 && "border-primary bg-primary/5"
-                    )}
-                    onClick={() => handleSelectChange('durationInDays')(60)}
-                  >
-                    60 dias
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "h-auto py-4",
-                      form.durationInDays === 90 && "border-primary bg-primary/5"
-                    )}
-                    onClick={() => handleSelectChange('durationInDays')(90)}
-                  >
-                    90 dias
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "h-auto py-4",
-                      form.durationInDays === 'custom' && "border-primary bg-primary/5"
-                    )}
-                    onClick={() => handleSelectChange('durationInDays')('custom')}
-                  >
-                    Personalizado
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "h-auto py-4 col-span-2",
-                      form.durationInDays === 'recurring' && "border-primary bg-primary/5"
-                    )}
-                    onClick={() => handleSelectChange('durationInDays')('recurring')}
-                  >
-                    Contínuo (sem data de término)
-                  </Button>
+                  {DURATION_OPTIONS.slice(0, -1).map(option => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "h-auto py-3",
+                        form.durationInDays === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                      )}
+                      onClick={() => handleSelectChange('durationInDays')(option.value)}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
                 </div>
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full h-auto py-3",
+                    form.durationInDays === 'recurring' && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                  )}
+                  onClick={() => handleSelectChange('durationInDays')('recurring')}
+                >
+                  Contínuo (sem data de término)
+                </Button>
+
                 {form.durationInDays === 'custom' && (
-                  <div className="flex items-center gap-3 mt-4">
-                    <Input
-                      type="number"
-                      placeholder="Ex: 10"
-                      value={form.customDuration || ''}
-                      onChange={handleChange('customDuration')}
-                      min={1}
-                      className="text-lg h-12"
-                    />
-                    <span className="text-base whitespace-nowrap">dias</span>
+                  <div className="mt-4">
+                    <label className="text-sm text-muted-foreground">
+                      Duração em dias
+                    </label>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <Input
+                        type="number"
+                        placeholder="Ex: 10"
+                        value={form.customDuration || ''}
+                        onChange={handleChange('customDuration')}
+                        min={1}
+                      />
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">dias</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -495,26 +467,26 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
           {/* Passo 5 - Quantidade */}
           {step === 5 && (
             <form onSubmit={handleSubmit}>
-              <div className="bg-white p-6 rounded-2xl space-y-6">
-                <div className="text-center space-y-2">
-                  <h2 className="text-xl font-semibold">Quantidade do Medicamento</h2>
-                  <p className="text-gray-500">Informe a quantidade que você possui</p>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-xl font-normal">Quantidade do Medicamento</h2>
+                  <p className="text-sm text-muted-foreground">Informe a quantidade que você possui</p>
                 </div>
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label className="text-sm text-muted-foreground">
                       Tipo de Medicamento
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 mt-1.5">
                       {UNIT_OPTIONS.map(option => (
                         <Button
                           key={option.value}
                           type="button"
                           variant="outline"
                           className={cn(
-                            "h-auto py-4",
-                            form.unit === option.value && "border-primary bg-primary/5"
+                            "h-auto py-3",
+                            form.unit === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
                           )}
                           onClick={() => handleSelectChange('unit')(option.value)}
                         >
@@ -526,27 +498,26 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="text-sm text-muted-foreground">
                         Quantidade Total
                       </label>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 mt-1.5">
                         <Input
                           type="number"
                           placeholder="Ex: 30"
                           value={form.totalQuantity || ''}
                           onChange={handleChange('totalQuantity')}
                           min={1}
-                          className="text-lg h-12"
                         />
-                        <span className="text-base whitespace-nowrap">{form.unit}</span>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">{form.unit}</span>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="text-sm text-muted-foreground">
                         Quantidade por Dose
                       </label>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 mt-1.5">
                         <Input
                           type="number"
                           placeholder="Ex: 1"
@@ -554,9 +525,8 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                           onChange={handleChange('dosageQuantity')}
                           min={0.1}
                           step="0.1"
-                          className="text-lg h-12"
                         />
-                        <span className="text-base whitespace-nowrap">{form.unit}</span>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">{form.unit}</span>
                       </div>
                     </div>
                   </div>
@@ -567,7 +537,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-12 text-base"
+                  className="flex-1"
                   onClick={() => setStep(s => s - 1)}
                 >
                   Voltar
@@ -575,7 +545,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                 
                 <Button
                   type="submit"
-                  className="flex-1 h-12 text-base"
+                  className="flex-1"
                   disabled={isPending || !canAdvance()}
                 >
                   {isPending ? 'Adicionando...' : 'Finalizar'}
@@ -591,7 +561,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-12 text-base"
+                  className="flex-1"
                   onClick={() => setStep(s => s - 1)}
                 >
                   Voltar
@@ -600,7 +570,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
               
               <Button
                 type="button"
-                className="flex-1 h-12 text-base"
+                className="flex-1"
                 disabled={!canAdvance()}
                 onClick={() => setStep(s => s + 1)}
               >

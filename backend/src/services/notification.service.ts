@@ -58,7 +58,9 @@ async function sendPushNotification(token: string, data: NotificationData) {
           priority: 'max' as const,
           visibility: 'public' as const,
           defaultSound: true,
-          defaultVibrateTimings: true
+          defaultVibrateTimings: true,
+          sound: 'default',
+          vibrateTimingsMillis: [200, 500, 200]
         },
         directBootOk: true
       }
@@ -70,8 +72,31 @@ async function sendPushNotification(token: string, data: NotificationData) {
     console.log('✅ FCM enviado com sucesso:', response)
     
     return response
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erro ao enviar FCM:', error)
+    
+    // Se o token for inválido, devemos removê-lo do usuário
+    if (error.code === 'messaging/invalid-registration-token' || 
+        error.code === 'messaging/registration-token-not-registered') {
+      console.log('🔄 Token FCM inválido, removendo...')
+      try {
+        // Busca o usuário pelo token FCM
+        const user = await prisma.user.findFirst({
+          where: { fcmToken: token }
+        })
+
+        if (user) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { fcmToken: null }
+          })
+          console.log('✅ Token FCM removido com sucesso')
+        }
+      } catch (dbError) {
+        console.error('❌ Erro ao remover token FCM:', dbError)
+      }
+    }
+    
     throw error
   }
 }

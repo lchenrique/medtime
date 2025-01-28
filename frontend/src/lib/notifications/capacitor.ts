@@ -39,7 +39,7 @@ export class CapacitorNotificationClient extends BaseNotificationClient {
         visibility: 1,
         vibration: true,
         lights: true,
-        sound: 'notification_1_270124'
+        sound: 'notification_19_270138'
       })
 
       // Registra para receber FCM
@@ -159,16 +159,29 @@ export class CapacitorNotificationClient extends BaseNotificationClient {
           title: notification.data.title,
           body: notification.data.body,
           id: parseInt(notification.data.id),
-          schedule: { allowWhileIdle: true },
+          schedule: { 
+            allowWhileIdle: true,
+            repeats: true,
+            every: 'minute'
+          },
           sound: this.getNotificationSound(notification.type),
           actionTypeId: notification.type === 'REMINDER' ? 'REMINDER_ACTION' : undefined,
           extra: {
             type: notification.type,
             medicationId: notification.data.medicationId,
             dosage: notification.data.dosage
-          }
+          },
+          ongoing: true // Mantém a notificação até ser explicitamente cancelada
         }]
       })
+
+      // Se for um lembrete, também inicia o alarme sonoro
+      if (notification.type === 'REMINDER') {
+        alarmService.start({
+          name: notification.data.title,
+          dosage: notification.data.dosage || ''
+        })
+      }
     } catch (error) {
       console.error('❌ Erro ao enviar notificação:', error)
       throw error

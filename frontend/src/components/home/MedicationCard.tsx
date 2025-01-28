@@ -42,34 +42,38 @@ export function MedicationCard({
   return (
     <button
       onClick={() => onClick(medication)}
-      className="w-full bg-white hover:bg-gray-50 transition-colors"
+      className="w-full bg-background hover:bg-muted/50 transition-colors"
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
           {/* Avatar */}
           <div className={cn(
-            "shrink-0 w-12 h-12 rounded-xl flex items-center justify-center",
+            "shrink-0 w-12 h-12 rounded-full flex items-center justify-center",
             isLate 
-              ? "bg-gradient-to-br from-red-600 to-red-500" 
-              : "bg-gradient-to-br from-violet-600 to-violet-500"
+              ? "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400" 
+              : "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400"
           )}>
             {medication.duration === null ? (
-              <Infinity className="w-6 h-6 text-white" />
+              <Infinity className="w-6 h-6" />
             ) : (
-              <Pill className="w-6 h-6 text-white" />
+              <Pill className="w-6 h-6" />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className='flex flex-col items-start'>
-                <h3 className="font-medium text-gray-900 leading-tight truncate">
+                <h3 className="font-medium text-foreground leading-tight truncate">
                   {medication.name}
                 </h3>
-                <p className="text-sm text-gray-500 truncate mt-0.5">
+                <p className="text-sm text-muted-foreground truncate mt-0.5">
                   {variant === 'list' 
                     ? `A cada ${medication.interval}h • ${medication.dosageQuantity} ${medication.unit}`
-                    : `${medication.dosageQuantity} ${medication.unit}`}
+                    : medication.timeUntil 
+                      ? isLate
+                        ? `Atrasado ${medication.timeUntil}`
+                        : `Em ${medication.timeUntil}`
+                      : `${medication.dosageQuantity} ${medication.unit}`}
                 </p>
               </div>
               
@@ -82,8 +86,8 @@ export function MedicationCard({
                       "px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shrink-0",
                       !canTakeMedication() && "opacity-50 cursor-not-allowed",
                       isLate 
-                        ? "bg-red-100 text-red-700 hover:bg-red-200" 
-                        : "bg-violet-100 text-violet-700 hover:bg-violet-200"
+                        ? "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-950/70" 
+                        : "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-950/70"
                     )}
                   >
                     <Check className="w-4 h-4" />
@@ -94,21 +98,17 @@ export function MedicationCard({
                 {showStock && variant === 'list' && (
                   <div className={cn(
                     "px-3 py-1.5 rounded-lg text-sm font-medium",
-                    `bg-${getStockStatus().color}-100 text-${getStockStatus().color}-700`
+                    getStockStatus().color === 'red' && "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400",
+                    getStockStatus().color === 'orange' && "bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400",
+                    getStockStatus().color === 'violet' && "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400"
                   )}>
                     {medication.remainingQuantity}/{medication.totalQuantity}
                   </div>
                 )}
 
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             </div>
-
-            {medication.instructions && (
-              <p className="text-sm text-gray-600 truncate mt-1">
-                {medication.instructions}
-              </p>
-            )}
           </div>
         </div>
       </div>

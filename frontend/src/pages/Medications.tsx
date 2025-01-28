@@ -10,7 +10,9 @@ import { cn } from '@/lib/utils'
 import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { AddMedicationForm } from '@/components/home/AddMedicationForm'
 import { NoResults } from '@/components/ui/NoResults'
-import { MedicationCard } from '@/components/home/MedicationCard' // Adicionar esta importação
+import { MedicationCard } from '@/components/home/MedicationCard'
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 
 // Tipo inferido da resposta da API
 type ApiMedication = {
@@ -104,123 +106,74 @@ export function Medications() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-full">
-          <div className="animate-pulse space-y-6">
-            <div className="h-14 bg-primary/10 rounded-2xl" />
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-primary/5 rounded-2xl" />
-              ))}
-            </div>
-          </div>
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-violet-50">
-      <div className="p-4 space-y-6 mx-auto">
-        {/* Header simplificado */}
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-violet-700 to-violet-600 rounded-3xl shadow-lg text-white">
-          <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6">
-            <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-white">Medicamentos</h1>
-              <p className="text-sm text-violet-50/90">
-                {medications?.length || 0} medicamentos cadastrados
-              </p>
-            </div>
-            <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl">
-              <Pill className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <div className="min-h-screen bg-background">
+      <div className="max-w-xl mx-auto">
+        {/* Header com título e ações */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-xl font-normal text-foreground">Estoque</h1>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleAddMedicationClick}
+                className="text-violet-600 dark:text-violet-400"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
-          {/* Stats cards mais compactos */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-white/20">
-                  <Package2 className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-xs sm:text-sm text-white/90">
-                  <span className="sm:hidden">Total</span>
-                  <span className="hidden sm:inline">Medicamentos</span>
-                </p>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <p className="text-lg sm:text-2xl font-bold text-white">
-                  {medications?.length || 0}
-                </p>
-                <span className="text-xs sm:text-sm font-normal text-white/80">ativos</span>
-              </div>
-            </div>
-            
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-red-500/30">
-                  <AlertCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-xs sm:text-sm text-white/90">
-                  <span className="sm:hidden">Baixo</span>
-                  <span className="hidden sm:inline">Estoque Baixo</span>
-                </p>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <p className="text-lg sm:text-2xl font-bold text-white">
-                  {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0}
-                </p>
-                <span className="text-xs sm:text-sm font-normal text-white/80">alertas</span>
-              </div>
-            </div>
+          {/* Contador de medicamentos */}
+          <div className="px-4 py-2 bg-violet-50 dark:bg-violet-950/30 rounded-lg">
+            <p className="text-sm text-violet-600 dark:text-violet-400">
+              {medications?.length || 0} medicamentos • {' '}
+              {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0} com estoque baixo
+            </p>
           </div>
         </div>
 
-        {/* Barra de ações - mantém o mesmo layout da Home */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-4">
-              <Search className="w-5 h-5 text-violet-400" />
-            </div>
-            <Input
-              type="text"
-              placeholder="Buscar medicamentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 bg-white border-transparent placeholder:text-violet-300 h-14 rounded-2xl shadow-sm text-base"
-            />
-          </div>
-          <button 
-            onClick={handleAddMedicationClick}
-            className="h-14 px-6 bg-violet-700 text-white rounded-2xl font-medium hover:bg-violet-800 active:bg-violet-900 transition-colors shadow-sm flex items-center gap-2 justify-center whitespace-nowrap"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="sm:inline">Adicionar</span>
-          </button>
-        </div>
-
-        {/* Lista de medicamentos */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-sm">
+        {/* Lista de Medicamentos */}
+        <div className="divide-y divide-border">
           {filteredMedications.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {filteredMedications.map((medication) => (
-                <MedicationCard
-                  key={medication.id}
-                  medication={{
-                    ...medication,
-                    description: medication.description || '',
-                    dosage: `${medication.dosageQuantity} ${medication.unit}`,
-                    time: '',
-                    instructions: medication.description || '',
-                    status: 'pending',
-                    timeUntil: '',
-                    reminders: [],
-                  }}
-                  onClick={() => handleMedicationClick(medication)}
-                  variant="list"
-                  showStock={true}
-                />
-              ))}
-            </div>
+            filteredMedications.map((medication) => (
+              <div 
+                key={medication.id}
+                onClick={() => handleMedicationClick(medication)}
+                className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition-colors"
+              >
+                {/* Avatar do Medicamento */}
+                <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                  <Pill className="w-6 h-6" />
+                </div>
+
+                {/* Informações do Medicamento */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-foreground truncate">{medication.name}</h3>
+                    <span className={cn(
+                      "text-xs px-2 py-1 rounded-full",
+                      medication.remainingQuantity <= medication.dosageQuantity 
+                        ? "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400"
+                        : medication.remainingQuantity <= medication.dosageQuantity * 3
+                        ? "bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400"
+                        : "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400"
+                    )}>
+                      {medication.remainingQuantity} {medication.unit}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {medication.description || `${medication.dosageQuantity} ${medication.unit} por dose`}
+                  </p>
+                </div>
+              </div>
+            ))
           ) : (
             searchTerm ? (
               <NoResults message={`Nenhum medicamento encontrado para "${searchTerm}"`} />

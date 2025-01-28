@@ -100,7 +100,7 @@ export class ReminderWorker {
         }
       }
 
-      // Envia via FCM se tiver token configurado
+      // Envia via FCM se tiver token configurado (independente dos outros canais)
       if (reminder.medication.user.fcmToken) {
         try {
           console.log(`Enviando notificação via FCM para ${reminder.medication.name}`)
@@ -126,18 +126,6 @@ export class ReminderWorker {
         console.log('✅ Lembrete marcado como notificado:', reminder.id)
       } else if (!atLeastOneSuccess) {
         throw new Error('Nenhum canal de notificação funcionou')
-      }
-
-      // Se não tem nenhum canal habilitado, tenta outros canais
-      if (!reminder.medication.user.tauriEnabled && 
-          !reminder.medication.user.telegramEnabled && 
-          !reminder.medication.user.whatsappEnabled) {
-        console.log(`Enviando notificação via outros canais para ${reminder.medication.name}`)
-        await sendMedicationReminder({
-          medicationId: reminder.medication.id,
-          scheduledFor: reminder.scheduledFor,
-          userId: reminder.medication.userId
-        })
       }
     } catch (error) {
       console.error('Erro ao enviar notificação:', error)

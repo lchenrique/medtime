@@ -1,4 +1,3 @@
-import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/stores/user'
@@ -15,129 +14,135 @@ export function Health() {
   if (!user) return null
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Heart className="h-5 w-5 text-primary" />
+    <div className="min-h-screen bg-background">
+      <div className="max-w-xl mx-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-xl font-normal text-foreground">Informações de Saúde</h1>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => {
+                open({
+                  title: 'Editar Informações de Saúde',
+                  content: <EditProfileSheet />
+                })
+              }}
+              className="text-violet-600 dark:text-violet-400"
+            >
+              <PenSquare className="w-5 h-5" />
+            </Button>
           </div>
-          <h1 className="text-2xl font-bold">Informações de Saúde</h1>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="gap-2"
-          onClick={() => {
-            open({
-              title: 'Editar Informações de Saúde',
-              content: <EditProfileSheet />
-            })
-          }}
-        >
-          <PenSquare className="h-4 w-4" />
-          Editar
-        </Button>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className={cn(
-          "p-4 border-2 transition-colors",
-          user.isDiabetic ? "border-primary bg-primary/5" : "border-muted"
-        )}>
-          <div className="flex items-center gap-3 mb-2">
+        {/* Lista de Condições */}
+        <div className="divide-y divide-border">
+          {/* Diabetes */}
+          <div className="flex items-center gap-4 p-4">
             <div className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center",
-              user.isDiabetic ? "bg-primary/10" : "bg-muted"
+              "w-10 h-10 rounded-full flex items-center justify-center",
+              user.isDiabetic 
+                ? "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400" 
+                : "bg-muted text-muted-foreground"
             )}>
-              <Pill className={cn(
-                "h-5 w-5",
-                user.isDiabetic ? "text-primary" : "text-muted-foreground"
-              )} />
+              <Pill className="w-5 h-5" />
             </div>
-            <div>
-              <Label>Diabetes</Label>
-              <Badge variant={user.isDiabetic ? "default" : "secondary"} className="ml-2">
-                {user.isDiabetic ? 'Sim' : 'Não'}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-foreground">Diabetes</h3>
+                <Badge variant={user.isDiabetic ? "default" : "secondary"} className="text-xs">
+                  {user.isDiabetic ? 'Sim' : 'Não'}
+                </Badge>
+              </div>
+              {user.isDiabetic && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Você possui diabetes
+                </p>
+              )}
             </div>
           </div>
-        </Card>
 
-        <Card className={cn(
-          "p-4 border-2 transition-colors",
-          user.hasHeartCondition ? "border-primary bg-primary/5" : "border-muted"
-        )}>
-          <div className="flex items-center gap-3 mb-2">
+          {/* Condição Cardíaca */}
+          <div className="flex items-center gap-4 p-4">
             <div className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center",
-              user.hasHeartCondition ? "bg-primary/10" : "bg-muted"
+              "w-10 h-10 rounded-full flex items-center justify-center",
+              user.hasHeartCondition 
+                ? "bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400" 
+                : "bg-muted text-muted-foreground"
             )}>
-              <Heart className={cn(
-                "h-5 w-5",
-                user.hasHeartCondition ? "text-primary" : "text-muted-foreground"
-              )} />
+              <Heart className="w-5 h-5" />
             </div>
-            <div>
-              <Label>Condição Cardíaca</Label>
-              <Badge variant={user.hasHeartCondition ? "default" : "secondary"} className="ml-2">
-                {user.hasHeartCondition ? 'Sim' : 'Não'}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-foreground">Condição Cardíaca</h3>
+                <Badge variant={user.hasHeartCondition ? "default" : "secondary"} className="text-xs">
+                  {user.hasHeartCondition ? 'Sim' : 'Não'}
+                </Badge>
+              </div>
+              {user.hasHeartCondition && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Você possui uma condição cardíaca
+                </p>
+              )}
             </div>
           </div>
-        </Card>
 
-        <Card className={cn(
-          "p-4 border-2 transition-colors",
-          user.hasHypertension ? "border-primary bg-primary/5" : "border-muted"
-        )}>
-          <div className="flex items-center gap-3 mb-2">
+          {/* Hipertensão */}
+          <div className="flex items-center gap-4 p-4">
             <div className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center",
-              user.hasHypertension ? "bg-primary/10" : "bg-muted"
+              "w-10 h-10 rounded-full flex items-center justify-center",
+              user.hasHypertension 
+                ? "bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400" 
+                : "bg-muted text-muted-foreground"
             )}>
-              <Activity className={cn(
-                "h-5 w-5",
-                user.hasHypertension ? "text-primary" : "text-muted-foreground"
-              )} />
+              <Activity className="w-5 h-5" />
             </div>
-            <div>
-              <Label>Hipertensão</Label>
-              <Badge variant={user.hasHypertension ? "default" : "secondary"} className="ml-2">
-                {user.hasHypertension ? 'Sim' : 'Não'}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-foreground">Hipertensão</h3>
+                <Badge variant={user.hasHypertension ? "default" : "secondary"} className="text-xs">
+                  {user.hasHypertension ? 'Sim' : 'Não'}
+                </Badge>
+              </div>
+              {user.hasHypertension && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Você possui hipertensão
+                </p>
+              )}
             </div>
           </div>
-        </Card>
-      </div>
 
-      <div className="space-y-4">
-        {user.allergies && (
-          <div className="flex gap-3 items-start p-4 rounded-lg bg-muted/30">
-            <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+          {/* Alergias */}
+          {user.allergies && (
+            <div className="flex items-center gap-4 p-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-foreground">Alergias</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {user.allergies}
+                </p>
+              </div>
             </div>
-            <div>
-              <Label>Alergias</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {user.allergies}
-              </p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {user.observations && (
-          <div className="flex gap-3 items-start p-4 rounded-lg bg-muted/30">
-            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-              <FileText className="h-5 w-5 text-blue-500" />
+          {/* Observações */}
+          {user.observations && (
+            <div className="flex items-center gap-4 p-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-950/50 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-foreground">Observações</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {user.observations}
+                </p>
+              </div>
             </div>
-            <div>
-              <Label>Observações</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {user.observations}
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
