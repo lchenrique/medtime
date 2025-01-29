@@ -7,10 +7,11 @@ import { Heart, Pill, Activity, AlertCircle, FileText, PenSquare } from 'lucide-
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useSheetStore } from '@/stores/sheet-store'
+import { useModalStore } from '@/stores/modal-store'
 
 export function Health() {
   const { user } = useUserStore()
-  const open = useSheetStore(state => state.open)
+  const open = useModalStore(state => state.open)
 
   if (!user) return null
 

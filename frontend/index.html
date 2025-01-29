@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#7C3AED" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.json" />
     <title>MedTime</title>
+    <link rel="stylesheet" href="@ionic/react/css/core.css" />
+    <link rel="stylesheet" href="@ionic/react/css/normalize.css" />
+    <link rel="stylesheet" href="@ionic/react/css/structure.css" />
+    <link rel="stylesheet" href="@ionic/react/css/typography.css" />
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js')
@@ -23,8 +22,7 @@
     </script>
   </head>
   <body>
-    
     <div id="root"></div>
-    <script type="module" src="./src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

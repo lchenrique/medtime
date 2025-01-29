@@ -13,6 +13,7 @@ import { Suspense } from 'react'
 import { Loading } from '@/components/Loading'
 import { Root } from '@/components/Root'
 import { AuthCallback } from '@/pages/auth/AuthCallback'
+import { Modal } from '@/components/ui/modal/Modal'
 
 export const router = createBrowserRouter([
   {
@@ -39,7 +40,11 @@ export const router = createBrowserRouter([
       // Rotas protegidas (com autenticação)
       {
         path: '/',
-        element: <AuthGuard><Layout /></AuthGuard>,
+        element: (
+          <>
+            <AuthGuard><Layout /></AuthGuard>
+          </>
+        ),
         children: [
           {
             path: '/',

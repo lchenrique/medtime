@@ -7,64 +7,84 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 240 10% 3.9%;
  
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 240 10% 3.9%;
  
     --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 98%;
  
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
  
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
  
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
  
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
     --ring: 262 83% 58%;
  
     --radius: 0.5rem;
+
+    /* Variáveis do Ionic */
+    --ion-color-primary: hsl(var(--primary));
+    --ion-color-primary-contrast: hsl(var(--primary-foreground));
+    --ion-text-color: hsl(var(--foreground));
+    --ion-toolbar-background: hsl(var(--background));
+    --ion-toolbar-color: hsl(var(--foreground));
+    --ion-item-background: hsl(var(--background)) !important;
+    --ion-border-color: hsl(var(--border));
+    --ion-background-color: hsl(var(--background)) !important;
   }
  
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
  
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
  
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
  
     --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 98%;
  
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
  
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
  
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
  
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
  
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
     --ring: 262 83% 58%;
+
+    /* Variáveis do Ionic - Tema Escuro */
+    --ion-color-primary: hsl(var(--primary));
+    --ion-color-primary-contrast: hsl(var(--primary-foreground));
+    --ion-background-color: hsl(var(--background));
+    --ion-text-color: hsl(var(--foreground));
+    --ion-toolbar-background: hsl(var(--background));
+    --ion-toolbar-color: hsl(var(--foreground));
+    --ion-border-color: hsl(var(--border));
+    --ion-item-background: hsl(var(--background)) !important;
   }
 }
  
@@ -108,4 +128,64 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #4a4a4a;
+}
+
+/* Estilos para o modal do Ionic */
+.ion-modal {
+  --background: hsl(var(--background));
+  --color: hsl(var(--foreground));
+  --height: auto;
+  --border-radius: 1rem 1rem 0 0;
+  --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.ion-modal::part(content) {
+  border-radius: 1rem 1rem 0 0;
+}
+
+/* Customização dos componentes do Ionic */
+ion-toolbar {
+  --background: transparent;
+  --border-style: none;
+}
+
+ion-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+ion-button {
+  --color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+ion-content {
+  --background: transparent;
+}
+
+ion-item {
+  --background: transparent;
+  --background-hover: hsl(var(--muted));
+  --background-activated: hsl(var(--muted));
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 1rem;
+  --padding-bottom: 1rem;
+  --border-color: hsl(var(--border));
+  --inner-padding-end: 0;
+}
+
+ion-item::part(native) {
+  background: transparent;
+}
+
+/* Tema escuro */
+.dark ion-toolbar {
+  --background: hsl(var(--background));
+  --color: hsl(var(--foreground));
+}
+
+.dark ion-content {
+  --background: hsl(var(--background));
+  --color: hsl(var(--foreground));
 }

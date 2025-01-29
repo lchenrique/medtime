@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetMedications, usePutMedicationsMarkAsTaken } from '@/api/generated/medications/medications'
-import { useDrawer } from '@/hooks/useDrawer'
+import { useModalStore } from '@/stores/modal-store'
 import { MedicationDetails } from './MedicationDetails'
 import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { MedicationCard } from '@/components/home/MedicationCard'
 import { Medication } from '@/types/medication'
 import { AddMedicationForm } from '@/components/home/AddMedicationForm'
-import { Bell, Search, AlertCircle, Plus, Moon, Sun, MoreVertical, Settings } from 'lucide-react'
+import { Bell, Search, AlertCircle, Plus, Moon, Sun, MoreVertical, Settings, LogOut } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
@@ -20,9 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from 'react-router-dom'
-import { useSheetStore } from '@/stores/sheet-store'
 import { GetMedications200Item, GetMedications200AnyOfThree } from '@/api/model'
 import toast from 'react-hot-toast'
+import { IonContent, IonTitle, IonHeader, IonToolbar, IonList } from '@ionic/react'
+import { Loading } from '@/components/Loading'
+import { useAuth } from '@/hooks/useAuth'
+import { useUserStore } from '@/stores/user'
 
 export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
 
@@ -33,7 +36,7 @@ export interface MedicationGroup {
 
 export function Home() {
   const [searchTerm, setSearchTerm] = useState('')
-  const { data, isLoading , refetch} = useGetMedications(
+  const { data, isLoading, refetch } = useGetMedications(
     { period: 'today' },
     { 
       query: {
@@ -53,10 +56,10 @@ export function Home() {
       }
     }
   )
-  const open = useSheetStore(state => state.open)
-  const close = useSheetStore(state => state.close)
+  const open = useModalStore(state => state.open)
+  const close = useModalStore(state => state.close)
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
-  const queryClient = useQueryClient()
+  const { logout } = useUserStore()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -109,22 +112,20 @@ export function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-900">
-        <div className="animate-spin text-violet-600">
-          <Loader2 className="w-6 h-6" />
-        </div>
-      </div>
+     <Loading />
     )
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header Principal */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b">
+       <IonHeader className='ion-no-border sticky top-0 z-50 bg-background/95 backdrop-blur-md'>
+      <IonToolbar>
+       
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-normal text-foreground">MedTime</h1>
+            <IonTitle>MedTime</IonTitle>
             </div>
             <div className="flex items-center gap-4">
               <Button
@@ -166,9 +167,17 @@ export function Home() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <DropdownMenuItem onClick={() =>  navigate('/settings')}>
                     <Settings className="w-4 h-4 mr-2" />
                     <span>Configurações</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem onClick={() => {
+                    logout()
+                    navigate('/login')
+                  }}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    <span>Sair</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -183,35 +192,37 @@ export function Home() {
             </div>
           )}
         </div>
-      </header>
+      </IonToolbar>
+    </IonHeader>
+     
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 relative isolate">
-        <div className="max-w-2xl mx-auto">
+      <main className="flex-1 relative isolate ">
+        <div className="max-w-2xl mx-auto ">
           {hasNoRemindersToday ? (
             <EmptyMedicationState onAddClick={handleAddMedicationClick} />
           ) : (
-            <div className="divide-y divide-border">
+            <div className="space-y-4">
               {/* Medicamentos Atrasados */}
               {data?.groups.late.length > 0 && (
                 <div>
-                  <div className="sticky top-[4.5rem] z-40 bg-background/95 backdrop-blur-md border-y">
+                  <div className="sticky top-[4.5rem] z-40 bg-destructive/10 backdrop-blur-md ">
                     <div className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400">
-                      <AlertCircle className="w-4 h-4" />
+                      <AlertCircle className="w-4 h-8" />
                       <span className="text-sm font-medium">Atrasados</span>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-border">
+                  <div >
                     {data.groups.late.map((group) => (
                       <div key={group.time}>
-                        <div className="sticky top-[7rem] z-30 bg-background/95 backdrop-blur-md px-4 py-2 border-y">
-                          <span className="text-base font-medium text-foreground">
+                        <div className="sticky top-[7rem] z-30  backdrop-blur-md px-4 py-2 bg-destructive/5 ">
+                          <span className="text-lg font-medium text-foreground">
                             {group.time}
                           </span>
                         </div>
 
-                        <div className="divide-y divide-border">
+                          <IonList className='ion-no-padding p-0 m-0  '>
                           {group.medications.map((item) => (
                             <MedicationCard
                               key={item.reminder.id}
@@ -226,8 +237,8 @@ export function Home() {
                               )}
                             />
                           ))}
+                          </IonList>
                         </div>
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -236,23 +247,23 @@ export function Home() {
               {/* Medicamentos Pendentes */}
               {data?.groups.onTime.length > 0 && (
                 <div>
-                  <div className="sticky top-[4.5rem] z-40 bg-background/95 backdrop-blur-md border-y">
+                  <div className="sticky top-[4.5rem] z-40 bg-primary/10 backdrop-blur-md ">
                     <div className="flex items-center gap-2 px-4 py-2 text-violet-600 dark:text-violet-400">
-                      <Bell className="w-4 h-4" />
+                      <Bell className="w-4 h-8" />
                       <span className="text-sm font-medium">Pendentes</span>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-border">
+                  <IonList >
                     {data.groups.onTime.map((group) => (
                       <div key={group.time}>
-                        <div className="sticky top-[7rem] z-30 bg-background/95 backdrop-blur-md px-4 py-2 border-y">
-                          <span className="text-base font-medium text-foreground">
+                        <div className="sticky top-[7rem] z-30  backdrop-blur-md px-4 py-2 bg-primary/5 ">
+                          <span className="text-lg font-medium text-foreground">
                             {group.time}
                           </span>
                         </div>
 
-                        <div className="divide-y divide-border">
+                        <IonList className='ion-no-padding p-0 m-0'>
                           {group.medications.map((item) => (
                             <MedicationCard
                               key={item.reminder.id}
@@ -267,10 +278,10 @@ export function Home() {
                               )}
                             />
                           ))}
-                        </div>
+                        </IonList>
                       </div>
                     ))}
-                  </div>
+                  </IonList>
                 </div>
               )}
             </div>

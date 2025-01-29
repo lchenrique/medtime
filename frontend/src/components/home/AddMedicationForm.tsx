@@ -333,31 +333,31 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                 <p className="text-sm text-muted-foreground">Escolha o intervalo entre as doses</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {INTERVAL_OPTIONS.slice(0, -1).map(option => (
                   <Button
                     key={option.value}
                     type="button"
                     variant="outline"
                     className={cn(
-                      "w-full h-auto py-3 justify-start",
+                      "w-full h-auto py-4 justify-start",
                       form.intervalPreset === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
                     )}
                     onClick={() => handleSelectChange('intervalPreset')(option.value)}
                   >
                     <div className="w-full">
                       <div className="flex w-full items-center justify-between">
-                        <span className="font-normal">
+                        <span className="text-base font-medium text-foreground">
                           A cada {option.value.split('/')[0]} horas
                         </span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-base text-muted-foreground">
                           {option.value === '6/6' && '4 vezes ao dia'}
                           {option.value === '8/8' && '3 vezes ao dia'}
                           {option.value === '12/12' && '2 vezes ao dia'}
                           {option.value === '24/24' && '1 vez ao dia'}
                         </span>
                       </div>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground mt-1 block">
                         {option.value === '6/6' && '(6h, 12h, 18h, 0h)'}
                         {option.value === '8/8' && '(8h, 16h, 0h)'}
                         {option.value === '12/12' && '(8h, 20h)'}
@@ -371,31 +371,32 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   type="button"
                   variant="outline"
                   className={cn(
-                    "w-full h-auto py-3 justify-start",
+                    "w-full h-auto py-4 justify-start",
                     form.intervalPreset === 'custom' && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
                   )}
                   onClick={() => handleSelectChange('intervalPreset')('custom')}
                 >
                   <div className="w-full flex items-center justify-between">
-                    <span className="font-normal">Outro Intervalo</span>
-                    <span className="text-sm text-muted-foreground">Personalizado</span>
+                    <span className="text-base font-medium text-foreground">Outro Intervalo</span>
+                    <span className="text-base text-muted-foreground">Personalizado</span>
                   </div>
                 </Button>
 
                 {form.intervalPreset === 'custom' && (
                   <div className="mt-4">
-                    <label className="text-sm text-muted-foreground">
+                    <label className="text-base text-muted-foreground">
                       Intervalo em horas
                     </label>
-                    <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-3 mt-2">
                       <Input
                         type="number"
                         placeholder="1"
                         value={form.customInterval || ''}
                         onChange={handleChange('customInterval')}
                         min={1}
+                        className="text-base py-6"
                       />
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      <span className="text-base text-muted-foreground whitespace-nowrap">
                         horas
                       </span>
                     </div>

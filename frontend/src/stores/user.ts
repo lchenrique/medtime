@@ -34,6 +34,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           'Authorization': `Bearer ${token}`
         }
       })
+
     } catch (error) {
       console.error('❌ Erro ao fazer logout no backend:', error)
     } finally {
