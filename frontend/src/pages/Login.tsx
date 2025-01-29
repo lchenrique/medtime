@@ -15,6 +15,7 @@ import type { PostAuthLogin200 } from '@/api/model'
 import { TauriNotificationClient } from '@/lib/notifications/tauri'
 import { getAuthProfile } from '@/api/generated/auth/auth'
 import { storage } from '@/lib/storage'
+import { cn } from "@/lib/utils"
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -93,7 +94,7 @@ export function Login() {
             onBlur={() => setFocusedInput(null)}
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
           )}
 
           <AuthInput
@@ -105,18 +106,24 @@ export function Login() {
             onBlur={() => setFocusedInput(null)}
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         <div className="flex items-center justify-end">
-          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-primary/90">
+          <Link 
+            to="/forgot-password" 
+            className={cn(
+              "text-sm font-medium transition-colors",
+              "text-primary hover:text-primary/90"
+            )}
+          >
             Esqueceu a senha?
           </Link>
         </div>
 
         {error && (
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-sm text-destructive">{error}</p>
         )}
 
         <Button 
@@ -134,11 +141,14 @@ export function Login() {
           <SocialButton icon={<FacebookIcon />} label="Facebook" provider="facebook" />
         </div>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           Não tem uma conta?{" "}
           <Link 
             to="/register" 
-            className="font-medium text-primary hover:text-primary/90"
+            className={cn(
+              "font-medium transition-colors",
+              "text-primary hover:text-primary/90"
+            )}
           >
             Cadastre-se
           </Link>

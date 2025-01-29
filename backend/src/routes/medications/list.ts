@@ -47,8 +47,46 @@ const medicationSchema = z.object({
 const medicationGroupSchema = z.object({
   time: z.string(),
   medications: z.array(z.object({
-    medication: medicationSchema,
-    reminder: reminderSchema,
+    medication: z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      startDate: z.string(),
+      interval: z.number(),
+      duration: z.number().nullable(),
+      isRecurring: z.boolean(),
+      totalQuantity: z.number(),
+      remainingQuantity: z.number(),
+      unit: z.string(),
+      dosageQuantity: z.number(),
+      userId: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      reminders: z.array(z.object({
+        id: z.string(),
+        scheduledFor: z.string(),
+        taken: z.boolean(),
+        takenAt: z.string().nullable(),
+        skipped: z.boolean(),
+        skippedReason: z.string().nullable(),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+        medicationId: z.string(),
+        notified: z.boolean()
+      }))
+    }),
+    reminder: z.object({
+      id: z.string(),
+      scheduledFor: z.string(),
+      taken: z.boolean(),
+      takenAt: z.string().nullable(),
+      skipped: z.boolean(),
+      skippedReason: z.string().nullable(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      medicationId: z.string(),
+      notified: z.boolean()
+    }),
     isLate: z.boolean()
   }))
 })
@@ -86,7 +124,34 @@ const responseSchema = z.union([
   })),
   // Schema para period=today
   z.object({
-    medications: z.array(medicationSchema),
+    medications: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      startDate: z.string(),
+      interval: z.number(),
+      duration: z.number().nullable(),
+      isRecurring: z.boolean(),
+      totalQuantity: z.number(),
+      remainingQuantity: z.number(),
+      unit: z.string(),
+      dosageQuantity: z.number(),
+      userId: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      reminders: z.array(z.object({
+        id: z.string(),
+        scheduledFor: z.string(),
+        taken: z.boolean(),
+        takenAt: z.string().nullable(),
+        skipped: z.boolean(),
+        skippedReason: z.string().nullable(),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+        medicationId: z.string(),
+        notified: z.boolean()
+      }))
+    })),
     groups: z.object({
       late: z.array(medicationGroupSchema),
       onTime: z.array(medicationGroupSchema)

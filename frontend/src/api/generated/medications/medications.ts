@@ -331,7 +331,7 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     /**
- * Marca um medicamento como tomado
+ * Marca ou desmarca um medicamento como tomado
  */
 export const putMedicationsMarkAsTaken = (
     putMedicationsMarkAsTakenBody: PutMedicationsMarkAsTakenBody,

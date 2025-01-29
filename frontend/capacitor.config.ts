@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
       importance: "high",
-      sound: "notification_19_270138",
+      sound: "notification_sound",
       foregroundPresentation: true,
       launchActivity: true,
       android: {
@@ -33,13 +33,13 @@ const config: CapacitorConfig = {
         clickAction: ".MainActivity",
         priority: "high",
         visibility: "public",
-        sound: "notification_19_270138"
+        sound: "notification_sound"
       }
     },
     LocalNotifications: {
       smallIcon: "ic_stat_medtimelogo",
       iconColor: "#7C3AED",
-      sound: "notification_19_270138",
+      sound: "notification_sound",
       schedule: {
         allowWhileIdle: true
       },

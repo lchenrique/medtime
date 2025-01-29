@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from 'react-router-dom'
 import { useSheetStore } from '@/stores/sheet-store'
-import { GetMedications200Item } from '@/api/model'
+import { GetMedications200Item, GetMedications200AnyOfThree } from '@/api/model'
+import toast from 'react-hot-toast'
 
 export type ReminderStatus = 'pending' | 'taken' | 'skipped' | 'late'
 
@@ -32,11 +33,23 @@ export interface MedicationGroup {
 
 export function Home() {
   const [searchTerm, setSearchTerm] = useState('')
-  const { data, isLoading } = useGetMedications(
+  const { data, isLoading , refetch} = useGetMedications(
     { period: 'today' },
     { 
       query: {
-        refetchOnWindowFocus: true
+        refetchOnWindowFocus: true,
+        select: (data): GetMedications200AnyOfThree => {
+          if (Array.isArray(data)) {
+            return {
+              medications: data,
+              groups: {
+                late: [],
+                onTime: [],
+              },
+            };
+          }
+          return data;
+        },
       }
     }
   )
@@ -73,10 +86,11 @@ export function Home() {
       }
     }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['medications'] })
+        toast.success('Medicamento tomado com sucesso')
+        refetch()   
       }
     })
-  }, [markAsTaken, queryClient])
+  }, [markAsTaken, refetch])
 
   const handleSearch = useCallback(() => {
     open({
@@ -245,7 +259,7 @@ export function Home() {
                               medication={item.medication}
                               onClick={() => handleMedicationClick(item.medication)}
                               isLate={false}
-                              showTakeButton
+                              showTakeButton={item.reminder.scheduledFor <= new Date().toISOString()}
                               onTake={() => handleTakeMedication(
                                 item.medication.id,
                                 item.reminder.id,

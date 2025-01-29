@@ -2285,7 +2285,7 @@
         "tags": [
           "medications"
         ],
-        "description": "Marca um medicamento como tomado",
+        "description": "Marca ou desmarca um medicamento como tomado",
         "requestBody": {
           "content": {
             "application/json": {

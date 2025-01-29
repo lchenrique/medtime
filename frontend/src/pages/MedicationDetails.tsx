@@ -4,7 +4,7 @@ import { cn, calculateTimeUntil } from '@/lib/utils'
 import { MedicationSchedule } from '@/components/MedicationSchedule'
 import { useState, useEffect, useMemo } from 'react'
 import { Medication } from '@/types/medication'
-import { useGetMedicationsId, usePutMedicationsMarkAsTaken, useDeleteMedicationsId } from '@/api/generated/medications/medications'
+import { useGetMedicationsId, usePutMedicationsMarkAsTaken, useDeleteMedicationsId, usePatchMedicationsMedicationIdStock } from '@/api/generated/medications/medications'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { useSheetStore } from '@/stores/sheet-store'
 import { GetMedications200ItemRemindersItem } from '@/api/model'
 import { format } from 'date-fns'
@@ -38,11 +39,14 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   const queryClient = useQueryClient()
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
   const { mutate: deleteMedication } = useDeleteMedicationsId()
-  const { data: medicationData } = useGetMedicationsId(initialMedication.id)
+  const { mutate: updateStock } = usePatchMedicationsMedicationIdStock()
+  const { data: medicationData , refetch} = useGetMedicationsId(initialMedication.id)
   const [timeUntil, setTimeUntil] = useState('')
   const navigate = useNavigate()
   const { id } = useParams()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showUpdateStockDialog, setShowUpdateStockDialog] = useState(false)
+  const [newQuantity, setNewQuantity] = useState<number>(0)
   const close = useSheetStore(state => state.close)
 
   // Converter os dados da API para o formato do frontend
@@ -145,11 +149,37 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
     }, {
       onSuccess: () => {
         // Invalida todas as queries relacionadas ao medicamento
-        queryClient.invalidateQueries({ queryKey: [`/medications/${id}`] })
+        refetch()
         queryClient.invalidateQueries({ queryKey: ['/medications'] })
         queryClient.invalidateQueries({ queryKey: [`/medications/${id}/history`] })
       }
     })
+  }
+
+  // Função para atualizar o estoque
+  const handleUpdateStock = () => {
+    if (newQuantity < 0) {
+      toast.error('A quantidade não pode ser negativa')
+      return
+    }
+
+    updateStock(
+      { 
+        medicationId: med.id, 
+        data: { remainingQuantity: newQuantity }
+      },
+      {
+        onSuccess: () => {
+          setShowUpdateStockDialog(false)
+          toast.success('Estoque atualizado com sucesso')
+          refetch()
+          queryClient.invalidateQueries({ queryKey: ['/medications'] })
+        },
+        onError: () => {
+          toast.error('Erro ao atualizar estoque')
+        }
+      }
+    )
   }
 
   if (!medicationData) {
@@ -316,7 +346,10 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
             variant="outline" 
             size="sm"
             className="w-full text-emerald-600 dark:text-emerald-400 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50"
-            onClick={() => {/* Adicionar modal para atualizar quantidade */}}
+            onClick={() => {
+              setNewQuantity(med.remainingQuantity)
+              setShowUpdateStockDialog(true)
+            }}
           >
             Atualizar Quantidade
           </Button>
@@ -450,6 +483,43 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
               }}
             >
               Deletar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Atualização de Estoque */}
+      <Dialog open={showUpdateStockDialog} onOpenChange={setShowUpdateStockDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atualizar Estoque</DialogTitle>
+            <DialogDescription>
+              Informe a nova quantidade de {med.name} disponível.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center gap-4">
+              <Input
+                type="number"
+                value={newQuantity}
+                onChange={(e) => setNewQuantity(Number(e.target.value))}
+                min={0}
+                max={med.totalQuantity}
+                className="col-span-3"
+              />
+              <span className="text-sm text-muted-foreground">
+                de {med.totalQuantity} {med.unit}
+              </span>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUpdateStockDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateStock}>
+              Atualizar
             </Button>
           </DialogFooter>
         </DialogContent>

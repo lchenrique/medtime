@@ -123,7 +123,7 @@ export function Medications() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-xl mx-auto">
+      <div className=" mx-auto">
         {/* Header com título e ações */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md px-4 py-3">
           <div className="flex items-center justify-between mb-3">

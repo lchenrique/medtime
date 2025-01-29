@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, Check, Loader2 } from "lucide-
 import { useState, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Medication } from "../types/medication"
-import { getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken} from "@/api/generated/medications/medications"
+import { getGetMedicationsIdQueryKey, getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken} from "@/api/generated/medications/medications"
 import { useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
@@ -41,10 +41,39 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const [loadingSlots, setLoadingSlots] = useState<string[]>([])
 
   const { data: medicationData, refetch } = useGetMedicationsId(medication.id)
-  console.log(medicationData, "TESTE")
 
   const { mutate: markAsTaken, isPending } = usePutMedicationsMarkAsTaken({
     mutation: {
+      onMutate(variables) {
+        // Atualização otimista
+        const previousData = queryClient.getQueryData<any>([getGetMedicationsIdQueryKey(medication.id)])
+        
+        // Atualiza o estado localmente
+        queryClient.setQueryData([getGetMedicationsIdQueryKey], (old: any) => {
+          if (!old) return old
+            
+          return {
+            ...old,
+            reminders: old.reminders.map((reminder: Reminder) => {
+              if (reminder.id === variables.data.reminderId) {
+                return {
+                  ...reminder,
+                  taken: variables.data.taken,
+                  takenAt: variables.data.taken ? new Date().toISOString() : null
+                }
+              }
+              return reminder
+            })
+          }
+        })
+
+        // Retorna uma função para reverter em caso de erro
+        return {
+          rollback: () => {
+            queryClient.setQueryData(['/medications', medication.id], previousData)
+          }
+        }
+      },
       onSuccess: () => {
         // Invalida todas as queries relacionadas ao medicamento
         queryClient.invalidateQueries({ queryKey: ['/medications'] })

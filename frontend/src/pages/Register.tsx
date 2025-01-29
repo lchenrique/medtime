@@ -13,6 +13,7 @@ import { useUserStore } from '@/stores/user'
 import { storage } from '@/lib/storage'
 import { usePostAuthRegister, getAuthProfile } from '@/api/generated/auth/auth'
 import type { PostAuthRegister201 } from '@/api/model'
+import { cn } from "@/lib/utils"
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -87,7 +88,7 @@ export function Register() {
             onBlur={() => setFocusedInput(null)}
           />
           {errors.name && (
-            <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>
           )}
 
           <AuthInput
@@ -99,7 +100,7 @@ export function Register() {
             onBlur={() => setFocusedInput(null)}
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
           )}
 
           <AuthInput
@@ -111,12 +112,12 @@ export function Register() {
             onBlur={() => setFocusedInput(null)}
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         {error && (
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-sm text-destructive">{error}</p>
         )}
 
         <Button 
@@ -134,11 +135,14 @@ export function Register() {
           <SocialButton icon={<FacebookIcon />} label="Facebook" provider="facebook" />
         </div>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           Já tem uma conta?{" "}
           <Link 
             to="/login" 
-            className="font-medium text-primary hover:text-primary transition-colors"
+            className={cn(
+              "font-medium transition-colors",
+              "text-primary hover:text-primary/90"
+            )}
           >
             Fazer login
           </Link>

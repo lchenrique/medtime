@@ -5,10 +5,7 @@
  * API do sistema MedTime para gestão de medicamentos e lembretes
  * OpenAPI spec version: 1.0.0
  */
-import type { GetMedications200MedicationsItem } from './getMedications200MedicationsItem';
-import type { GetMedications200Groups } from './getMedications200Groups';
+import type { GetMedications200AnyOfItem } from './getMedications200AnyOfItem';
+import type { GetMedications200AnyOfThree } from './getMedications200AnyOfThree';
 
-export type GetMedications200 = {
-  medications: GetMedications200MedicationsItem[];
-  groups: GetMedications200Groups;
-};
+export type GetMedications200 = GetMedications200AnyOfItem[] | GetMedications200AnyOfThree;

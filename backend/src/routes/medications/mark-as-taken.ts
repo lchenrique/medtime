@@ -1,6 +1,6 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { markVirtualReminderAsTaken } from '../../services/medication.service'
+import { markReminderAsTaken } from '../../services/medication.service'
 
 const markAsTakenSchema = z.object({
   reminderId: z.string(),
@@ -14,7 +14,7 @@ export const markAsTaken: FastifyPluginAsyncZod = async (app) => {
   app.put('/', {
     schema: {
       tags: ['medications'],
-      description: 'Marca um medicamento como tomado',
+      description: 'Marca ou desmarca um medicamento como tomado',
       body: markAsTakenSchema,
       response: {
         200: z.object({
@@ -38,7 +38,7 @@ export const markAsTaken: FastifyPluginAsyncZod = async (app) => {
     const { reminderId, scheduledFor, taken } = request.body as MarkAsTakenBody
 
     try {
-      const reminder = await markVirtualReminderAsTaken(
+      const reminder = await markReminderAsTaken(
         reminderId,
         new Date(scheduledFor),
         taken

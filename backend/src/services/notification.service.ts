@@ -228,48 +228,43 @@ async function sendMedicationReminder({ medicationId, scheduledFor, userId }: Me
     const formattedTime = format(scheduledFor, "HH:mm", { locale: ptBR })
     // Formata a data no formato dd/MM
     const formattedDate = format(scheduledFor, "dd/MM", { locale: ptBR })
-    const title = 'Hora do Medicamento'
-    const body = `${medication.name} - ${medication.dosageQuantity} ${medication.unit} às ${formattedTime} do dia ${formattedDate}`
+    
+    // Título mais descritivo
+    const title = `${medication.name} - Hora do Medicamento`
+    
+    // Corpo da mensagem mais organizado
+    const body = [
+      `📝 Dose: ${medication.dosageQuantity} ${medication.unit}`,
+      `⏰ Horário: ${formattedTime} do dia ${formattedDate}`,
+      medication.description ? `📋 Obs: ${medication.description}` : null,
+      medication.remainingQuantity <= 5 ? `⚠️ Atenção: Estoque baixo! Restam ${medication.remainingQuantity} ${medication.unit}` : null
+    ].filter(Boolean).join('\n')
 
+    // Marca o lembrete como notificado antes de enviar as notificações
+    await prisma.reminder.updateMany({
+      where: {
+        medicationId,
+        scheduledFor,
+        notified: false
+      },
+      data: {
+        notified: true
+      }
+    })
+
+    // Envia todas as notificações de uma vez
     await sendNotification({
       userId,
       title,
       body,
       data: {
         medicationId,
-        timestamp: scheduledFor.toISOString()
+        timestamp: scheduledFor.toISOString(),
+        dosage: `${medication.dosageQuantity} ${medication.unit}`,
+        description: medication.description || "",
+        remainingQuantity: medication.remainingQuantity.toString()
       }
     })
-
-    // Envia notificação específica via WhatsApp se habilitado
-    if (medication.user.whatsappEnabled && medication.user.whatsappNumber) {
-      try {
-        await WhatsAppService.sendMedicationReminder(
-          medication.user.whatsappNumber,
-          medication.name,
-          medication.dosageQuantity, // dosage como number
-          scheduledFor,
-          medication.remainingQuantity,
-          medicationId,
-          medication.description || ""
-        )
-      } catch (error) {
-        console.error('Erro ao enviar WhatsApp notification:', error)
-      }
-    }
-
-    // Envia notificação específica via Telegram se habilitado
-    if (medication.user.telegramEnabled && medication.user.telegramChatId) {
-      await TelegramService.sendMedicationReminder(
-        medication.user.telegramChatId,
-        medication.name,
-        `${medication.dosageQuantity} ${medication.unit}`,
-        scheduledFor,
-        medication.remainingQuantity,
-        medicationId,
-        medication.description || undefined
-      )
-    }
 
   } catch (error) {
     console.error('Erro ao enviar lembrete de medicamento:', error)
