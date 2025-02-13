@@ -4,12 +4,13 @@ import { Toaster } from 'react-hot-toast'
 import { setupIonicReact, IonApp } from '@ionic/react';
 
 /* Core CSS required for Ionic components to work properly */
-import '@ionic/react/css/core.css'; 
+import '@ionic/react/css/core.css';
 
 /* Basic CSS for apps built with Ionic */
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
+import { ThemeProvider } from './components/ThemeProvider';
 
 /* Optional CSS utils that can be commented out */
 // import '@ionic/react/css/float-elements.css';
@@ -38,10 +39,14 @@ setupIonicReact({
 export default function App() {
   return (
     <>
-      <IonApp className="ion-no-padding">
-        <RouterProvider router={router} />
-        <Toaster />
-      </IonApp>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+
+        <IonApp className="ion-no-padding">
+          <RouterProvider router={router} />
+          <Toaster />
+        </IonApp>
+      </ThemeProvider>
+
     </>
   )
 }

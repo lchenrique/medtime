@@ -3,7 +3,7 @@ import { MedTimeIcon } from '@/components/icons/MedTimeIcon'
 
 export function AuthLayout() {
   return (
-    <div className="min-h-screen flex flex-col  overflow-hidden relative">
+    <div className="min-h-screen flex flex-col   overflow-auto relative ">
        
       {/* Elementos decorativos modernos */}
       <div className="absolute inset-0 pointer-events-none ">

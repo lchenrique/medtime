@@ -9,67 +9,68 @@ datasource db {
 
 // Usuário do sistema
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  name          String
-  fcmToken      String?      // Token para notificações push web
-  whatsappEnabled Boolean    @default(false)  // Habilita notificações via WhatsApp
-  whatsappNumber String?     // Número do WhatsApp do usuário
-  telegramEnabled Boolean    @default(false)  // Habilita notificações via Telegram
-  telegramChatId String?     // ID do chat do Telegram do usuário
-  timezone      String       @default("America/Sao_Paulo")
+  id                String       @id @default(cuid())
+  email             String       @unique
+  name              String
+  fcmToken          String? // Token para notificações push web
+  whatsappEnabled   Boolean      @default(false) // Habilita notificações via WhatsApp
+  whatsappNumber    String? // Número do WhatsApp do usuário
+  telegramEnabled   Boolean      @default(false) // Habilita notificações via Telegram
+  telegramChatId    String? // ID do chat do Telegram do usuário
+  timezone          String       @default("America/Sao_Paulo")
   // Informações de saúde
-  isDiabetic    Boolean      @default(false)  // Indica se o usuário tem diabetes
-  hasHeartCondition Boolean  @default(false)  // Indica se o usuário tem condição cardíaca
-  hasHypertension Boolean    @default(false)  // Indica se o usuário tem hipertensão
-  allergies     String?      // Lista de alergias do usuário
-  observations  String?      // Observações adicionais sobre a saúde
-  medications   Medication[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  tauriEnabled  Boolean      @default(false) // Indica se o usuário usa cliente Tauri
-  capacitorEnabled Boolean   @default(false) // Indica se o usuário usa cliente Capacitor
+  isDiabetic        Boolean      @default(false) // Indica se o usuário tem diabetes
+  hasHeartCondition Boolean      @default(false) // Indica se o usuário tem condição cardíaca
+  hasHypertension   Boolean      @default(false) // Indica se o usuário tem hipertensão
+  allergies         String? // Lista de alergias do usuário
+  observations      String? // Observações adicionais sobre a saúde
+  medications       Medication[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  tauriEnabled      Boolean      @default(false) // Indica se o usuário usa cliente Tauri
+  capacitorEnabled  Boolean      @default(false) // Indica se o usuário usa cliente Capacitor
+  password          String?
 
   @@index([email])
 }
 
 // Medicações cadastradas
 model Medication {
-  id               String     @id @default(cuid())
-  name             String
-  description      String?
-  startDate        DateTime
-  duration         Int?      // Opcional para medicamentos recorrentes
-  interval         Int
-  isRecurring     Boolean    @default(false) // Novo campo
+  id                String          @id @default(cuid())
+  name              String
+  description       String?
+  startDate         DateTime
+  duration          Int? // Opcional para medicamentos recorrentes
+  interval          Int
+  isRecurring       Boolean         @default(false) // Novo campo
   // Adicionando campos de estoque
-  totalQuantity    Float      // Quantidade total (ex: 30 comprimidos)
-  remainingQuantity Float     // Quantidade restante
-  unit            String      // 'comprimidos' | 'ml' | 'gotas' | 'doses'
-  dosageQuantity   Float      // Quantidade por dose (ex: 1 comprimido)
-  userId          String
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  user            User       @relation(fields: [userId], references: [id])
-  reminders       Reminder[]
-  logs            MedicationLog[]
+  totalQuantity     Float // Quantidade total (ex: 30 comprimidos)
+  remainingQuantity Float // Quantidade restante
+  unit              String // 'comprimidos' | 'ml' | 'gotas' | 'doses'
+  dosageQuantity    Float // Quantidade por dose (ex: 1 comprimido)
+  userId            String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  user              User            @relation(fields: [userId], references: [id])
+  reminders         Reminder[]
+  logs              MedicationLog[]
 
   @@index([userId])
 }
 
 // Lembretes de medicação
 model Reminder {
-  id             String     @id @default(cuid())
-  medicationId   String
-  medication     Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
-  scheduledFor   DateTime   // Data/hora agendada
-  taken          Boolean    @default(false)
-  takenAt        DateTime?  // Quando foi tomado
-  skipped        Boolean    @default(false)
-  skippedReason  String?    // Razão por ter pulado
-  notified       Boolean    @default(false) // Indica se a notificação foi enviada
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  medicationId  String
+  medication    Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  scheduledFor  DateTime // Data/hora agendada
+  taken         Boolean    @default(false)
+  takenAt       DateTime? // Quando foi tomado
+  skipped       Boolean    @default(false)
+  skippedReason String? // Razão por ter pulado
+  notified      Boolean    @default(false) // Indica se a notificação foi enviada
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@index([medicationId])
   @@index([scheduledFor])

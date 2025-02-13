@@ -18,6 +18,7 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: z.string(),
   FIREBASE_PRIVATE_KEY: z.string(),
   FIREBASE_CLIENT_EMAIL: z.string(),
+  JWT_SECRET: z.string(),
 })
 
-export const env = envSchema.parse(process.env) 
+export const env = envSchema.parse(process.env)

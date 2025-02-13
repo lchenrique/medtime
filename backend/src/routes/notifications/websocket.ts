@@ -3,7 +3,6 @@ import { FastifyRequest } from 'fastify'
 import { WebSocket } from 'ws'
 import { prisma } from '../../lib/prisma'
 import { z } from 'zod'
-import { supabase } from '../../lib/supabase'
 
 // Define o tipo da conexão WebSocket
 type Connection = WebSocket & { clientType: 'tauri' }
@@ -25,72 +24,69 @@ export const websocketRoutes: FastifyPluginAsyncZod = async (app) => {
   }, async (connection, request) => {
     try {
       const { token, client } = request.query as { token: string, client: 'tauri' }
-      console.log('Token recebido:', token)
-      console.log('Cliente:', client)
-      console.log('Nova conexão WebSocket recebida')
 
       // Verifica o token do Supabase
-      const { data: { user }, error } = await supabase.auth.getUser(token)
+      // const { data: { user }, error } = await supabase.auth.getUser(token)
       
-      if (error || !user) {
-        console.error('Erro de autenticação:', error)
-        connection.close(1008, 'Usuário não autenticado')
-        return
-      }
+      // if (error || !user) {
+      //   console.error('Erro de autenticação:', error)
+      //   connection.close(1008, 'Usuário não autenticado')
+      //   return
+      // }
 
-      const userId = user.id
-      console.log('Verificando usuário:', userId)
+      // const userId = user.id
+      // console.log('Verificando usuário:', userId)
 
       // Verifica se usuário existe e tem Tauri habilitado
-      const userRecord = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          tauriEnabled: true
-        }
-      })
+      // const userRecord = await prisma.user.findUnique({
+      //   where: { id: userId },
+      //   select: {
+      //     id: true,
+      //     tauriEnabled: true
+      //   }
+      // })
 
-      console.log('Usuário encontrado:', userRecord)
+      // console.log('Usuário encontrado:', userRecord)
 
-      if (!userRecord?.tauriEnabled) {
-        console.log('Tauri não habilitado para usuário:', userId)
-        connection.close(1008, 'Tauri não habilitado')
-        return
-      }
+      // if (!userRecord?.tauriEnabled) {
+      //   console.log('Tauri não habilitado para usuário:', userId)
+      //   connection.close(1008, 'Tauri não habilitado')
+      //   return
+      // }
 
       // Adiciona o tipo de cliente à conexão
-      (connection as Connection).clientType = 'tauri'
+      // (connection as Connection).clientType = 'tauri'
 
-      console.log(`WebSocket autenticado: ${userId} (tauri)`)
+      // console.log(`WebSocket autenticado: ${userId} (tauri)`)
       
-      // Armazena conexão
-      if (!connections.has(userId)) {
-        connections.set(userId, [])
-      }
-      connections.get(userId)?.push(connection as Connection)
+      // // Armazena conexão
+      // if (!connections.has(userId)) {
+      //   connections.set(userId, [])
+      // }
+      // connections.get(userId)?.push(connection as Connection)
 
-      // Configura ping/pong para manter a conexão ativa
-      const pingInterval = setInterval(() => {
-        if (connection.readyState === WebSocket.OPEN) {
-          connection.ping()
-        }
-      }, 30000) // Ping a cada 30 segundos
+      // // Configura ping/pong para manter a conexão ativa
+      // const pingInterval = setInterval(() => {
+      //   if (connection.readyState === WebSocket.OPEN) {
+      //     connection.ping()
+      //   }
+      // }, 30000) // Ping a cada 30 segundos
 
-      // Cleanup
-      connection.on('close', () => {
-        console.log(`WebSocket fechado: ${userId} (tauri)`)
-        clearInterval(pingInterval)
-        const userConnections = connections.get(userId)
-        if (userConnections) {
-          const index = userConnections.indexOf(connection as Connection)
-          if (index > -1) {
-            userConnections.splice(index, 1)
-          }
-          if (userConnections.length === 0) {
-            connections.delete(userId)
-          }
-        }
-      })
+      // // Cleanup
+      // connection.on('close', () => {
+      //   console.log(`WebSocket fechado: ${userId} (tauri)`)
+      //   clearInterval(pingInterval)
+      //   const userConnections = connections.get(userId)
+      //   if (userConnections) {
+      //     const index = userConnections.indexOf(connection as Connection)
+      //     if (index > -1) {
+      //       userConnections.splice(index, 1)
+      //     }
+      //     if (userConnections.length === 0) {
+      //       connections.delete(userId)
+      //     }
+      //   }
+      // })
 
     } catch (error) {
       console.error('Erro detalhado na conexão WebSocket:', error)

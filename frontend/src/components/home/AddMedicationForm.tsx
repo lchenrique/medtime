@@ -1,23 +1,15 @@
-import { useState } from 'react'
-import { toast } from 'react-hot-toast'
-import { useQueryClient } from '@tanstack/react-query'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Pill, Clock, Calendar, Plus } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { usePostMedications } from '@/api/generated/medications/medications'
 import { PostMedicationsBodyIntervalPreset } from '@/api/model/postMedicationsBodyIntervalPreset'
 import { PostMedicationsBodyUnit } from '@/api/model/postMedicationsBodyUnit'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { DatetimePicker } from '@/components/ui/datetime-picker'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { DrawerContent } from '../DrawerContent'
+import { useToast } from '@/stores/use-toast'
 
 interface AddMedicationFormProps {
   onSuccess: () => void
@@ -70,6 +62,9 @@ const UNIT_OPTIONS = [
 ]
 
 export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
+
+
+  const toast = useToast(state => state.open)
   const [form, setForm] = useState<MedicationForm>(initialForm)
   const queryClient = useQueryClient()
   const { mutate: createMedication, isPending } = usePostMedications()
@@ -85,9 +80,9 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
         return form.name.trim().length >= 2
       case 2: // Data e hora inicial
         if (!form.startDateTime) return false
-        
+
         const startDate = new Date(form.startDateTime)
-        
+
         // Verifica apenas se:
         // 1. A data é válida
         // 2. A data não é mais de 1 ano no passado
@@ -95,10 +90,10 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
         const now = new Date()
         const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
         const oneYearFuture = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
-        
+
         const isValidDate = !isNaN(startDate.getTime())
         const isWithinRange = startDate >= oneYearAgo && startDate <= oneYearFuture
-        
+
         return isValidDate && isWithinRange
       case 3: // Intervalo
         return form.intervalPreset !== 'custom' || (form.customInterval && form.customInterval > 0)
@@ -106,7 +101,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
         return form.durationInDays !== 'custom' || (form.customDuration && form.customDuration > 0)
       case 5: // Quantidade
         return !!(
-          form.unit && 
+          form.unit &&
           form.totalQuantity && form.totalQuantity > 0 &&
           form.dosageQuantity && form.dosageQuantity > 0
         )
@@ -129,7 +124,11 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
     e.preventDefault()
 
     if (!form.unit || !form.totalQuantity || !form.dosageQuantity) {
-      toast.error('Preencha todos os campos')
+     toast({
+      title: 'Erro',
+      description: 'Preencha todos os campos',
+      type: 'error'
+     })
       return
     }
 
@@ -138,7 +137,11 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
       : parseInt(form.intervalPreset.split('/')[0])
 
     if (!interval) {
-      toast.error('Intervalo inválido')
+     toast({
+      title: 'Erro',
+      description: 'Intervalo inválido',
+      type: 'error'
+     })
       return
     }
 
@@ -149,48 +152,57 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
         : form.durationInDays
 
     if (form.durationInDays !== 'recurring' && !duration) {
-      toast.error('Duração inválida')
+     toast({
+      title: 'Erro',
+      description: 'Duração inválida',
+      type: 'error'
+     })
       return
     }
 
     try {
       createMedication(
-        { data: {
-          name: form.name,
-          description: form.description || null,
-          startTime: form.startDateTime.toISOString(),
-          intervalPreset: form.intervalPreset as PostMedicationsBodyIntervalPreset,
-          durationInDays: form.durationInDays === 'custom' 
-            ? form.customDuration!
-            : form.durationInDays === 'recurring'
-              ? 0 // Valor mínimo para medicamentos recorrentes
-              : form.durationInDays as number,
-          totalQuantity: form.totalQuantity!,
-          unit: form.unit!,
-          dosageQuantity: form.dosageQuantity!
-        } },
+        {
+          data: {
+            name: form.name,
+            description: form.description || null,
+            startTime: form.startDateTime.toISOString(),
+            intervalPreset: form.intervalPreset as PostMedicationsBodyIntervalPreset,
+            durationInDays: form.durationInDays === 'custom'
+              ? form.customDuration!
+              : form.durationInDays === 'recurring'
+                ? 0 // Valor mínimo para medicamentos recorrentes
+                : form.durationInDays as number,
+            totalQuantity: form.totalQuantity!,
+            unit: form.unit!,
+            dosageQuantity: form.dosageQuantity!
+          }
+        },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['/medications'] })
-            
-            toast.success('Medicamento adicionado com sucesso!', {
-              position: 'bottom-left',
-              className: 'bg-white dark:bg-gray-800'
+
+            toast({
+              title: 'Medicamento adicionado',
+              description: 'O medicamento foi adicionado com sucesso',
+              type: 'success'
             })
             onSuccess()
           },
           onError: (error) => {
-            toast.error('Erro ao adicionar medicamento', {
-              position: 'bottom-left',
-              className: 'bg-white dark:bg-gray-800'
+            toast({
+              title: 'Erro',
+              description: 'Erro ao adicionar medicamento',
+              type: 'error'
             })
           },
         }
       )
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro ao adicionar medicamento', {
-        position: 'bottom-left',
-        className: 'bg-white dark:bg-gray-800'
+      toast({
+        title: 'Erro',
+        description: 'Erro ao adicionar medicamento',
+        type: 'error'
       })
     }
   }
@@ -200,7 +212,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
   ) => {
     setForm(prev => ({
       ...prev,
-      [field]: field === 'customInterval' || field === 'customDuration' 
+      [field]: field === 'customInterval' || field === 'customDuration'
         ? Number(e.target.value)
         : e.target.value
     }))
@@ -228,12 +240,12 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Passo {step} de {totalSteps}</span>
-              <span className="text-violet-600 dark:text-violet-400">{Math.round((step/totalSteps) * 100)}%</span>
+              <span className="text-violet-600 dark:text-violet-400">{Math.round((step / totalSteps) * 100)}%</span>
             </div>
             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div  
+              <div
                 className="h-full bg-violet-600 dark:bg-violet-400 transition-all duration-300 ease-out"
-                style={{ width: `${(step/totalSteps) * 100}%` }}
+                style={{ width: `${(step / totalSteps) * 100}%` }}
               />
             </div>
           </div>
@@ -306,8 +318,8 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   ]}
                   className={cn(
                     "mt-1.5 w-full border rounded-lg",
-                    canAdvance() 
-                      ? "border-input hover:border-violet-600 dark:hover:border-violet-400" 
+                    canAdvance()
+                      ? "border-input hover:border-violet-600 dark:hover:border-violet-400"
                       : "border-destructive/50 hover:border-destructive"
                   )}
                   dtOptions={{
@@ -543,7 +555,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                 >
                   Voltar
                 </Button>
-                
+
                 <Button
                   type="submit"
                   className="flex-1"
@@ -568,7 +580,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   Voltar
                 </Button>
               )}
-              
+
               <Button
                 type="button"
                 className="flex-1"

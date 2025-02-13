@@ -9,20 +9,16 @@ import {
   IonPage,
   IonItem
 } from '@ionic/react'
-import { useModalStore } from '@/stores/modal-store'
 import { X } from 'lucide-react';
+import { useDialogStore } from '@/stores/use-deialog';
 
-export function Modal() {
-  const { isOpen, content, title, close } = useModalStore()
+export function Dialog() {
+  const { isOpen, content, title, close } = useDialogStore()
 
 
   return (
 
-    <IonModal isOpen={isOpen} onIonModalDidDismiss={close}
-      id="modal"
-      trigger="open-modal"
-      handleBehavior="cycle"
-    >
+    <IonModal id="dialog" isOpen={isOpen} onIonModalDidDismiss={close}  >
       <IonHeader className='ion-no-border'>
         <IonToolbar >
           <IonTitle>{title}</IonTitle>
@@ -33,8 +29,10 @@ export function Modal() {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding ">
-        {content}
+      <IonContent className="ion-padding">
+        <div className="flex flex-col gap-4 p-6">
+          {content}
+        </div>
       </IonContent>
     </IonModal>
 

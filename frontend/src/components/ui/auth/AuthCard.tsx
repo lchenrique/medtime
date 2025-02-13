@@ -31,7 +31,7 @@ export function AuthCard({ title, children, className }: AuthCardProps) {
   }
 
   return (
-    <div className="grid place-items-center p-4">
+    <div className="grid place-items-center p-4 ">
       <motion.div 
         variants={variants}
         initial="initial"

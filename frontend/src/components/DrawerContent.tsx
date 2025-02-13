@@ -6,7 +6,7 @@ interface DrawerContentProps {
 
 export function DrawerContent({ children }: DrawerContentProps) {
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto py-4">
       {children}
     </div>
   )

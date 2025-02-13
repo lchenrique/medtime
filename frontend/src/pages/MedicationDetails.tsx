@@ -1,18 +1,9 @@
-import { Clock, Calendar, AlertCircle, Package, Trash2, FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn, calculateTimeUntil } from '@/lib/utils'
-import { MedicationSchedule } from '@/components/MedicationSchedule'
-import { useState, useEffect, useMemo } from 'react'
-import { Medication } from '@/types/medication'
-import { useGetMedicationsId, usePutMedicationsMarkAsTaken, useDeleteMedicationsId, usePatchMedicationsMedicationIdStock } from '@/api/generated/medications/medications'
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'react-hot-toast'
-import { customInstance } from '@/api/axios-client'
-import { DeleteMedicationsId200 } from '@/api/model/deleteMedicationsId200'
-import { PutMedicationsMarkAsTakenBody } from '@/api/model'
+import { getGetMedicationsIdQueryKey, getGetMedicationsQueryKey, useDeleteMedicationsId, useGetMedicationsId, usePatchMedicationsMedicationIdStock, usePutMedicationsMarkAsTaken } from '@/api/generated/medications/medications'
+import { GetMedications200ItemRemindersItem } from '@/api/model'
 import { GetMedicationsId200 } from '@/api/model/getMedicationsId200'
+import { UpdateStockForm } from '@/components/medication-details/UpdateStock'
+import { MedicationSchedule } from '@/components/MedicationSchedule'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -22,10 +13,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { calculateTimeUntil, cn } from '@/lib/utils'
+import { useModalStore } from '@/stores/modal-store'
 import { useSheetStore } from '@/stores/sheet-store'
-import { GetMedications200ItemRemindersItem } from '@/api/model'
-import { format } from 'date-fns'
-import { Loader2 } from 'lucide-react'
+import { useDialogStore } from '@/stores/use-deialog'
+import { useToast } from '@/stores/use-toast'
+import { Medication } from '@/types/medication'
+import { IonAlert } from '@ionic/react'
+import { useQueryClient } from '@tanstack/react-query'
+import { AlertCircle, Calendar, Clock, FileText, Loader, Loader2, Package, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 interface MedicationWithRecurring extends GetMedicationsId200 {
   isRecurring: boolean
@@ -38,16 +36,12 @@ interface MedicationDetailsProps {
 export function MedicationDetails({ medication: initialMedication }: MedicationDetailsProps) {
   const queryClient = useQueryClient()
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken()
-  const { mutate: deleteMedication } = useDeleteMedicationsId()
-  const { mutate: updateStock } = usePatchMedicationsMedicationIdStock()
-  const { data: medicationData , refetch} = useGetMedicationsId(initialMedication.id)
+  const { mutate: deleteMedication, isPending: isDeleting } = useDeleteMedicationsId()
+  const { data: medicationData, refetch } = useGetMedicationsId(initialMedication.id)
   const [timeUntil, setTimeUntil] = useState('')
-  const navigate = useNavigate()
-  const { id } = useParams()
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showUpdateStockDialog, setShowUpdateStockDialog] = useState(false)
-  const [newQuantity, setNewQuantity] = useState<number>(0)
-  const close = useSheetStore(state => state.close)
+  const { open } = useDialogStore()
+  const close = useModalStore(state => state.close)
+  const toast = useToast(state => state.open)
 
   // Converter os dados da API para o formato do frontend
   const med = useMemo(() => {
@@ -57,8 +51,8 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
       ...medicationData,
       description: medicationData.description || '',
       dosage: '1 comprimido',
-      time: new Date(medicationData.startDate).toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
+      time: new Date(medicationData.startDate).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
         minute: '2-digit',
         timeZone: 'America/Sao_Paulo'
       }),
@@ -67,8 +61,8 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
       timeUntil: calculateTimeUntil(medicationData.startDate),
       reminders: medicationData.reminders?.map(reminder => ({
         ...reminder,
-        time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
+        time: new Date(reminder.scheduledFor).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
           minute: '2-digit',
           timeZone: 'America/Sao_Paulo'
         })
@@ -80,7 +74,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   // Pega o próximo lembrete não tomado
   const nextReminder = useMemo(() => {
     const now = new Date()
-    return med.reminders.find((r: GetMedications200ItemRemindersItem) => 
+    return med.reminders.find((r: GetMedications200ItemRemindersItem) =>
       !r.taken && !r.skipped && new Date(r.scheduledFor) > now
     )
   }, [med.reminders])
@@ -109,14 +103,14 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   const now = new Date()
   const pastReminders = med.reminders
     .filter((r: GetMedications200ItemRemindersItem) => new Date(r.scheduledFor) < now)
-    .sort((a: GetMedications200ItemRemindersItem, b: GetMedications200ItemRemindersItem) => 
+    .sort((a: GetMedications200ItemRemindersItem, b: GetMedications200ItemRemindersItem) =>
       new Date(b.scheduledFor).getTime() - new Date(a.scheduledFor).getTime()
     )
 
   // Pega os horários do dia atual
   const todayReminders = useMemo(() => {
     if (!med.reminders) return []
-    
+
     const now = new Date()
     const startOfToday = new Date(now)
     startOfToday.setHours(0, 0, 0, 0)
@@ -140,8 +134,8 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   }, [med.reminders])
 
   const handleMarkAsTaken = async (reminderId: string, scheduledFor: string, taken: boolean = true) => {
-    markAsTaken({ 
-      data: { 
+    markAsTaken({
+      data: {
         reminderId,
         scheduledFor,
         taken
@@ -150,37 +144,28 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
       onSuccess: () => {
         // Invalida todas as queries relacionadas ao medicamento
         refetch()
-        queryClient.invalidateQueries({ queryKey: ['/medications'] })
-        queryClient.invalidateQueries({ queryKey: [`/medications/${id}/history`] })
+        queryClient.invalidateQueries({ queryKey: getGetMedicationsIdQueryKey(initialMedication.id) })
       }
     })
   }
 
-  // Função para atualizar o estoque
-  const handleUpdateStock = () => {
-    if (newQuantity < 0) {
-      toast.error('A quantidade não pode ser negativa')
-      return
-    }
-
-    updateStock(
-      { 
-        medicationId: med.id, 
-        data: { remainingQuantity: newQuantity }
-      },
-      {
-        onSuccess: () => {
-          setShowUpdateStockDialog(false)
-          toast.success('Estoque atualizado com sucesso')
-          refetch()
-          queryClient.invalidateQueries({ queryKey: ['/medications'] })
-        },
-        onError: () => {
-          toast.error('Erro ao atualizar estoque')
-        }
+  const handleDeleteMedication = () => {
+    deleteMedication({
+      id: initialMedication.id,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: 'Medicamento removido',
+          description: 'O medicamento foi removido com sucesso.',
+          type: 'success'
+        })
+        queryClient.invalidateQueries({ queryKey: getGetMedicationsQueryKey() })
+        close()
       }
-    )
+    })
   }
+
+
 
   if (!medicationData) {
     return (
@@ -207,7 +192,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
                 <p className="text-sm text-muted-foreground">{timeUntil}</p>
               </div>
             </div>
-            <Button 
+            <Button
               variant="outline"
               size="sm"
               onClick={() => handleMarkAsTaken(nextReminder.id, nextReminder.scheduledFor, true)}
@@ -315,17 +300,17 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
               </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className={cn(
                   "h-full transition-all duration-300 ease-out",
-                  med.remainingQuantity / med.totalQuantity <= 0.2 
+                  med.remainingQuantity / med.totalQuantity <= 0.2
                     ? "bg-red-500"
                     : med.remainingQuantity / med.totalQuantity <= 0.5
                       ? "bg-amber-500"
                       : "bg-emerald-500"
                 )}
-                style={{ 
-                  width: `${(med.remainingQuantity / med.totalQuantity) * 100}%` 
+                style={{
+                  width: `${(med.remainingQuantity / med.totalQuantity) * 100}%`
                 }}
               />
             </div>
@@ -342,13 +327,14 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
             )}
           </div>
 
-          <Button 
-            variant="outline" 
+          <Button
             size="sm"
-            className="w-full text-emerald-600 dark:text-emerald-400 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50"
+            className='w-full dark:bg-primary/50  dark:text-primary-foreground'
             onClick={() => {
-              setNewQuantity(med.remainingQuantity)
-              setShowUpdateStockDialog(true)
+              open({
+                title: 'Atualizar Estoque',
+                content: <UpdateStockForm medication={med} />,
+              })
             }}
           >
             Atualizar Quantidade
@@ -369,7 +355,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           {pastReminders.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
@@ -381,8 +367,8 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
               const takenDate = reminder.takenAt ? new Date(reminder.takenAt) : null
 
               return (
-                <div 
-                  key={reminder.id} 
+                <div
+                  key={reminder.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                 >
                   <div className="flex items-center gap-3">
@@ -405,7 +391,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="text-sm">
                     {reminder.taken ? (
                       <div className="text-right">
@@ -442,88 +428,44 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
 
       {/* Ações */}
       <div className="p-4">
-        <Button 
+        <Button
           variant="outline"
           size="sm"
-          onClick={() => setShowDeleteDialog(true)}
+          id="present-alert"
+          disabled={isDeleting}
+          // onClick={() => setShowDeleteDialog(true)}
           className="w-full text-red-600 dark:text-red-400 border-red-200 hover:border-red-300 hover:bg-red-50"
         >
-          <Trash2 className="w-4 h-4 mr-2" />
+          {isDeleting ? (
+            <Loader className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-2" />
+          )}
           Deletar Medicamento
         </Button>
       </div>
 
-      {/* Dialog de Confirmação */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Você tem certeza?</DialogTitle>
-            <DialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o medicamento {med.name} e todos os seus lembretes.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                deleteMedication({ id: med.id }, {
-                  onSuccess: () => {
-                    setShowDeleteDialog(false)
-                    toast.success('Medicação deletada com sucesso')
-                    queryClient.invalidateQueries({ queryKey: ['/medications'] })
-                    close()
-                  },
-                  onError: () => {
-                    toast.error('Erro ao deletar medicação')
-                  }
-                })
-              }}
-            >
-              Deletar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Dialog de Atualização de Estoque */}
-      <Dialog open={showUpdateStockDialog} onOpenChange={setShowUpdateStockDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Atualizar Estoque</DialogTitle>
-            <DialogDescription>
-              Informe a nova quantidade de {med.name} disponível.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center gap-4">
-              <Input
-                type="number"
-                value={newQuantity}
-                onChange={(e) => setNewQuantity(Number(e.target.value))}
-                min={0}
-                max={med.totalQuantity}
-                className="col-span-3"
-              />
-              <span className="text-sm text-muted-foreground">
-                de {med.totalQuantity} {med.unit}
-              </span>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUpdateStockDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleUpdateStock}>
-              Atualizar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <IonAlert
+        trigger="present-alert"
+        header="Você tem certeza?"
+        message="Esta ação não pode ser desfeita. Isso excluirá permanentemente seu medicamento e todos os seus dados relacionados."
+        buttons={[
+          {
+            text: 'Não',
+            cssClass: 'alert-button-cancel',
+          },
+          {
+            text: 'Sim, excluir',
+            cssClass: 'alert-button-confirm',
+            handler: () => handleDeleteMedication(),
+
+          },
+        ]}
+      ></IonAlert>
+
+
+
     </div>
   )
 } 

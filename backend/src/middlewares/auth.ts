@@ -1,40 +1,59 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
-import { supabase } from '../lib/supabase'
+import { FastifyRequest, FastifyReply } from 'fastify';
+import { PrismaClient } from '@prisma/client';
 
-export async function authenticate(
-  request: FastifyRequest,
-  reply: FastifyReply
-): Promise<void> {
+const prisma = new PrismaClient();
+
+// Tipo base para o usuário
+interface BaseUser {
+  id: string;
+}
+
+// Tipo para o usuário autenticado
+interface AuthUser extends BaseUser {
+  name: string;
+  email: string;
+}
+
+// Declare module para estender o tipo do FastifyRequest
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: BaseUser;
+  }
+}
+
+// Declare module para estender o tipo do JWT
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: BaseUser;
+  }
+}
+
+export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const authHeader = request.headers.authorization
-    console.log('Auth Header:', authHeader) // Debug
+    await request.jwtVerify();
 
-    if (!authHeader) {
-      throw new Error('Token não fornecido')
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      }
+    });
+
+    if (!user) {
+      reply.code(401).send({ error: 'Não autorizado' });
+      return;
     }
 
-    const token = authHeader.replace('Bearer ', '')
-    console.log('Token extraído:', token) // Debug
-
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-    console.log('Resposta Supabase:', { user, error }) // Debug
-
-    if (error || !user) {
-      throw error || new Error('Usuário não encontrado')
-    }
-
-    // Adiciona o usuário ao request
     request.user = {
       id: user.id,
-      email: user.email!,
-      name: user.user_metadata?.name || '',
-    }
-  } catch (error) {
-    console.error('Erro de autenticação:', error) // Debug
-    reply.status(401).send({
-      statusCode: 401,
-      error: 'Unauthorized',
-      message: error instanceof Error ? error.message : 'Token inválido ou expirado'
-    })
+    };
+  } catch (err) {
+    reply.code(401).send({ error: 'Não autorizado' });
+    return;
   }
-} 
+}
+
+
+

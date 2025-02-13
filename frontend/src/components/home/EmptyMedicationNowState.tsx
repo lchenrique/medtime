@@ -14,7 +14,14 @@ export function EmptyMedicationNowState({ onAddClick }: EmptyMedicationNowStateP
       </figure>
       <div> 
         <h2 className="text-lg font-medium">Nenhum medicamento para hoje</h2>
+        <p className="text-sm text-muted-foreground mt-1">  
+          Você não tem nenhum medicamento agendado para hoje. Aproveite para adicionar novos medicamentos e manter seu controle em dia.
+        </p>
       </div>
+      <Button onClick={onAddClick} className="w-full gap-2">
+        <Plus className="w-4 h-4" />
+        Adicionar Medicamento
+      </Button>
     </Card>
   )
 }

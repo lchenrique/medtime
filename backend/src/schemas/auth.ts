@@ -18,8 +18,8 @@ export const userSchema = z.object({
   hasHypertension: z.boolean(),
   allergies: z.string().nullable(),
   observations: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime()
+  createdAt: z.string(),
+  updatedAt: z.string()
 })
 
 // Schema para registro

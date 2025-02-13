@@ -19,11 +19,10 @@
   "paths": {
     "/auth/login": {
       "post": {
-        "summary": "Login",
         "tags": [
           "auth"
         ],
-        "description": "Autentica um usuário usando email e senha.",
+        "description": "Realiza login do usuário",
         "requestBody": {
           "content": {
             "application/json": {
@@ -57,9 +56,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "token": {
-                      "type": "string"
-                    },
                     "user": {
                       "type": "object",
                       "properties": {
@@ -67,7 +63,8 @@
                           "type": "string"
                         },
                         "email": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "email"
                         },
                         "name": {
                           "type": "string"
@@ -75,6 +72,12 @@
                         "fcmToken": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "tauriEnabled": {
+                          "type": "boolean"
+                        },
+                        "capacitorEnabled": {
+                          "type": "boolean"
                         },
                         "whatsappEnabled": {
                           "type": "boolean"
@@ -89,12 +92,6 @@
                         "telegramChatId": {
                           "type": "string",
                           "nullable": true
-                        },
-                        "timezone": {
-                          "type": "string"
-                        },
-                        "tauriEnabled": {
-                          "type": "boolean"
                         },
                         "isDiabetic": {
                           "type": "boolean"
@@ -114,12 +111,10 @@
                           "nullable": true
                         },
                         "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
+                          "type": "string"
                         },
                         "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -127,12 +122,12 @@
                         "email",
                         "name",
                         "fcmToken",
+                        "tauriEnabled",
+                        "capacitorEnabled",
                         "whatsappEnabled",
                         "whatsappNumber",
                         "telegramEnabled",
                         "telegramChatId",
-                        "timezone",
-                        "tauriEnabled",
                         "isDiabetic",
                         "hasHeartCondition",
                         "hasHypertension",
@@ -142,42 +137,14 @@
                         "updatedAt"
                       ],
                       "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "token",
-                    "user"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number"
                     },
-                    "error": {
-                      "type": "string"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
+                    "token": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "statusCode",
-                    "error",
-                    "code",
-                    "message"
+                    "user",
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -189,11 +156,10 @@
     },
     "/auth/register": {
       "post": {
-        "summary": "Registro",
         "tags": [
           "auth"
         ],
-        "description": "Registra um novo usuário.",
+        "description": "Registra um novo usuário",
         "requestBody": {
           "content": {
             "application/json": {
@@ -232,9 +198,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "token": {
-                      "type": "string"
-                    },
                     "user": {
                       "type": "object",
                       "properties": {
@@ -242,64 +205,88 @@
                           "type": "string"
                         },
                         "email": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "email"
                         },
                         "name": {
                           "type": "string"
                         },
-                        "createdAt": {
+                        "fcmToken": {
                           "type": "string",
-                          "format": "date-time"
+                          "nullable": true
+                        },
+                        "tauriEnabled": {
+                          "type": "boolean"
+                        },
+                        "capacitorEnabled": {
+                          "type": "boolean"
+                        },
+                        "whatsappEnabled": {
+                          "type": "boolean"
+                        },
+                        "whatsappNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "telegramEnabled": {
+                          "type": "boolean"
+                        },
+                        "telegramChatId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "isDiabetic": {
+                          "type": "boolean"
+                        },
+                        "hasHeartCondition": {
+                          "type": "boolean"
+                        },
+                        "hasHypertension": {
+                          "type": "boolean"
+                        },
+                        "allergies": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "observations": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string"
                         },
                         "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
+                          "type": "string"
                         }
                       },
                       "required": [
                         "id",
                         "email",
                         "name",
+                        "fcmToken",
+                        "tauriEnabled",
+                        "capacitorEnabled",
+                        "whatsappEnabled",
+                        "whatsappNumber",
+                        "telegramEnabled",
+                        "telegramChatId",
+                        "isDiabetic",
+                        "hasHeartCondition",
+                        "hasHypertension",
+                        "allergies",
+                        "observations",
                         "createdAt",
                         "updatedAt"
                       ],
                       "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "token",
-                    "user"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "statusCode": {
-                      "type": "number"
                     },
-                    "error": {
-                      "type": "string"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
+                    "token": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "statusCode",
-                    "error",
-                    "code",
-                    "message"
+                    "user",
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -380,12 +367,10 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -602,12 +587,10 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -824,12 +807,10 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     },
                     "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
+                      "type": "string"
                     }
                   },
                   "required": [

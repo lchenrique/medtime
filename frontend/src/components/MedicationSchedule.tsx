@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight, CalendarDays, Check, Loader2 } from "lucide-
 import { useState, useMemo } from "react"
 import { Button } from "./ui/button"
 import { Medication } from "../types/medication"
-import { getGetMedicationsIdQueryKey, getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken} from "@/api/generated/medications/medications"
+import { getGetMedicationsIdQueryKey, getGetMedicationsQueryKey, useGetMedicationsId, usePutMedicationsMarkAsTaken } from "@/api/generated/medications/medications"
 import { useQueryClient } from "@tanstack/react-query"
-import toast from 'react-hot-toast'
+import { useToast } from "@/stores/use-toast"
 
 interface ScheduleDay {
   date: Date
@@ -39,52 +39,63 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [loadingSlots, setLoadingSlots] = useState<string[]>([])
+  const toast = useToast(state => state.open)
 
   const { data: medicationData, refetch } = useGetMedicationsId(medication.id)
 
   const { mutate: markAsTaken, isPending } = usePutMedicationsMarkAsTaken({
     mutation: {
-      onMutate(variables) {
-        // Atualização otimista
-        const previousData = queryClient.getQueryData<any>([getGetMedicationsIdQueryKey(medication.id)])
-        
-        // Atualiza o estado localmente
-        queryClient.setQueryData([getGetMedicationsIdQueryKey], (old: any) => {
-          if (!old) return old
-            
-          return {
-            ...old,
-            reminders: old.reminders.map((reminder: Reminder) => {
-              if (reminder.id === variables.data.reminderId) {
-                return {
-                  ...reminder,
-                  taken: variables.data.taken,
-                  takenAt: variables.data.taken ? new Date().toISOString() : null
-                }
-              }
-              return reminder
-            })
-          }
-        })
 
-        // Retorna uma função para reverter em caso de erro
-        return {
-          rollback: () => {
-            queryClient.setQueryData(['/medications', medication.id], previousData)
-          }
-        }
+      onMutate(variables) {
+
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
         // Invalida todas as queries relacionadas ao medicamento
         queryClient.invalidateQueries({ queryKey: ['/medications'] })
         queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}`] })
         queryClient.invalidateQueries({ queryKey: [`/medications/${medication.id}/history`] })
-        toast.success('Medicamento marcado com sucesso!')
+
+        setLoadingSlots(prev => prev.filter(id => id !== data.id))
+
+        if (data.taken) {
+          toast({
+            title: 'Medicamento marcado com sucesso!',
+            type: 'success'
+          })
+        } else {
+          toast({
+            title: 'Medicamento desmarcado com sucesso!',
+            type: 'success'
+          })
+        }
       }
+
     }
   })
 
   const handleMarkAsTaken = async (reminderId: string, scheduledFor: string, taken: boolean) => {
+    // Atualização otimista
+    const previousData = queryClient.getQueryData<any>([getGetMedicationsIdQueryKey(medication.id)])
+
+    // Atualiza o estado localmente
+    queryClient.setQueryData([getGetMedicationsIdQueryKey], (old: any) => {
+      if (!old) return old
+
+      return {
+        ...old,
+        reminders: old.reminders.map((reminder: Reminder) => {
+          if (reminder.id === reminderId) {
+            return {
+              ...reminder,
+              taken: taken,
+              takenAt: taken ? new Date().toISOString() : null
+            }
+          }
+          return reminder
+        })
+      }
+    })
+
     try {
       await markAsTaken({
         data: {
@@ -95,19 +106,23 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
       })
     } catch (error) {
       console.error('Erro ao marcar medicamento:', error)
-      toast.error('Erro ao marcar medicamento')
+      toast({
+        title: 'Erro ao marcar medicamento',
+        description: 'Ocorreu um erro ao marcar o medicamento como tomado. Tente novamente mais tarde.',
+        type: 'error'
+      })
     }
   }
 
   // Converte os reminders em dias com slots
   const convertRemindersToSchedule = (): ScheduleDay[] => {
     const days = new Map<string, ScheduleDay>()
-    
+
     if (medicationData?.reminders) {
       medicationData.reminders.forEach(reminder => {
         const reminderDate = new Date(reminder.scheduledFor)
         const dateKey = format(reminderDate, 'yyyy-MM-dd')
-        
+
         const time = reminderDate.toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit',
@@ -142,16 +157,16 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
     })
 
     // Ordenar os dias
-    return Array.from(days.values()).sort((a, b) => 
+    return Array.from(days.values()).sort((a, b) =>
       a.date.getTime() - b.date.getTime()
     )
   }
 
   const schedule = convertRemindersToSchedule()
-  
+
   // Ajusta a data inicial para o fuso horário local
   const startDate = new Date(medication.startDate)
-  
+
   const today = new Date()
 
   // Encontra a primeira e última data do schedule
@@ -170,18 +185,18 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
       const dateB = new Date(b)
       return dateA.getTime() - dateB.getTime()
     })
-    
+
     // Pegar 5 dias a partir da data selecionada
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
-    const selectedIndex = sortedDays.findIndex(date => 
+    const selectedIndex = sortedDays.findIndex(date =>
       format(new Date(date), 'yyyy-MM-dd') === selectedDateStr
     )
-    
+
     const startIndex = Math.max(0, selectedIndex - 2)
     const endIndex = Math.min(sortedDays.length, startIndex + 5)
-    
+
     const visibleDays = sortedDays.slice(startIndex, endIndex)
-    
+
     return visibleDays.map(date => new Date(date))
   }
 
@@ -201,10 +216,10 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
 
   const canMarkTime = (date: Date, time: string) => {
     const now = new Date()
-    const reminderDateTime =date
+    const reminderDateTime = date
     const [hours, minutes] = time.split(':').map(Number)
     // Permite marcar se o horário for menor ou igual ao atual
-    
+
     // E se não for mais que 7 dias atrás
     const sevenDaysAgo = new Date(now)
     sevenDaysAgo.setDate(now.getDate() - 7)
@@ -216,7 +231,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const hasPreviousDays = () => {
     const firstVisibleDate = days[0]
     const previousDate = subDays(firstVisibleDate, 1)
-    return schedule.some(day => 
+    return schedule.some(day =>
       format(day.date, 'yyyy-MM-dd') === format(previousDate, 'yyyy-MM-dd')
     )
   }
@@ -225,7 +240,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
   const hasNextDays = () => {
     const lastVisibleDate = days[days.length - 1]
     const nextDate = addDays(lastVisibleDate, 1)
-    return schedule.some(day => 
+    return schedule.some(day =>
       format(day.date, 'yyyy-MM-dd') === format(nextDate, 'yyyy-MM-dd')
     )
   }
@@ -299,8 +314,8 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                 "relative w-[72px] py-3 rounded-xl text-center transition-colors",
                 "border-2 border-transparent",
                 isToday(date) && "bg-violet-600 dark:bg-violet-500",
-                date.getTime() === selectedDate.getTime() && !isToday(date) && 
-                  "bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400",
+                date.getTime() === selectedDate.getTime() && !isToday(date) &&
+                "bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400",
                 !isSelected && !isToday(date) && "hover:bg-violet-50 dark:hover:bg-violet-950/30"
               )}
             >
@@ -320,7 +335,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
               )}>
                 {format(date, "dd")}
               </p>
-              
+
               {/* Indicador de todos tomados */}
               {allTaken && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
@@ -331,7 +346,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           )
         })}
       </div>
-      
+
       {/* Horários */}
       <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4">
         <div className="grid grid-cols-3 gap-2">
@@ -339,13 +354,13 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
             const currentDay = schedule.find(d => {
               const scheduleDate = new Date(d.date)
               const selected = new Date(selectedDate)
-              
+
               // Comparar apenas ano, mês e dia
-              const sameDate = 
+              const sameDate =
                 scheduleDate.getFullYear() === selected.getFullYear() &&
                 scheduleDate.getMonth() === selected.getMonth() &&
                 scheduleDate.getDate() === selected.getDate()
-              
+
               return sameDate
             })
 
@@ -375,7 +390,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                         setLoadingSlots(prev => [...prev, slot.id])
                         handleMarkAsTaken(slot.id, slot.scheduledFor, !slot.taken)
                       }}
-                      disabled={!canMark || isLoading}
+                      // disabled={!canMark || isLoading}
                       className={cn(
                         "relative py-2 px-4 rounded-lg text-sm font-medium text-center transition-colors",
                         !canMark && "opacity-50 cursor-not-allowed",

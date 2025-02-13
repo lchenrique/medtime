@@ -1,34 +1,35 @@
 import { useGetMedications } from '@/api/generated/medications/medications'
 import { GetMedications200Item } from '@/api/model/getMedications200Item'
-import { MedicationDetails } from './MedicationDetails'
-import { Medication } from '@/types/medication'
-import { Search, Pill, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { AddMedicationForm } from '@/components/home/AddMedicationForm'
-import { NoResults } from '@/components/ui/NoResults'
+import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { MedicationCard } from '@/components/home/MedicationCard'
-import { Loader2 } from 'lucide-react'
-import { useModalStore } from '@/stores/modal-store'
 import { Loading } from '@/components/Loading'
+import { Input } from '@/components/ui/input'
+import { NoResults } from '@/components/ui/NoResults'
+import { useModalStore } from '@/stores/modal-store'
+import { Medication } from '@/types/medication'
 import {
+  IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonSearchbar,
   IonList,
-  IonPage
+  IonPage,
+  IonRefresher,
+  IonRefresherContent,
+  IonTitle,
+  IonToolbar,
+  RefresherEventDetail
 } from '@ionic/react'
-import { Input } from '@/components/ui/input'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { MedicationDetails } from './MedicationDetails'
 
 export function Medications() {
   const [searchTerm, setSearchTerm] = useState('')
   const open = useModalStore(state => state.open)
   const close = useModalStore(state => state.close)
-  const { data, isLoading } = useGetMedications(
+  const { data, isLoading, refetch, isFetching } = useGetMedications(
     { period: 'all' },
     {
       query: {
@@ -101,38 +102,54 @@ export function Medications() {
     return <Loading />
   }
 
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    refetch()
+    if (!isFetching) {
+      event.detail.complete();
+    }
+  }
+
   return (
-    <IonPage >
+    <IonPage>
       <IonHeader className="ion-no-border">
         <IonToolbar>
-          <IonTitle>Estoque</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={handleAddMedicationClick}>
-              <Plus className="w-5 h-5" />
-            </IonButton>
-          </IonButtons>
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="flex items-center justify-between">
+              <IonTitle>Estoque</IonTitle>
+              <IonButtons slot="end">
+                <IonButton onClick={handleAddMedicationClick}>
+                  <Plus className="w-5 h-5" />
+                </IonButton>
+              </IonButtons>
+            </div>
+          </div>
         </IonToolbar>
 
-        <div className="px-4 py-2 bg-violet-50 dark:bg-violet-950/30 mx-4 rounded-lg mb-2">
-          <p className="text-sm text-violet-600 dark:text-violet-400">
-            {medications?.length || 0} medicamentos • {' '}
-            {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0} com estoque baixo
-          </p>
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg mb-2 px-4 py-2">
+            <p className="text-sm text-violet-600 dark:text-violet-400">
+              {medications?.length || 0} medicamentos • {' '}
+              {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0} com estoque baixo
+            </p>
+          </div>
         </div>
 
-        <IonToolbar className='px-4'>
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value || '')}
-            placeholder="Buscar medicamento..."
-            className="ion-padding-horizontal"
-          />
+        <IonToolbar>
+          <div className="max-w-2xl mx-auto px-4">
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value || '')}
+              placeholder="Buscar medicamento..."
+            />
+          </div>
         </IonToolbar>
       </IonHeader>
 
-      <IonContent >
-        <div className='pb-20'>
-
+      <IonContent>
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
+        <div className="max-w-2xl mx-auto px-4 pb-20">
           {filteredMedications.length > 0 ? (
             <IonList>
               {filteredMedications.map((medication) => (
@@ -154,8 +171,8 @@ export function Medications() {
           )}
         </div>
 
+       
       </IonContent>
-
     </IonPage>
   )
 }

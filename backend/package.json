@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
+    "@fastify/jwt": "^9.0.4",
     "@fastify/swagger": "^9.4.1",
     "@fastify/swagger-ui": "^5.2.1",
     "@fastify/websocket": "^11.0.2",
@@ -27,23 +28,26 @@
     "@types/node-telegram-bot-api": "^0.64.7",
     "@types/ws": "^8.5.13",
     "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",
     "fastify-type-provider-zod": "^2.1.0",
     "firebase-admin": "^12.0.0",
+    "jsonwebtoken": "^9.0.2",
     "module-alias": "^2.2.3",
     "node-telegram-bot-api": "^0.66.0",
     "pino": "^8.19.0",
     "pino-pretty": "^10.3.0",
+    "tsup": "^8.3.6",
     "ws": "^8.18.0",
-    "zod": "^3.22.4",
-    "tsup": "^8.3.6"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/date-fns": "^2.6.3",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.11",
@@ -51,7 +55,6 @@
     "prisma": "^5.10.0",
     "ts-jest": "^29.1.2",
     "tsc-alias": "^1.8.10",
-    
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },

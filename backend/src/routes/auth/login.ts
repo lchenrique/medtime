@@ -1,108 +1,30 @@
-import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { prisma } from '../../lib/prisma'
-import { supabase } from '../../lib/supabase'
-import { z } from 'zod'
+import { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { loginSchema, userResponseSchema } from '@/schemas';
+import { AuthController } from '@/controllers/authController';
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6)
-})
+const authController = new AuthController();
+
+
 
 const authResponseSchema = z.object({
+  user: userResponseSchema,
   token: z.string(),
-  user: z.object({
-    id: z.string(),
-    email: z.string(),
-    name: z.string(),
-    fcmToken: z.string().nullable(),
-    whatsappEnabled: z.boolean(),
-    whatsappNumber: z.string().nullable(),
-    telegramEnabled: z.boolean(),
-    telegramChatId: z.string().nullable(),
-    timezone: z.string(),
-    tauriEnabled: z.boolean(),
-    isDiabetic: z.boolean(),
-    hasHeartCondition: z.boolean(),
-    hasHypertension: z.boolean(),
-    allergies: z.string().nullable(),
-    observations: z.string().nullable(),
-    createdAt: z.date(),
-    updatedAt: z.date()
-  })
-})
+});
 
-export const login: FastifyPluginAsyncZod = async (app) => {
-  app.post('/', {
-    schema: {
-      tags: ['auth'],
-      summary: 'Login',
-      description: 'Autentica um usuário usando email e senha.',
-      body: loginSchema,
-      response: {
-        200: authResponseSchema,
-        401: z.object({
-          statusCode: z.number(),
-          error: z.string(),
-          code: z.string(),
-          message: z.string()
-        })
-      }
-    }
-  }, async (request, reply) => {
-    const { email, password } = loginSchema.parse(request.body)
-
-    try {
-      // 1. Tenta fazer login no Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (authError) {
-        return reply.status(401).send({
-          statusCode: 401,
-          error: 'Unauthorized',
-          code: 'INVALID_CREDENTIALS',
-          message: 'Email ou senha inválidos'
-        })
-      }
-
-      // 2. Busca o usuário no banco
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { email },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          fcmToken: true,
-          whatsappEnabled: true,
-          whatsappNumber: true,
-          telegramEnabled: true,
-          telegramChatId: true,
-          timezone: true,
-          tauriEnabled: true,
-          isDiabetic: true,
-          hasHeartCondition: true,
-          hasHypertension: true,
-          allergies: true,
-          observations: true,
-          createdAt: true,
-          updatedAt: true,
-          capacitorEnabled: true
-        }
-      })
-
-      return {
-        token: authData.session?.access_token,
-        user
-      }
-    } catch (error) {
-      return reply.status(401).send({
-        statusCode: 401,
-        error: 'Unauthorized',
-        code: 'INVALID_CREDENTIALS',
-        message: 'Email ou senha inválidos'
-      })
-    }
-  })
-}
+export async function loginRoute(fastify: FastifyInstance) {
+  fastify.post(
+    '/',
+    {
+      schema: {
+        body: loginSchema,
+        response: {
+          200: authResponseSchema,
+        },
+        tags: ['auth'],
+        description: 'Realiza login do usuário',
+      },
+    },
+    authController.login
+  );
+} 

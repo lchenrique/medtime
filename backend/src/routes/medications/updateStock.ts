@@ -35,7 +35,7 @@ export const updateStock: FastifyPluginAsyncZod = async (app) => {
     request: FastifyRequest<{
       Params: z.infer<typeof updateStockParamsSchema>
       Body: z.infer<typeof updateStockBodySchema>
-    }>, 
+    }>,
     reply
   ) => {
     const { medicationId } = request.params
@@ -64,16 +64,17 @@ export const updateStock: FastifyPluginAsyncZod = async (app) => {
         })
       }
 
-      // Atualiza a quantidade
-      await prisma.medication.update({
-        where: { id: medicationId },
-        data: { remainingQuantity }
-      })
+        // Atualiza a quantidade
+        await prisma.medication.update({
+          where: { id: medicationId },
+          data: { remainingQuantity, totalQuantity: remainingQuantity }
+        })
 
-      return reply.send({
-        message: 'Estoque atualizado com sucesso',
-        remainingQuantity
-      })
+        return reply.send({
+          message: 'Estoque atualizado com sucesso',
+          remainingQuantity
+        })
+    
     } catch (error) {
       return reply.status(500).send({
         statusCode: 500,
@@ -81,5 +82,5 @@ export const updateStock: FastifyPluginAsyncZod = async (app) => {
         message: 'Erro ao atualizar estoque'
       })
     }
-  })
+  })  
 } 

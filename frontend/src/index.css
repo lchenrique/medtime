@@ -36,6 +36,7 @@
  
     --radius: 0.5rem;
 
+
     /* Variáveis do Ionic */
     --ion-color-primary: hsl(var(--primary));
     --ion-color-primary-contrast: hsl(var(--primary-foreground));
@@ -75,6 +76,8 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 262 83% 58%;
+
+   
 
     /* Variáveis do Ionic - Tema Escuro */
     --ion-color-primary: hsl(var(--primary));
@@ -130,18 +133,6 @@
   background: #4a4a4a;
 }
 
-/* Estilos para o modal do Ionic */
-.ion-modal {
-  --background: hsl(var(--background));
-  --color: hsl(var(--foreground));
-  --height: auto;
-  --border-radius: 1rem 1rem 0 0;
-  --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-.ion-modal::part(content) {
-  border-radius: 1rem 1rem 0 0;
-}
 
 /* Customização dos componentes do Ionic */
 ion-toolbar {
@@ -189,3 +180,109 @@ ion-item::part(native) {
   --background: hsl(var(--background));
   --color: hsl(var(--foreground));
 }
+
+
+
+/* criar uma classe para o toaast do ionic para light dark e success, error, warning e informação */
+/* Custom Toast Styles */
+ion-toast.custom-toast {
+  --background: hsl(var(--card));
+  --box-shadow: 2px 2px 1px 0 rgba(0, 0, 0, 0.1);
+  --color: hsl(var(--card-foreground));
+  --border-radius: 8px;
+}
+
+ion-toast.custom-toast::part(message) {
+  font-style: italic;
+}
+
+ion-toast.custom-toast::part(button) {
+  border-left: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-size: 15px;
+}
+
+/* Dark Theme Toast */
+.dark ion-toast.custom-toast {
+  --background: hsl(var(--card));
+  --color: hsl(var(--card-foreground));
+}
+
+/* Success Toast */
+ion-toast.custom-toast.success {
+  --background: theme(colors.emerald.200);
+  --color: theme(colors.emerald.900);
+}
+
+.dark ion-toast.custom-toast.success {
+  --background: theme(colors.emerald.950);
+  --color: theme(colors.emerald.300);
+}
+
+
+ion-toast.custom-toast.success::part(button) {
+  border-left: 1px solid hsl(var(--));
+}
+
+/* Warning Toast */
+ion-toast.custom-toast.warning {
+  --background: hsl(var(--accent));
+  --color: hsl(var(--accent-foreground));
+}
+
+ion-toast.custom-toast.warning::part(button) {
+  border-left: 1px solid hsl(var(--accent));
+}
+
+/* Danger Toast */
+ion-toast.custom-toast.danger {
+  --background: hsl(var(--destructive));
+  --color: hsl(var(--destructive-foreground));
+}
+
+ion-toast.custom-toast.danger::part(button) {
+  border-left: 1px solid hsl(var(--destructive));
+}
+
+/* Info Toast */
+ion-toast.custom-toast.info {
+  --background: hsl(var(--secondary));
+  --color: hsl(var(--secondary-foreground));
+}
+
+ion-toast.custom-toast.info::part(button) {
+  border-left: 1px solid hsl(var(--secondary));
+}
+
+
+ion-modal#dialog {
+  --height: 30%;
+  --width: 90%;
+  --max-width: 400px;
+  --border-radius: 8px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --backdrop-opacity: var(--ion-backdrop-opacity, 0.5);
+}
+
+ion-modal#dialog::part(backdrop) {
+  background: rgba(0, 0, 0, 0.521);
+  opacity: 1;
+}
+
+ion-modal#dialog ion-toolbar {
+  --background: transparent;
+  --color: hsl(var(--foreground));
+}
+
+
+
+
+
+
+ion-modal#modal {
+  --border-radius: 8px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --backdrop-opacity: var(--ion-backdrop-opacity, 0.5);
+}
+
+

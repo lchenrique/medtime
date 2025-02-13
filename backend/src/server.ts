@@ -4,6 +4,7 @@ import cors from '@fastify/cors'
 import { fastifySwagger } from '@fastify/swagger'
 import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import { jsonSchemaTransform, serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
+import jwt from '@fastify/jwt'
 import { writeFileSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -45,6 +46,11 @@ function buildApp() {
   // Configurar compiladores Zod
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
+
+  // Registrar plugin JWT
+  app.register(jwt, {
+    secret: env.JWT_SECRET
+  })
 
   // Decorador de autenticação
   app.decorate('authenticate', authenticate)
