@@ -12,8 +12,6 @@ MedTime é um aplicativo multiplataforma para gerenciamento de medicamentos e le
 
 ### Backend
 - **API**: Fastify + TypeScript
-- **Banco**: PostgreSQL (Supabase)
-- **Autenticação**: Supabase Auth
 - **Notificações**: 
   - Web Push (PWA/Android)
   - WhatsApp API (iOS)
@@ -55,8 +53,6 @@ MedTime é um aplicativo multiplataforma para gerenciamento de medicamentos e le
 ### Backend
 - Fastify
 - Prisma
-- PostgreSQL
-- Supabase
 - WhatsApp Business API
 
 ## 📦 Instalação e Configuração
@@ -65,7 +61,6 @@ MedTime é um aplicativo multiplataforma para gerenciamento de medicamentos e le
 - Node.js >= 18
 - pnpm >= 8
 - PostgreSQL
-- Conta Supabase
 - Conta WhatsApp Business
 
 ### Configuração do Projeto

@@ -1,5 +1,4 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { supabase } from '../../lib/supabase'
 import { z } from 'zod'
 
 export const logout: FastifyPluginAsyncZod = async (app) => {
@@ -22,11 +21,7 @@ export const logout: FastifyPluginAsyncZod = async (app) => {
     }
   }, async (request, reply) => {
     try {
-      const { error } = await supabase.auth.signOut()
-
-      if (error) {
-        throw error
-      }
+      // Substituir com a nova lógica de logout
 
       return {
         message: 'Logout realizado com sucesso'

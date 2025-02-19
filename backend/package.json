@@ -24,7 +24,6 @@
     "@fastify/swagger-ui": "^5.2.1",
     "@fastify/websocket": "^11.0.2",
     "@prisma/client": "^5.22.0",
-    "@supabase/supabase-js": "^2.39.0",
     "@types/node-telegram-bot-api": "^0.64.7",
     "@types/ws": "^8.5.13",
     "axios": "^1.7.9",

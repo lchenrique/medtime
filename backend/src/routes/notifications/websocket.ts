@@ -25,18 +25,6 @@ export const websocketRoutes: FastifyPluginAsyncZod = async (app) => {
     try {
       const { token, client } = request.query as { token: string, client: 'tauri' }
 
-      // Verifica o token do Supabase
-      // const { data: { user }, error } = await supabase.auth.getUser(token)
-      
-      // if (error || !user) {
-      //   console.error('Erro de autenticação:', error)
-      //   connection.close(1008, 'Usuário não autenticado')
-      //   return
-      // }
-
-      // const userId = user.id
-      // console.log('Verificando usuário:', userId)
-
       // Verifica se usuário existe e tem Tauri habilitado
       // const userRecord = await prisma.user.findUnique({
       //   where: { id: userId },
@@ -57,8 +45,6 @@ export const websocketRoutes: FastifyPluginAsyncZod = async (app) => {
       // Adiciona o tipo de cliente à conexão
       // (connection as Connection).clientType = 'tauri'
 
-      // console.log(`WebSocket autenticado: ${userId} (tauri)`)
-      
       // // Armazena conexão
       // if (!connections.has(userId)) {
       //   connections.set(userId, [])

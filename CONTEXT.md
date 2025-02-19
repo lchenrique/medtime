@@ -182,3 +182,12 @@ Aplicativo multiplataforma para gerenciamento de medicamentos com sistema de lem
 - Código em inglês
 - Documentação em português
 - Testes obrigatórios para novas features 
+
+## Banco de Dados
+- PostgreSQL com Prisma ORM
+
+## Autenticação
+- Sistema próprio de autenticação com JWT
+
+## API
+- Fastify com TypeScript 
