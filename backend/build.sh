@@ -2,7 +2,7 @@
 # exit on error
 set -o errexit
 
-npm install
+pnpm install --no-frozen-lockfile
 npx prisma generate
-npm run build
+pnpm build
 npx prisma migrate deploy 
