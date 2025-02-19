@@ -170,7 +170,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
   if (!medicationData) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin text-violet-600">
+        <div className="animate-spin text-primary">
           <Loader2 className="w-6 h-6" />
         </div>
       </div>
@@ -184,7 +184,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-950/50 flex items-center justify-center text-primary">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
@@ -197,16 +197,16 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
               size="sm"
               onClick={() => handleMarkAsTaken(nextReminder.id, nextReminder.scheduledFor, true)}
               disabled={!canTakeMedication(nextReminder.scheduledFor)}
-              className="text-violet-600 dark:text-violet-400 border-violet-200 hover:border-violet-300 hover:bg-violet-50"
+              className="text-primary border-primary hover:border-primary hover:bg-primary/10"
             >
               Tomar agora
             </Button>
           </div>
 
-          <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-950/30 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xl font-medium text-violet-600 dark:text-violet-400">
+                <span className="text-xl font-medium text-primary">
                   {new Date(nextReminder.scheduledFor).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -214,7 +214,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
                   })}
                 </span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-violet-600 dark:text-violet-400">
+                  <span className="text-sm text-primary">
                     {med.dosageQuantity} {med.unit}
                   </span>
                 </div>
@@ -241,7 +241,7 @@ export function MedicationDetails({ medication: initialMedication }: MedicationD
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100/50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600/70 dark:text-blue-400/70">
+              <div className="w-8 h-8 rounded-full bg-blue-100/50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600 ">
                 <Clock className="w-4 h-4" />
               </div>
               <div>

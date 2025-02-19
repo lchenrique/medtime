@@ -25,7 +25,7 @@ export function Modal() {
     >
       <IonHeader className='ion-no-border'>
         <IonToolbar >
-          <IonTitle>{title}</IonTitle>
+          <IonTitle className='px-3'>{title}</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={close}>
               <X className="w-5 h-5" />

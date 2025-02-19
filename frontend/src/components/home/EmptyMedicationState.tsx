@@ -41,7 +41,7 @@ export function EmptyMedicationState({ onAddClick }: EmptyMedicationStateProps) 
               'Compartilhar informações com cuidadores'
             ].map((feature, index) => (
               <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ArrowRight className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                <ArrowRight className="w-4 h-4 text-primary dark:text-violet-400" />
                 {feature}
               </li>
             ))}

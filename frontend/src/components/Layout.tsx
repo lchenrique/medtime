@@ -11,17 +11,10 @@ import { IonPage, IonContent } from '@ionic/react'
 import { Dialog } from './ui/modal/Dialog'
 import { useModalStore } from '@/stores/modal-store'
 import { ChatModal } from './ChatModal'
+import Tabs from './tabs'
 
 export const Layout = memo(function Layout() {
-  const open = useModalStore(state => state.open)
-
-  const handleOpenChat = () => {
-    open({
-      title: 'Chat com IA',
-      content: <ChatModal />
-    })
-  }
-
+  
   return (
     <IonPage>
       <IonContent>
@@ -32,7 +25,8 @@ export const Layout = memo(function Layout() {
           </main>
 
           {/* Bottom Navigation */}
-          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t">
+          <Tabs />
+          {/* <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t">
             <div className="max-w-2xl mx-auto">
               <div className="flex items-center justify-around">
                 <NavLink
@@ -86,7 +80,7 @@ export const Layout = memo(function Layout() {
                 </button>
               </div>
             </div>
-          </nav>
+          </nav> */}
           
           <Modal />
           <Dialog />

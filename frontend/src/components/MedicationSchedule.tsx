@@ -269,7 +269,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-violet-600 dark:text-violet-400"
+            className="h-8 w-8 text-primary"
             onClick={handleTodayClick}
             title="Ir para hoje"
             disabled={!schedule.some(day => format(day.date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd'))}
@@ -281,7 +281,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-violet-600 dark:text-violet-400"
+            className="h-8 w-8 text-primary"
             onClick={() => setSelectedDate(date => subDays(date, 1))}
             disabled={!hasPreviousDays()}
           >
@@ -290,7 +290,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-violet-600 dark:text-violet-400"
+            className="h-8 w-8 text-primary"
             onClick={() => setSelectedDate(date => addDays(date, 1))}
             disabled={!hasNextDays()}
           >
@@ -313,16 +313,16 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
               className={cn(
                 "relative w-[72px] py-3 rounded-xl text-center transition-colors",
                 "border-2 border-transparent",
-                isToday(date) && "bg-violet-600 dark:bg-violet-500",
+                isToday(date) && "bg-primary",
                 date.getTime() === selectedDate.getTime() && !isToday(date) &&
-                "bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400",
+                "bg-violet-50 dark:bg-violet-950/30 border-primary text-primary",
                 !isSelected && !isToday(date) && "hover:bg-violet-50 dark:hover:bg-violet-950/30"
               )}
             >
               <p className={cn(
                 "text-xs font-medium mb-1",
-                isToday(date) && "text-violet-50 dark:text-violet-100",
-                !isToday(date) && isSelected && "text-violet-600 dark:text-violet-400",
+                isToday(date) && "text-white",
+                !isToday(date) && isSelected && "text-primary",
                 !isToday(date) && !isSelected && "text-muted-foreground"
               )}>
                 {formatWeekDay(date)}
@@ -330,7 +330,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
               <p className={cn(
                 "text-sm font-bold",
                 isToday(date) && "text-white",
-                !isToday(date) && isSelected && "text-violet-600 dark:text-violet-400",
+                !isToday(date) && isSelected && "text-primary",
                 !isToday(date) && !isSelected && "text-foreground"
               )}>
                 {format(date, "dd")}
@@ -348,7 +348,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
       </div>
 
       {/* Horários */}
-      <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4">
+      <div className="bg-gray-50 dark:bg-gray-950/30 rounded-lg p-4">
         <div className="grid grid-cols-3 gap-2">
           {(() => {
             const currentDay = schedule.find(d => {
@@ -383,7 +383,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                   const canMark = canMarkTime(slotDate, slot.time)
                   const isLoading = isPending && loadingSlots.includes(slot.id)
                   return (
-                    <button
+                    <div
                       key={slot.id}
                       onClick={() => {
                         if (!canMark || isLoading) return
@@ -394,9 +394,9 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                       className={cn(
                         "relative py-2 px-4 rounded-lg text-sm font-medium text-center transition-colors",
                         !canMark && "opacity-50 cursor-not-allowed",
-                        canMark && !slot.taken && !isLoading && "bg-white dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/50",
+                        canMark && !slot.taken && !isLoading && "bg-white dark:bg-gray-950/50 hover:bg-gray-100 dark:hover:bg-gray-900/50",
                         slot.taken && "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400",
-                        isLoading && "bg-violet-100 dark:bg-violet-950/50"
+                        isLoading && "bg-gray-100 dark:bg-gray-950/50"
                       )}
                     >
                       {isLoading ? (
@@ -414,7 +414,7 @@ export function MedicationSchedule({ medication }: MedicationScheduleProps) {
                           )}
                         </>
                       )}
-                    </button>
+                    </div>
                   )
                 })}
               </>

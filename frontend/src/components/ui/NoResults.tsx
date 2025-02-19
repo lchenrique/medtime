@@ -20,8 +20,8 @@ export function NoResults({ message = "Nenhum resultado encontrado" }: NoResults
         </figure>
 
         {/* Ícones decorativos flutuantes */}
-        <div className="absolute -top-4 -right-2 w-12 h-12 bg-violet-100/80 rounded-2xl rotate-12 flex items-center justify-center backdrop-blur-sm">
-          <Search className="w-6 h-6 text-violet-500" />
+        <div className="absolute -top-4 -right-2 w-12 h-12 bg-violet-100/80 rounded-2xl rotate-12 flex items-center justify-center backdrop-blur-xs">
+          <Search className="w-6 h-6 text-primary" />
         </div>
         
         {/* Círculos decorativos */}
@@ -37,7 +37,7 @@ export function NoResults({ message = "Nenhum resultado encontrado" }: NoResults
       </div>
 
       {/* Linha decorativa */}
-      <div className="mt-6 w-24 h-1 rounded-full bg-gradient-to-r from-violet-200/50 via-violet-300/50 to-violet-200/50" />
+      <div className="mt-6 w-24 h-1 rounded-full bg-linear-to-r from-violet-200/50 via-violet-300/50 to-violet-200/50" />
     </div>
   )
 }

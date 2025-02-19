@@ -83,77 +83,81 @@ export function Login() {
 
   return (
     <AuthCard title="Fazer Login">
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-3">
-          <AuthInput
-            type="email"
-            {...register('email')}
-            placeholder="Email"
-            isFocused={focusedInput === 'email'}
-            onFocus={() => setFocusedInput('email')}
-            onBlur={() => setFocusedInput(null)}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+      <div className="w-full overflow-x-hidden">
+        <form onSubmit={onSubmit} className="space-y-4 w-full max-w-full">
+          <div className="space-y-3">
+            <AuthInput
+              type="email"
+              {...register('email')}
+              placeholder="Email"
+              isFocused={focusedInput === 'email'}
+              onFocus={() => setFocusedInput('email')}
+              onBlur={() => setFocusedInput(null)}
+              className="w-full"
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+            )}
+
+            <AuthInput
+              type="password"
+              {...register('password')}
+              placeholder="Senha"
+              isFocused={focusedInput === 'password'}
+              onFocus={() => setFocusedInput('password')}
+              onBlur={() => setFocusedInput(null)}
+              className="w-full"
+            />
+            {errors.password && (
+              <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link 
+              to="/forgot-password" 
+              className={cn(
+                "text-sm font-medium transition-colors",
+                "text-primary hover:text-primary/90"
+              )}
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <AuthInput
-            type="password"
-            {...register('password')}
-            placeholder="Senha"
-            isFocused={focusedInput === 'password'}
-            onFocus={() => setFocusedInput('password')}
-            onBlur={() => setFocusedInput(null)}
-          />
-          {errors.password && (
-            <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-end">
-          <Link 
-            to="/forgot-password" 
-            className={cn(
-              "text-sm font-medium transition-colors",
-              "text-primary hover:text-primary/90"
-            )}
+          <Button 
+            type="submit"
+            className="w-full h-12 text-base font-medium rounded-xl"
+            disabled={isPending}
           >
-            Esqueceu a senha?
-          </Link>
-        </div>
+            {isPending ? "Entrando..." : "Entrar"}
+          </Button>
 
-        {error && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
+          <AuthDivider />
 
-        <Button 
-          type="submit"
-          className="w-full h-12 text-base font-medium rounded-xl"
-          disabled={isPending}
-        >
-          {isPending ? "Entrando..." : "Entrar"}
-        </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <SocialButton icon={<GoogleIcon />} label="Google" provider="google" />
+            <SocialButton icon={<FacebookIcon />} label="Facebook" provider="facebook" />
+          </div>
 
-        <AuthDivider />
-
-        <div className="grid grid-cols-2 gap-3">
-          <SocialButton icon={<GoogleIcon />} label="Google" provider="google" />
-          <SocialButton icon={<FacebookIcon />} label="Facebook" provider="facebook" />
-        </div>
-
-        <div className="text-center text-sm text-muted-foreground">
-          Não tem uma conta?{" "}
-          <Link 
-            to="/register" 
-            className={cn(
-              "font-medium transition-colors",
-              "text-primary hover:text-primary/90"
-            )}
-          >
-            Cadastre-se
-          </Link>
-        </div>
-      </form>
+          <div className="text-center text-sm text-muted-foreground">
+            Não tem uma conta?{" "}
+            <Link 
+              to="/register" 
+              className={cn(
+                "font-medium transition-colors",
+                "text-primary hover:text-primary/90"
+              )}
+            >
+              Cadastre-se
+            </Link>
+          </div>
+        </form>
+      </div>
     </AuthCard>
   )
 } 

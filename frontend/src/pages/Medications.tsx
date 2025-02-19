@@ -4,24 +4,21 @@ import { AddMedicationForm } from '@/components/home/AddMedicationForm'
 import { EmptyMedicationState } from '@/components/home/EmptyMedicationState'
 import { MedicationCard } from '@/components/home/MedicationCard'
 import { Loading } from '@/components/Loading'
+import { PageHeader } from '@/components/PageHeader'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NoResults } from '@/components/ui/NoResults'
 import { useModalStore } from '@/stores/modal-store'
 import { Medication } from '@/types/medication'
 import {
-  IonButton,
-  IonButtons,
   IonContent,
-  IonHeader,
   IonList,
   IonPage,
   IonRefresher,
   IonRefresherContent,
-  IonTitle,
-  IonToolbar,
   RefresherEventDetail
 } from '@ionic/react'
-import { Plus } from 'lucide-react'
+import { AlertCircle, Bell, Package2, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { MedicationDetails } from './MedicationDetails'
 
@@ -39,6 +36,8 @@ export function Medications() {
   )
 
   const medications = Array.isArray(data) ? data : data?.medications || []
+  const lowStockMedications = medications.filter(m => m.remainingQuantity <= m.dosageQuantity * 3)
+  const normalStockMedications = medications.filter(m => m.remainingQuantity > m.dosageQuantity * 3)
 
   const handleMedicationClick = (med: GetMedications200Item) => {
     const medication: Medication = {
@@ -111,57 +110,91 @@ export function Medications() {
 
   return (
     <IonPage>
-      <IonHeader className="ion-no-border">
-        <IonToolbar>
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="flex items-center justify-between">
-              <IonTitle>Estoque</IonTitle>
-              <IonButtons slot="end">
-                <IonButton onClick={handleAddMedicationClick}>
-                  <Plus className="w-5 h-5" />
-                </IonButton>
-              </IonButtons>
-            </div>
-          </div>
-        </IonToolbar>
-
+      <PageHeader title="Estoque" extra={
         <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg mb-2 px-4 py-2">
-            <p className="text-sm text-violet-600 dark:text-violet-400">
-              {medications?.length || 0} medicamentos • {' '}
-              {medications?.filter(m => m.remainingQuantity <= m.dosageQuantity * 3).length || 0} com estoque baixo
+          <div className="bg-primary/10 dark:bg-primary/20 rounded-lg mb-2 px-4 py-2">
+            <p className="text-sm text-primary dark:text-primary">
+              {medications?.length || 0} medicamentos • {lowStockMedications.length} com estoque baixo
             </p>
           </div>
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value || '')}
+            placeholder="Buscar medicamento..."
+            className="bg-background"
+          />
         </div>
-
-        <IonToolbar>
-          <div className="max-w-2xl mx-auto px-4">
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value || '')}
-              placeholder="Buscar medicamento..."
-            />
-          </div>
-        </IonToolbar>
-      </IonHeader>
+      }>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleAddMedicationClick}
+          className="text-primary dark:text-primary hover:text-primary"
+        >
+          <Plus className="w-5 h-5" />
+        </Button>
+      </PageHeader>
 
       <IonContent>
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>
+        
         <div className="max-w-2xl mx-auto px-4 pb-20">
           {filteredMedications.length > 0 ? (
-            <IonList>
-              {filteredMedications.map((medication) => (
-                <MedicationCard
-                  key={medication.id}
-                  medication={medication as any}
-                  onClick={() => handleMedicationClick(medication)}
-                  showStock
-                  variant="list"
-                />
-              ))}
-            </IonList>
+            <div className="space-y-4">
+              {/* Medicamentos com Estoque Baixo */}
+              {lowStockMedications.length > 0 && (
+                <div>
+                  <div className="top-0 z-40 bg-red-500/10 backdrop-blur-md m-2 rounded-md">
+                    <div className="flex items-center gap-2 px-2 py-1 text-red-500">
+                      <AlertCircle className="w-4 h-8" />
+                      <span className="text-sm font-medium">Estoque Baixo</span>
+                    </div>
+                  </div>
+
+                  <IonList className="ion-no-padding">
+                    {lowStockMedications.map((medication, i) => (
+                      <div key={medication.id} className="relative">
+                        <div className={`h-full w-1 bg-muted-foreground ${i === 0 ? 'rounded-t-2xl' : ''} ${i === lowStockMedications.length - 1 ? 'rounded-b-2xl' : ''} absolute left-0 top-1/2 -translate-y-1/2`} />
+                        <MedicationCard
+                          medication={medication as any}
+                          onClick={() => handleMedicationClick(medication)}
+                          showStock
+                          variant="list"
+                        />
+                      </div>
+                    ))}
+                  </IonList>
+                </div>
+              )}
+
+              {/* Medicamentos com Estoque Normal */}
+              {normalStockMedications.length > 0 && (
+                <div>
+                  <div className="top-0 z-40 bg-primary/10 backdrop-blur-md m-2 rounded-md">
+                    <div className="flex items-center gap-2 px-2 py-1 text-primary">
+                      <Package2 className="w-4 h-8" />
+                      <span className="text-sm font-medium">Estoque Normal</span>
+                    </div>
+                  </div>
+
+                  <IonList className="ion-no-padding">
+                    {normalStockMedications.map((medication, i) => (
+                      <div key={medication.id} className="relative">
+                        <div className={`h-full w-1 bg-muted-foreground ${i === 0 ? 'rounded-t-2xl' : ''} ${i === normalStockMedications.length - 1 ? 'rounded-b-2xl' : ''} absolute left-0 top-1/2 -translate-y-1/2`} />
+                        <MedicationCard
+                          medication={medication as any}
+                          onClick={() => handleMedicationClick(medication)}
+                          showStock
+                          variant="list"
+                        />
+                      </div>
+                    ))}
+                  </IonList>
+                </div>
+              )}
+            </div>
           ) : (
             searchTerm ? (
               <NoResults message={`Nenhum medicamento encontrado para "${searchTerm}"`} />
@@ -170,8 +203,6 @@ export function Medications() {
             )
           )}
         </div>
-
-       
       </IonContent>
     </IonPage>
   )

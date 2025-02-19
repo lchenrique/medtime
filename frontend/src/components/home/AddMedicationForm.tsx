@@ -240,11 +240,11 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Passo {step} de {totalSteps}</span>
-              <span className="text-violet-600 dark:text-violet-400">{Math.round((step / totalSteps) * 100)}%</span>
+              <span className="text-primary">{Math.round((step / totalSteps) * 100)}%</span>
             </div>
             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-violet-600 dark:bg-violet-400 transition-all duration-300 ease-out"
+                className="h-full bg-primary transition-all duration-300 ease-out"
                 style={{ width: `${(step / totalSteps) * 100}%` }}
               />
             </div>
@@ -319,7 +319,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   className={cn(
                     "mt-1.5 w-full border rounded-lg",
                     canAdvance()
-                      ? "border-input hover:border-violet-600 dark:hover:border-violet-400"
+                      ? "border-input hover:border-primary dark:hover:border-primary"
                       : "border-destructive/50 hover:border-destructive"
                   )}
                   dtOptions={{
@@ -353,7 +353,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                     variant="outline"
                     className={cn(
                       "w-full h-auto py-4 justify-start",
-                      form.intervalPreset === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                      form.intervalPreset === option.value && "border-primary dark:border-primary/10 bg-primary/5 dark:bg-primary/30"
                     )}
                     onClick={() => handleSelectChange('intervalPreset')(option.value)}
                   >
@@ -384,8 +384,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   variant="outline"
                   className={cn(
                     "w-full h-auto py-4 justify-start",
-                    form.intervalPreset === 'custom' && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
-                  )}
+                    form.intervalPreset === 'custom' && "border-primary dark:border-primary bg-primary/5 dark:bg-primary/30"                  )}
                   onClick={() => handleSelectChange('intervalPreset')('custom')}
                 >
                   <div className="w-full flex items-center justify-between">
@@ -435,7 +434,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                       variant="outline"
                       className={cn(
                         "h-auto py-3",
-                        form.durationInDays === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                        form.durationInDays === option.value && "border-primary dark:border-primary bg-primary/5 dark:bg-primary/30"
                       )}
                       onClick={() => handleSelectChange('durationInDays')(option.value)}
                     >
@@ -449,7 +448,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                   variant="outline"
                   className={cn(
                     "w-full h-auto py-3",
-                    form.durationInDays === 'recurring' && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                    form.durationInDays === 'recurring' && "border-primary dark:border-primary bg-primary/5 dark:bg-primary/30"
                   )}
                   onClick={() => handleSelectChange('durationInDays')('recurring')}
                 >
@@ -499,7 +498,7 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
                           variant="outline"
                           className={cn(
                             "h-auto py-3",
-                            form.unit === option.value && "border-violet-600 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                            form.unit === option.value && "border-primary dark:border-primary bg-primary/5 dark:bg-primary/30"
                           )}
                           onClick={() => handleSelectChange('unit')(option.value)}
                         >
@@ -595,4 +594,4 @@ export function AddMedicationForm({ onSuccess }: AddMedicationFormProps) {
       </div>
     </DrawerContent>
   )
-} 
+}

@@ -31,7 +31,7 @@ export function AlarmScreen({ medication, onTake, onSnooze }: AlarmScreenProps) 
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-xs z-50 flex items-center justify-center">
       <Card className="w-[90%] max-w-md">
         <CardHeader>
           <CardTitle>Hora do Medicamento!</CardTitle>

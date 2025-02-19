@@ -55,10 +55,10 @@ export function Home() {
   const open = useModalStore(state => state.open)
   const close = useModalStore(state => state.close)
   const { mutate: markAsTaken } = usePutMedicationsMarkAsTaken({
-    mutation:{
+    mutation: {
       onSuccess: (data) => {
         refetch()
-        if(data?.taken){
+        if (data?.taken) {
           toast({
             title: 'Medicamento marcado como tomado',
             description: 'O medicamento foi marcado como tomado com sucesso',
@@ -121,8 +121,8 @@ export function Home() {
     <IonPage>
       <PageHeader title="Medtime" extra={
         <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg mb-2 px-4 py-2">
-            <p className="text-sm text-violet-600 dark:text-violet-400">
+          <div className="bg-primary dark:bg-primary/40 rounded-lg mb-2 px-4 py-2">
+            <p className="text-sm text-primary-foreground ">
               {data?.groups.onTime.length} medicamentos pendentes • {data?.groups.late.length} atrasados
             </p>
           </div>
@@ -133,7 +133,7 @@ export function Home() {
             variant="ghost"
             size="icon"
             onClick={handleAddMedicationClick}
-            className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300"
+            className="text-primary dark:text-primary hover:text-primary"
           >
             <Plus className="w-5 h-5" />
           </Button>
@@ -143,7 +143,7 @@ export function Home() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400"
+                className="text-muted-foreground hover:text-primary"
               >
                 <MoreVertical className="w-5 h-5" />
               </Button>
@@ -168,9 +168,9 @@ export function Home() {
 
 
       <IonContent>
-          <IonRefresher  slot="fixed" onIonRefresh={handleRefresh}>
-            <IonRefresherContent></IonRefresherContent>
-          </IonRefresher>
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
         <div className="max-w-2xl mx-auto px-4 pb-20">
           {hasNoRemindersToday ? (
             <EmptyMedicationNowState onAddClick={handleAddMedicationClick} />
@@ -179,9 +179,9 @@ export function Home() {
               {/* Medicamentos Atrasados */}
               {data?.groups.late.length > 0 && (
                 <div>
-                  <div className="sticky top-0 z-40 bg-destructive/10 backdrop-blur-md ">
-                    <div className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400">
-                      <AlertCircle className="w-4 h-8" />
+                  <div className="top-0 z-40 bg-red-500/10 backdrop-blur-md m-2 rounded-md">
+                    <div className="flex items-center gap-2 px-2 py-1 text-red-500">
+                      <Bell className="w-4 h-8" />
                       <span className="text-sm font-medium">Atrasados</span>
                     </div>
                   </div>
@@ -189,26 +189,34 @@ export function Home() {
                   <div >
                     {data.groups.late.map((group) => (
                       <div key={group.time}>
-                        <div className="sticky top-[3rem] z-30  backdrop-blur-md px-4 py-2 bg-destructive/5 ">
-                          <span className="text-lg font-medium text-foreground">
-                            {group.time}
-                          </span>
+                        <div className="sticky top-0 z-30  backdrop-blur-md px-4  bg-red-500/5 rounded-xs ">
+                          <div className='relative h-full '>
+                            <span className=" text-lg font-medium text-foreground">
+                              {group.time}
+                            </span>
+                            <div className='h-3 w-3 bg-background  border-3 border-red-500 rounded-sm absolute -left-5 top-1/2 -translate-y-1/2' />
+                          </div>
                         </div>
 
-                        <IonList className='ion-no-padding p-0 m-0  '>
-                          {group.medications.map((item) => (
-                            <MedicationCard
-                              key={item.reminder.id}
-                              medication={item.medication}
-                              onClick={() => handleMedicationClick(item.medication)}
-                              isLate={true}
-                              showTakeButton
-                              onTake={() => handleTakeMedication(
-                                item.medication.id,
-                                item.reminder.id,
-                                item.reminder.scheduledFor
-                              )}
-                            />
+                        <IonList className='ion-no-padding ion-no-margin p-0 m-0'>
+                          {group.medications.map((item, i) => (
+
+                            <div key={item.reminder.id} className='relative'>
+                              <div className={`h-full w-1 bg-muted-foreground ${i === 0 ? 'rounded-t-2xl' : ''} ${i === group.medications.length - 1 ? 'rounded-b-2xl' : ''} absolute left-0 top-1/2 -translate-y-1/2`} />
+                              <MedicationCard
+                                key={item.reminder.id}
+                                medication={item.medication}
+                                onClick={() => handleMedicationClick(item.medication)}
+                                isLate={true}
+                                showTakeButton
+                                onTake={() => handleTakeMedication(
+                                  item.medication.id,
+                                  item.reminder.id,
+                                  item.reminder.scheduledFor
+                                )}
+                              />
+                            </div>
+
                           ))}
                         </IonList>
                       </div>
@@ -220,24 +228,29 @@ export function Home() {
               {/* Medicamentos Pendentes */}
               {data?.groups.onTime.length > 0 && (
                 <div>
-                  <div className="sticky top-0 z-40 bg-primary/10 backdrop-blur-md ">
-                    <div className="flex items-center gap-2 px-4 py-2 text-violet-600 dark:text-violet-400">
+                  <div className="top-0 z-40 bg-primary/10 backdrop-blur-md m-2 rounded-md">
+                    <div className="flex items-center gap-2 px-2 py-1 text-primary">
                       <Bell className="w-4 h-8" />
                       <span className="text-sm font-medium">Pendentes</span>
                     </div>
                   </div>
 
-                 
-                    {data.groups.onTime.map((group) => (
-                      <div key={group.time}>
-                        <div className="sticky top-[3rem] z-30  backdrop-blur-md px-4 py-2 bg-primary/5 ">
-                          <span className="text-lg font-medium text-foreground">
+
+                  {data.groups.onTime.map((group) => (
+                    <div key={group.time}>
+                      <div className="sticky top-0 z-30  backdrop-blur-md px-4  bg-primary/5 rounded-xs ">
+                        <div className='relative h-full '>
+                          <span className=" text-lg font-medium text-foreground">
                             {group.time}
                           </span>
+                          <div className='h-3 w-3 bg-background  border-3 border-primary rounded-sm absolute -left-5 top-1/2 -translate-y-1/2' />
                         </div>
+                      </div>
 
-                        <IonList className='ion-no-padding p-0 m-0'>
-                          {group.medications.map((item) => (
+                      <IonList style={{ padding: '0px' }}>
+                        {group.medications.map((item, i) => (
+                          <div key={item.reminder.id} className='relative'>
+                            <div className={`h-full w-1 bg-muted-foreground ${i === 0 ? 'rounded-t-2xl' : ''} ${i === group.medications.length - 1 ? 'rounded-b-2xl' : ''} absolute left-0 top-1/2 -translate-y-1/2`} />
                             <MedicationCard
                               key={item.reminder.id}
                               medication={item.medication}
@@ -250,10 +263,11 @@ export function Home() {
                                 item.reminder.scheduledFor
                               )}
                             />
-                          ))}
-                        </IonList>
-                      </div>
-                    ))}
+                          </div>
+                        ))}
+                      </IonList>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -41,7 +41,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
       <div className="space-y-4">
         <Card className="p-4">
           <div className="flex items-start gap-4">
-            <Pill className="w-5 h-5 mt-0.5 text-violet-500" />
+            <Pill className="w-5 h-5 mt-0.5 text-primary" />
             <div className="space-y-1">
               <p className="text-sm font-medium">Dosagem</p>
               <p className="text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export function MedicationDetails({ medication }: MedicationDetailsProps) {
 
         <Card className="p-4">
           <div className="flex items-start gap-4">
-            <Clock className="w-5 h-5 mt-0.5 text-violet-500" />
+            <Clock className="w-5 h-5 mt-0.5 text-primary" />
             <div className="space-y-1">
               <p className="text-sm font-medium">Próximas doses</p>
               <div className="space-y-2">

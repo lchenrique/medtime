@@ -36,7 +36,7 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="outline-none">
+        <button className="outline-hidden">
           <Avatar />
         </button>
       </DropdownMenuTrigger>

@@ -74,7 +74,7 @@ export const Navigation = memo(function Navigation() {
       <nav className="fixed top-0 left-0 bottom-0 hidden md:flex flex-col w-64 p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-r border-gray-200/30">
         <div className="flex items-center gap-3 mb-8">
           <MedTimeIcon className="w-9 h-9 text-violet-600 dark:text-violet-400" />
-          <span className="font-semibold text-lg bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
+          <span className="font-semibold text-lg bg-linear-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
             MedTime
           </span>
         </div>

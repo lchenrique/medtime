@@ -38,7 +38,7 @@ export function AuthCard({ title, children, className }: AuthCardProps) {
         animate="animate"
         exit="exit"
         transition={{ duration: 0.2 }}
-        className="bg-primary/5 rounded-2xl p-5 w-full max-w-md shadow-sm"
+        className="bg-primary/5 rounded-2xl p-5 w-full max-w-md shadow-xs"
       >
         <h2 className="text-xl font-bold text-foreground mb-5">{title}</h2>
         {children}

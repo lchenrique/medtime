@@ -24,7 +24,7 @@ export function StatsCard({
 }: StatsCardProps) {
   return (
     <div className={cn(
-      "bg-white/15 backdrop-blur-sm rounded-2xl p-3 sm:p-4",
+      "bg-white/15 backdrop-blur-xs rounded-2xl p-3 sm:p-4",
       className
     )}>
       <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">

@@ -55,13 +55,13 @@ export function UpdateStockForm({ medication }: { medication: GetMedications200I
     return (
         <div>
             <div className="mb-4">
-                <label htmlFor="newQuantity" className="block text-sm font-medium text-foreground">
+                <label htmlFor="newQuantity" className="block text-sm font-medium text-foreground mb-2">
                     Nova Quantidade
                 </label>
                 <Input
                     type="number"
                     id="newQuantity"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-300 focus:ring-3 focus:ring-indigo-200 focus:ring-opacity-50"
                     value={newQuantity}
                     onChange={(e) => setNewQuantity(parseInt(e.target.value))}
                 />

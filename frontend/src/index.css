@@ -1,84 +1,170 @@
-@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&display=swap') layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
- 
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-alexandria: Alexandria, sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+
+  @media (width >=--theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+
+  @media (width >=1400px) {
+    max-width: 1400px;
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-
+    --background: 100 0% 100%;
+    --foreground: 199 74% 0%;
+    --muted: 199 10% 90%;
+    --muted-foreground: 199 2% 25%;
+    --popover: 199 51% 98%;
+    --popover-foreground: 199 74% 0%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
- 
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 98%;
- 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
- 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
- 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 262 83% 58%;
- 
+    --card-foreground: 0 0% 0%;
+    --border: 199 11% 89%;
+    --input: 199 11% 89%;
+    --primary: 199 64% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 17% 86%;
+    --secondary-foreground: 199 17% 26%;
+    --accent: 199 17% 86%;
+    --accent-foreground: 199 17% 26%;
+    --destructive: 6 95% 21%;
+    --destructive-foreground: 6 95% 81%;
+    --ring: 199 64% 39%;
+    --chart-1: 199 64% 39%;
+    --chart-2: 199 17% 86%;
+    --chart-3: 199 17% 86%;
+    --chart-4: 199 17% 89%;
+    --chart-5: 199 67% 39%;
     --radius: 0.5rem;
-
-
-    /* Variáveis do Ionic */
-    --ion-color-primary: hsl(var(--primary));
-    --ion-color-primary-contrast: hsl(var(--primary-foreground));
-    --ion-text-color: hsl(var(--foreground));
-    --ion-toolbar-background: hsl(var(--background));
-    --ion-toolbar-color: hsl(var(--foreground));
-    --ion-item-background: hsl(var(--background)) !important;
-    --ion-border-color: hsl(var(--border));
-    --ion-background-color: hsl(var(--background)) !important;
   }
- 
+
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
- 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
- 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
- 
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 98%;
- 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
- 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
- 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
- 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262 83% 58%;
+    --background: 199 56% 0%;
+    --foreground: 199 21% 100%;
+    --muted: 199 10% 10%;
+    --muted-foreground: 199 2% 75%;
+    --popover: 199 56% 0%;
+    --popover-foreground: 199 21% 100%;
+    --card: 0 0% 1%;
+    --card-foreground: 0 0% 100%;
+    --border: 199 11% 10%;
+    --input: 199 11% 10%;
+    --primary: 199 64% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 14% 12%;
+    --secondary-foreground: 199 14% 72%;
+    --accent: 199 14% 12%;
+    --accent-foreground: 199 14% 72%;
+    --destructive: 6 95% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 199 64% 39%;
+    --chart-1: 199 64% 39%;
+    --chart-2: 199 14% 12%;
+    --chart-3: 199 14% 12%;
+    --chart-4: 199 14% 15%;
+    --chart-5: 199 67% 39%;
+  }
+}
 
-   
 
+
+
+
+
+
+@layer base {
+  :root {
+
+      /* Variáveis do Ionic */
+      --ion-color-primary: hsl(var(--primary));
+      --ion-color-primary-contrast: hsl(var(--primary-foreground));
+      --ion-text-color: hsl(var(--foreground));
+      --ion-toolbar-background: hsl(var(--background));
+      --ion-toolbar-color: hsl(var(--foreground));
+      --ion-item-background: hsl(var(--background)) !important;
+      --ion-border-color: hsl(var(--border));
+      --ion-background-color: hsl(var(--background)) !important;
+  }
+
+  .dark {
     /* Variáveis do Ionic - Tema Escuro */
     --ion-color-primary: hsl(var(--primary));
     --ion-color-primary-contrast: hsl(var(--primary-foreground));
@@ -89,12 +175,11 @@
     --ion-border-color: hsl(var(--border));
     --ion-item-background: hsl(var(--background)) !important;
   }
-}
- 
-@layer base {
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -210,13 +295,13 @@ ion-toast.custom-toast::part(button) {
 
 /* Success Toast */
 ion-toast.custom-toast.success {
-  --background: theme(colors.emerald.200);
-  --color: theme(colors.emerald.900);
+  --background: var(--color-emerald-200);
+  --color: var(--color-emerald-900);
 }
 
 .dark ion-toast.custom-toast.success {
-  --background: theme(colors.emerald.950);
-  --color: theme(colors.emerald.300);
+  --background: var(--color-emerald-950);
+  --color: var(--color-emerald-300);
 }
 
 
@@ -284,5 +369,3 @@ ion-modal#modal {
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
   --backdrop-opacity: var(--ion-backdrop-opacity, 0.5);
 }
-
-

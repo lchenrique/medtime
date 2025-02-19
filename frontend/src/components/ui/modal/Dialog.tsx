@@ -21,7 +21,7 @@ export function Dialog() {
     <IonModal id="dialog" isOpen={isOpen} onIonModalDidDismiss={close}  >
       <IonHeader className='ion-no-border'>
         <IonToolbar >
-          <IonTitle>{title}</IonTitle>
+          <IonTitle className='px-3'>{title}</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={close}>
               <X className="w-5 h-5" />
@@ -30,7 +30,7 @@ export function Dialog() {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        <div className="flex flex-col gap-4 p-6">
+        <div className="flex flex-col gap-4 px-6">
           {content}
         </div>
       </IonContent>

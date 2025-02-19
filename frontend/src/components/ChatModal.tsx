@@ -70,7 +70,7 @@ export function ChatModal() {
         <div className="flex gap-2 mt-2">
           <Input
             type="text"
-            className="flex-1 border rounded-xl p-2 focus:outline-none h-12"
+            className="flex-1 border rounded-xl p-2 focus:outline-hidden h-12"
             placeholder="Digite uma mensagem..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
